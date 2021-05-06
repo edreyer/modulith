@@ -1,0 +1,12 @@
+package ventures.dvx.config
+
+import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
+import com.fasterxml.jackson.databind.ObjectMapper
+import org.springframework.context.annotation.Configuration
+
+@Configuration
+class JacksonConfig(objectMapper: ObjectMapper) {
+  init {
+    objectMapper.setSerializationInclusion(NON_NULL);
+  }
+}
