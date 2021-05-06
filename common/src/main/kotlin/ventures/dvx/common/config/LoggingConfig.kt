@@ -1,4 +1,4 @@
-package ventures.dvx.config
+package ventures.dvx.common.config
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Scope
  * From: https://medium.com/simars/inject-loggers-in-spring-java-or-kotlin-87162d02d068
  */
 @Configuration
-class LoggingConfiguration {
+class LoggingConfig {
 
   @Bean
   @Scope("prototype")

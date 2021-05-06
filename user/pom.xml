@@ -21,5 +21,11 @@
             <groupId>ventures.dvx</groupId>
             <artifactId>common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ventures.dvx</groupId>
+            <artifactId>common</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>

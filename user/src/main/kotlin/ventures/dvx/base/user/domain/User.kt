@@ -1,10 +1,14 @@
 package ventures.dvx.base.user.domain
 
 import arrow.core.*
-import ventures.dvx.base.user.adapter.out.persistence.Role
 import ventures.dvx.common.types.EmailAddress
 import ventures.dvx.common.types.NonEmptyString
 import ventures.dvx.common.types.ValidationError
+
+enum class Role {
+  ROLE_USER,
+  ROLE_ADMIN
+}
 
 sealed class User
 
