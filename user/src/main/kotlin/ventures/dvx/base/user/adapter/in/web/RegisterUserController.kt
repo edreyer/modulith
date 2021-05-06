@@ -1,17 +1,16 @@
 package ventures.dvx.base.user.adapter.`in`.web
 
 import arrow.core.Nel
+import ventures.dvx.common.mapping.DataClassMapper
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
-import ventures.dvx.base.user.application.port.`in`.RegisterUserError
 import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserExistsError
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
 import ventures.dvx.base.user.application.port.`in`.RegisterUserUseCase
-import ventures.dvx.common.mapping.DataClassMapper
 import javax.validation.Valid
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty

@@ -10,7 +10,6 @@ import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserR
 import ventures.dvx.base.user.application.port.out.FindUserPort
 import ventures.dvx.base.user.application.port.out.SaveUserPort
 import ventures.dvx.base.user.domain.UnregisteredUser
-import ventures.dvx.common.types.ValidationError
 
 @Component
 class RegisterUserUseCaseImpl(
