@@ -32,11 +32,10 @@ class DataClassMapper<I : Any, O : Any>(private val inType: KClass<I>, private v
   private val inPropertiesByName by lazy { inType.memberProperties.associateBy { it.name } }
 
   private fun argFor(parameter: KParameter, data: I): Any? {
-    // get value from input data or apply a default value to the target class
-    val value = inPropertiesByName[parameter.name]?.get(data) ?: return targetParameterProviders[parameter.name]?.invoke()
+    val provided = targetParameterProviders[parameter.name]?.invoke()
+    val rawSourceValue = inPropertiesByName[parameter.name]?.get(data)
 
-    // if a special mapper is registered, use it, otherwise keep value
-    return fieldMappers[parameter.name]?.invoke(value) ?: value
+    return provided ?: rawSourceValue?.let { fieldMappers[parameter.name]?.invoke(it) } ?: rawSourceValue
   }
 
   inline fun <reified S : Any, reified T : Any> register(parameterName: String, crossinline mapper: Mapper<S, T>): DataClassMapper<I, O> = apply {

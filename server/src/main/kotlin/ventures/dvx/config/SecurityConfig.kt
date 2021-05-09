@@ -17,6 +17,7 @@ import org.springframework.security.web.server.authorization.AuthorizationContex
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import reactor.core.publisher.Mono
 import ventures.dvx.base.user.adapter.out.persistence.UserRepository
+import ventures.dvx.security.JwtProperties
 import ventures.dvx.security.JwtTokenAuthenticationFilter
 import ventures.dvx.security.JwtTokenProvider
 
@@ -28,6 +29,10 @@ import ventures.dvx.security.JwtTokenProvider
 @Configuration
 @EnableWebFluxSecurity
 class SecurityConfig {
+
+  @Bean
+  fun jwtTokenProvider(jwtProperties: JwtProperties) : JwtTokenProvider =
+    JwtTokenProvider(jwtProperties)
 
   @Bean
   fun springWebFilterChain(

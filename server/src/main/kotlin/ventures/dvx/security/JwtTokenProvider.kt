@@ -1,31 +1,28 @@
 package ventures.dvx.security
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.slf4j.Logger
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.stereotype.Component;
+import io.jsonwebtoken.Claims
+import io.jsonwebtoken.Jws
+import io.jsonwebtoken.JwtException
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.security.Keys
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.security.core.userdetails.User
+import ventures.dvx.common.logging.LoggerDelegate
+import java.util.*
+import javax.annotation.PostConstruct
+import javax.crypto.SecretKey
 
-import java.util.Base64;
-import java.util.Date;
-import javax.annotation.PostConstruct;
-import javax.crypto.SecretKey;
-
-@Component
 class JwtTokenProvider(
-  private val log: Logger,
   private val jwtProperties: JwtProperties
 ) {
 
-  private var secretKey: SecretKey? = null
+  private val logger by LoggerDelegate()
+
+  private lateinit var secretKey: SecretKey
 
   companion object {
     private const val AUTHORITIES_KEY = "roles"
@@ -76,11 +73,11 @@ class JwtTokenProvider(
         .parseClaimsJws(token)
       return !claims.body.expiration.before(Date())
     } catch (e: JwtException) {
-      log.info("Invalid JWT token.")
-      log.trace("Invalid JWT token trace.", e)
+      logger.info("Invalid JWT token.")
+      logger.trace("Invalid JWT token trace.", e)
     } catch (e: IllegalArgumentException) {
-      log.info("Invalid JWT token.")
-      log.trace("Invalid JWT token trace.", e)
+      logger.info("Invalid JWT token.")
+      logger.trace("Invalid JWT token trace.", e)
     }
     return false
   }

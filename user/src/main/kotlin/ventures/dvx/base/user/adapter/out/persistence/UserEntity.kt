@@ -10,7 +10,5 @@ data class UserEntity(
   val username: String,
   val password: String,
   val roles: List<Role>,
-  val active: Boolean = true,
-  val bio: String? = null,
-  val image: String? = null
+  val active: Boolean = true
 )

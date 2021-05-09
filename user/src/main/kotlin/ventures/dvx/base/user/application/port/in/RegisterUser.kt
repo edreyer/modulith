@@ -2,6 +2,7 @@ package ventures.dvx.base.user.application.port.`in`
 
 import arrow.core.Either
 import arrow.core.Nel
+import ventures.dvx.common.types.ValidationError
 
 // Input
 
@@ -23,6 +24,7 @@ sealed class RegisterUserEvent {
 
 sealed class RegisterUserError {
   data class UserExistsError(val error: String) : RegisterUserError()
+  data class UserValidationErrors(val errors: Nel<ValidationError>) : RegisterUserError()
 }
 
 // Use Case
