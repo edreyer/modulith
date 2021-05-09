@@ -32,9 +32,8 @@ class DependencyRuleTests {
       )
   }
 
-
   @Test
-  fun testPackageDependencies() {
+  fun testDomainPackageDependencies() {
     noClasses()
       .that()
       .resideInAPackage("ventures.dvx.base.user.domain..")
@@ -46,4 +45,19 @@ class DependencyRuleTests {
           .importPackages("ventures.dvx.base.user..")
       )
   }
+
+  @Test
+  fun testUseCasePackageDependencies() {
+    noClasses()
+      .that()
+      .resideInAPackage("ventures.dvx.base.user.application.usecase..")
+      .should()
+      .dependOnClassesThat()
+      .resideInAnyPackage("ventures.dvx.base.user.adapter..")
+      .check(
+        ClassFileImporter()
+          .importPackages("ventures.dvx.base.user..")
+      )
+  }
+
 }
