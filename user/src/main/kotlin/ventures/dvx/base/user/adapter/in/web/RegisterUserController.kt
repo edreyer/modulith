@@ -27,7 +27,7 @@ data class RegisterUserInputDto(
 
 sealed class RegisterUserOutputDto
 data class RegisteredUserDto(val username: String, val email: String) : RegisterUserOutputDto()
-data class RegisterUserErrorsDto(val errors: Nel<String>) : RegisterUserOutputDto()
+data class RegisterUserErrorsDto(val errors: List<String>) : RegisterUserOutputDto()
 
 @RestController
 class RegisterUserController(
@@ -52,11 +52,11 @@ fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
 
 fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
   DataClassMapper<UserExistsError, RegisterUserErrorsDto>()
-    .targetParameterSupplier("errors") { this.error.nel() } (this)
+    .targetParameterSupplier("errors") { listOf(this.error) } (this)
 
 fun UserValidationErrors.toOutputDto(): RegisterUserOutputDto =
   DataClassMapper<UserValidationErrors, RegisterUserErrorsDto>()
-    .targetParameterSupplier("errors") { this.errors.map { it.error } } (this)
+    .targetParameterSupplier("errors") { this.errors.map { it.error }.toList() } (this)
 
 fun Nel<RegisterUserEvent>.toOutputDto(): RegisterUserOutputDto = this
   .filterIsInstance<ValidUserRegistration>()

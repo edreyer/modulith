@@ -1,6 +1,8 @@
 package ventures.dvx.common.types
 
+import arrow.core.NonEmptyList
 import arrow.core.ValidatedNel
+import arrow.core.invalid
 import arrow.core.invalidNel
 import arrow.core.validNel
 import org.valiktor.ConstraintViolationException
@@ -59,8 +61,8 @@ internal inline fun <reified T> ensure(ensureFn: () -> T): ValidatedNel<Validati
   ex
     .constraintViolations
     .mapToMessage()
-    .joinToString("\n") { "\t\"${it.value}\" of ${T::class.simpleName}.${it.property}: ${it.message}" }
-    .let {
-      ValidationError(it).invalidNel()
-    }
+    .map { "'${it.value}' of ${T::class.simpleName}.${it.property}: ${it.message}" }
+    .map { ValidationError(it) }
+    .let { NonEmptyList.fromListUnsafe(it).invalid() }
+
 }

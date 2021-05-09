@@ -1,5 +1,7 @@
 package ventures.dvx.user
 
+import arrow.core.NonEmptyList
+import arrow.core.nel
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.restassured.RestAssured.given
 import io.restassured.http.ContentType
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import ventures.dvx.base.user.adapter.`in`.web.RegisterUserErrorsDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisteredUserDto
 
@@ -52,17 +55,33 @@ class UseRegistrationTest {
     assertThat(actual).isEqualTo(expected)
   }
 
-  private fun get(path: String, token: String? = null): Response {
-    var spec = given().baseUri("http://localhost:${port}")
-    if (token != null) {
-      spec = spec.header("Authorization", "Bearer ${token}")
-    }
-    return spec.get(path)
+  @Test
+  fun `register invalid user`() {
+    val regReq = testUser.copy(username = "", email = "")
+    val expected = RegisterUserErrorsDto(
+      errors = listOf(
+        """'' of NonEmptyString.value: Must not be empty""",
+        """'' of EmailAddress.value: Must not be empty""",
+        """'' of EmailAddress.value: Must be a valid email address"""
+      )
+    )
+    val actual = post("/auth/register", regReq)
+      .then()
+      .statusCode(400)
+      .extract().`as`(RegisterUserErrorsDto::class.java)
+    assertThat(actual).isEqualTo(expected)
   }
 
-  private fun post(path: String, body: Any): Response {
-    return given().baseUri("http://localhost:${port}").contentType(ContentType.JSON).body(body).post(path)
-  }
+  private fun get(path: String, token: String? = null): Response =
+    given().baseUri("http://localhost:${port}").apply {
+      token?.let {
+        this.header("Authorization", "Bearer ${token}")
+      }
+    }.get(path)
+
+  private fun post(path: String, body: Any): Response =
+    given().baseUri("http://localhost:${port}").contentType(ContentType.JSON).body(body).post(path)
+
 
   private fun asJson(payload: Any) : String = objectMapper.writeValueAsString(payload)
 
