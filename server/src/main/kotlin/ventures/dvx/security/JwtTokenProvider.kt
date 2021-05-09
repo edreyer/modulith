@@ -6,6 +6,7 @@ import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import org.slf4j.Logger
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
@@ -16,13 +17,13 @@ import java.util.*
 import javax.annotation.PostConstruct
 import javax.crypto.SecretKey
 
-class JwtTokenProvider(
+open class JwtTokenProvider(
   private val jwtProperties: JwtProperties
 ) {
 
   private val logger by LoggerDelegate()
 
-  private lateinit var secretKey: SecretKey
+  private var secretKey: SecretKey? = null
 
   companion object {
     private const val AUTHORITIES_KEY = "roles"
