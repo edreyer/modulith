@@ -34,7 +34,7 @@ class RegisterUserController(
   private val registerUserUseCase: RegisterUserUseCase
 ) {
 
-  @PostMapping("/auth/register")
+  @PostMapping("/user/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
   : ResponseEntity<RegisterUserOutputDto> =
     registerUserUseCase(registerUser.toCommand())

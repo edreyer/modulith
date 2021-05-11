@@ -21,6 +21,7 @@ sealed class RegisterUserEvent {
   ) : RegisterUserEvent()
 }
 
+// Errors
 
 sealed class RegisterUserError {
   data class UserExistsError(val error: String) : RegisterUserError()

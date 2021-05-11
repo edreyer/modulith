@@ -17,8 +17,7 @@ class RegisterUserUseCaseImpl(
 ) : RegisterUserUseCase {
 
   override suspend operator fun invoke(cmd: RegisterUserCommand) :
-    Either<RegisterUserError, Nel<RegisterUserEvent>> =
-    either {
+    Either<RegisterUserError, Nel<RegisterUserEvent>> = either {
       val unregisteredUser = validateNewUser(cmd).bind()
       val savedUser = saveNewUserPort.saveNewUser(unregisteredUser)
       ValidUserRegistration(savedUser.username.value, savedUser.email.value).nel()

@@ -1,7 +1,7 @@
 package ventures.dvx.base.user.adapter.out.persistence
 
 /** Temporary class until we move to Spring Data Jdbc */
-class InMemoryUserRepository : UserRepository {
+internal class InMemoryUserRepository : UserRepository {
 
   private val usersByEmail: MutableMap<String, UserEntity> = mutableMapOf();
 
