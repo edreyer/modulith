@@ -28,7 +28,7 @@ Nothing is inherently wrong with this, but a layered architecture has too many
 open flanks that allow bad habits to creep in and make the software increasingly 
 harder to change over time.
 
-* **It promotes DB-drive design**
+* **It promotes DB-driven design**
     * By its very definition, the foundation of a conventional layered architecture is the database
     * This creates a strong coupling between the persistence layer and the domain layer.
     * The persistence code is virtually fused into the domain code and thus it’s hard to change 
@@ -110,3 +110,5 @@ with some notable changes, outlined here
     
     
 ## Algebraic Data Types in `dvx-base`
+
+TODO
