@@ -1,10 +1,30 @@
 ---
 spring:
+
   datasource:
     url: jdbc:postgresql://localhost:5432/dvx_app
     driver-class-name: org.postgresql.Driver
     username: postgres
     password:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      jdbc-url: jdbc:postgresql://localhost:5432/dvx_app
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: validate
+      hibernate.format_sql: false
+    generate-ddl: false
+    show-sql: false
+
+  flyway:
+    enabled: true
+    user: postgres
+    password:
+
   jackson:
 #    deserialization.UNWRAP_ROOT_VALUE: true
     serialization:
