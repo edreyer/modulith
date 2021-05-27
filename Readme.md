@@ -66,6 +66,19 @@ user: Name of your bounded context (in this case, "user")
       out: Typically interfaces called by the core for "driven" operations
 ```
 
+## Running the application
+
+This Spring Boot application relies on Axon Server.
+To run that, execute the following before starting the Spring Boot application:
+
+```bash
+docker pull axoniq/axonserver
+docker run -d --name axonserver -p 8024:8024 -p 8124:8124 axoniq/axonserver
+```
+
+Then you can run the application inside of IntelliJ
+
+
 ### How does this layout help build maintainable software?
 
 Name it Clean Architecture, Hexagonal Architecture or Ports and Adapters Architecture - 
