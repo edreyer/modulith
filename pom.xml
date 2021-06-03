@@ -29,7 +29,7 @@
 
     <modules>
         <module>server</module>
-        <module>user</module>
+        <module>user-hex</module>
         <module>common</module>
     </modules>
 
@@ -100,6 +100,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
@@ -139,7 +144,7 @@
             </dependency>
             <dependency>
                 <groupId>ventures.dvx</groupId>
-                <artifactId>user</artifactId>
+                <artifactId>user-hex</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
