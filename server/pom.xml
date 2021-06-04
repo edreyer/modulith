@@ -27,6 +27,10 @@
             <groupId>ventures.dvx</groupId>
             <artifactId>user-hex</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ventures.dvx</groupId>
+            <artifactId>user</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>

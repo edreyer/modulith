@@ -1,4 +1,8 @@
 ---
+#logging:
+#  level:
+#    org.springframework: TRACE
+
 spring:
 
   datasource:

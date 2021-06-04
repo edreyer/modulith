@@ -40,7 +40,9 @@ class AxonConfig {
     eventProcessingConfigurer: EventProcessingConfigurer,
     loggingInterceptor: LoggingInterceptor<Message<*>>
   ) {
-    eventProcessingConfigurer.registerDefaultHandlerInterceptor { config: org.axonframework.config.Configuration, processorName: String -> loggingInterceptor }
+    eventProcessingConfigurer.registerDefaultHandlerInterceptor {
+        config: org.axonframework.config.Configuration, processorName: String -> loggingInterceptor
+    }
   }
 
   @Autowired
@@ -51,7 +53,7 @@ class AxonConfig {
 
   @Bean
   @Profile("command")
-  fun giftCardCache(): Cache {
+  fun axonCache(): Cache {
     return WeakReferenceCache()
   }
 }

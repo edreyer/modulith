@@ -29,12 +29,12 @@ sealed class RegisterUserOutputDto
 data class RegisteredUserDto(val username: String, val email: String) : RegisterUserOutputDto()
 data class RegisterUserErrorsDto(val errors: List<String>) : RegisterUserOutputDto()
 
-@RestController
+//@RestController
 class RegisterUserController(
   private val registerUserUseCase: RegisterUserUseCase
 ) {
 
-  @PostMapping("/user/register")
+  @PostMapping("/user-hex/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
   : ResponseEntity<RegisterUserOutputDto> =
     registerUserUseCase(registerUser.toCommand())
