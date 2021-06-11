@@ -1,4 +1,4 @@
-create table end_users
+create table if not exists end_users
 (
     id varchar(36)
         constraint end_users_pk
@@ -9,6 +9,6 @@ create table end_users
     lastName varchar(100) not null
 );
 
+drop index if exists end_users_msisdn_uindex;
 create unique index end_users_msisdn_uindex
     on end_users (msisdn);
-

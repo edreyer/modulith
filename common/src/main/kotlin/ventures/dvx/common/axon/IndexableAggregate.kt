@@ -1,6 +1,12 @@
 package ventures.dvx.common.axon
 
-interface WithKey {
+interface IndexableAggregate {
+
+  /**
+   * The type of the aggregate
+   */
+  val aggregateName: String
+    get() = this.javaClass.simpleName
 
   /**
    * Most (all?) aggregates have business data that makes that aggregate unique.
@@ -14,5 +20,14 @@ interface WithKey {
    * This method should return a string that makes this aggregate instance unique within the
    * aggregate class.
    */
-  fun businessKey(): String
+  val businessKey: String
+
 }
+
+interface IndexableAggregateEvent {
+  val ia: IndexableAggregateDto
+}
+data class IndexableAggregateDto(
+  val aggregateName: String,
+  val businessKey: String
+)

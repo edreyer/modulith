@@ -24,7 +24,6 @@ class BaseWebTest {
   @LocalServerPort
   lateinit var port: Integer
 
-
   protected fun registerUser(newUser: RegisterUserInputDto) =
     post("/user/register", newUser)
       .then()

@@ -7,7 +7,9 @@ import org.springframework.boot.runApplication
 @SpringBootApplication(
   scanBasePackages = ["ventures.dvx"]
 )
-@ConfigurationPropertiesScan
+@ConfigurationPropertiesScan(
+  basePackages = ["ventures.dvx"]
+)
 class DvxApplication
 
 fun main(args: Array<String>) {

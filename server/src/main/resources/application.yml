@@ -19,14 +19,14 @@ spring:
       repositories:
         enabled: true
 
-#  jpa:
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.PostgreSQLDialect
-#        ddl-auto: validate
-#      hibernate.format_sql: false
-#    generate-ddl: false
-#    show-sql: false
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: validate
+      hibernate.format_sql: false
+    generate-ddl: false
+    show-sql: false
 
   flyway:
     enabled: true
@@ -44,3 +44,7 @@ security:
     token:
       secretKey: ThisIsSecretForJWTHS512SignatureAlgorithmThatMUSTHave64ByteLength
       validityInMs: 3600000 # 1 HOUR
+
+axon:
+  eventhandling:
+    processors[indexEntity].mode: subscribing

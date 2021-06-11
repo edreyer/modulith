@@ -42,7 +42,7 @@ class AuthController(
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
         val tokenBody = SuccessfulLogin(it)
         ResponseEntity(tokenBody, headers, HttpStatus.OK)
-      }.onErrorResume { ex ->
+      }.onErrorResume { _ ->
         logger.debug("Failed to login with: $loginDto")
         Mono.just(ResponseEntity.badRequest().body(
           LoginError("Unknown user: ${loginDto.username}")

@@ -41,7 +41,8 @@ class RegisterUserController(
 }
 
 fun RegisterEndUserInputDto.toCommand(): RegisterUserCommand =
-  DataClassMapper<RegisterEndUserInputDto, RegisterUserCommand>()(this)
+  DataClassMapper<RegisterEndUserInputDto, RegisterUserCommand>()
+    .targetParameterSupplier(RegisterUserCommand::id) { UUID.randomUUID() }(this)
 
 //fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
 //  DataClassMapper<UserExistsError, RegisterUserErrorsDto>()

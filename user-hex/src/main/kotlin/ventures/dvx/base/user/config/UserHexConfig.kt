@@ -14,7 +14,7 @@ import ventures.dvx.base.user.application.usecase.FindUserUseCaseImpl
 import ventures.dvx.base.user.application.usecase.RegisterUserUseCaseImpl
 
 @Configuration
-class UserConfig {
+class UserHexConfig {
 
   @Bean
   fun userRepository(): UserRepository = InMemoryUserRepository()

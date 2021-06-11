@@ -1,8 +1,6 @@
 package ventures.dvx.config
 
 import org.axonframework.commandhandling.CommandBus
-import org.axonframework.common.caching.Cache
-import org.axonframework.common.caching.WeakReferenceCache
 import org.axonframework.config.EventProcessingConfigurer
 import org.axonframework.eventhandling.EventBus
 import org.axonframework.messaging.Message
@@ -11,11 +9,11 @@ import org.axonframework.queryhandling.QueryBus
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Profile
 
 
 @Configuration
 class AxonConfig {
+
   @Bean
   fun loggingInterceptor(): LoggingInterceptor<Message<*>> {
     return LoggingInterceptor()
@@ -41,7 +39,7 @@ class AxonConfig {
     loggingInterceptor: LoggingInterceptor<Message<*>>
   ) {
     eventProcessingConfigurer.registerDefaultHandlerInterceptor {
-        config: org.axonframework.config.Configuration, processorName: String -> loggingInterceptor
+        _: org.axonframework.config.Configuration, _: String -> loggingInterceptor
     }
   }
 
@@ -51,9 +49,4 @@ class AxonConfig {
     queryBus.registerHandlerInterceptor(loggingInterceptor)
   }
 
-  @Bean
-  @Profile("command")
-  fun axonCache(): Cache {
-    return WeakReferenceCache()
-  }
 }

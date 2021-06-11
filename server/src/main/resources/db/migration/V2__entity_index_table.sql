@@ -1,4 +1,4 @@
-create table index_entity
+create table if not exists index_entity
 (
     id varchar(36)
         constraint index_entity_pk
@@ -7,6 +7,7 @@ create table index_entity
     key varchar(500) not null
 );
 
+drop index if exists index_entity_aggregate_name_key_uindex;
 create unique index index_entity_aggregate_name_key_uindex
     on index_entity (aggregate_name, key);
 
