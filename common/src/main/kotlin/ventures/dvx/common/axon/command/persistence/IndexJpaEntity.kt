@@ -1,5 +1,6 @@
 package ventures.dvx.common.axon.command.persistence
 
+import java.util.*
 import javax.persistence.Entity
 import javax.persistence.Id
 import javax.persistence.Table
@@ -8,7 +9,7 @@ import javax.persistence.Table
 @Table(name = "index_entity")
 data class IndexJpaEntity(
   @Id
-  val id: String = IdGenerator.newId(),
+  val id: UUID = UUID.randomUUID(),
   val aggregateName: String,
   val key: String
 )

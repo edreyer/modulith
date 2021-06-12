@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.RegisterUserCommand
 import ventures.dvx.common.mapping.DataClassMapper
 import ventures.dvx.common.validation.Msisdn
@@ -23,7 +24,7 @@ data class RegisterEndUserInputDto(
 )
 
 sealed class RegisterUserOutputDto
-data class RegisteredUserDto(val id: UUID) : RegisterUserOutputDto()
+data class RegisteredUserDto(val id: EndUserId) : RegisterUserOutputDto()
 
 @RestController
 class RegisterUserController(
@@ -33,7 +34,7 @@ class RegisterUserController(
   @PostMapping(path = ["/user/register"])
   suspend fun register(@Valid @RequestBody input: RegisterEndUserInputDto)
   : ResponseEntity<RegisteredUserDto> {
-    return commandGateway.send<UUID>(input.toCommand())
+    return commandGateway.send<EndUserId>(input.toCommand())
       .thenApply { ResponseEntity.ok(RegisteredUserDto(it)) }
       .get()
   }
@@ -41,19 +42,4 @@ class RegisterUserController(
 }
 
 fun RegisterEndUserInputDto.toCommand(): RegisterUserCommand =
-  DataClassMapper<RegisterEndUserInputDto, RegisterUserCommand>()
-    .targetParameterSupplier(RegisterUserCommand::id) { UUID.randomUUID() }(this)
-
-//fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
-//  DataClassMapper<UserExistsError, RegisterUserErrorsDto>()
-//    .targetParameterSupplier("errors") { listOf(this.error) } (this)
-//
-//fun UserValidationErrors.toOutputDto(): RegisterUserOutputDto =
-//  DataClassMapper<UserValidationErrors, RegisterUserErrorsDto>()
-//    .targetParameterSupplier("errors") { this.errors.map { it.error }.toList() } (this)
-//
-//fun Nel<RegisterUserEvent>.toOutputDto(): RegisterUserOutputDto = this
-//  .filterIsInstance<ValidUserRegistration>()
-//  .map { DataClassMapper<ValidUserRegistration, RegisteredUserDto>()(it) }
-//  .first()
-//
+  DataClassMapper<RegisterEndUserInputDto, RegisterUserCommand>()(this)

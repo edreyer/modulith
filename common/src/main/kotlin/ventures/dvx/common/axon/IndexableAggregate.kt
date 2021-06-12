@@ -1,7 +1,6 @@
 package ventures.dvx.common.axon
 
-interface IndexableAggregate {
-
+abstract class IndexableAggregate {
   /**
    * The type of the aggregate
    */
@@ -20,8 +19,7 @@ interface IndexableAggregate {
    * This method should return a string that makes this aggregate instance unique within the
    * aggregate class.
    */
-  val businessKey: String
-
+  abstract val businessKey: String
 }
 
 interface IndexableAggregateEvent {

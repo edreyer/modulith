@@ -5,18 +5,21 @@ import org.axonframework.eventsourcing.EventSourcingHandler
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
 import org.axonframework.spring.stereotype.Aggregate
+import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.RegisterUserCommand
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
-import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.error.PreconditionFailedException
+import ventures.dvx.common.mapping.DataClassMapper
 import java.util.*
 
 @Aggregate(cache = "userCache")
-class EndUser() : IndexableAggregate {
+class EndUser() : User() {
 
   @AggregateIdentifier
-  private lateinit var userId: UUID
+  private lateinit var id: EndUserId
+
   private lateinit var msisdn: String
   private lateinit var email :String
   private lateinit var firstName :String
@@ -31,11 +34,11 @@ class EndUser() : IndexableAggregate {
     indexRepository: IndexRepository
   ) : this() {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
-      ?.let { throw IllegalStateException("User already exists with msisdn: ${command.msisdn}") }
+      ?.let { throw PreconditionFailedException("User already exists with msisdn: ${command.msisdn}") }
 
     apply(UserRegistrationStartedEvent(
       ia = IndexableAggregateDto(aggregateName, command.msisdn),
-      userId = command.id,
+      userId = EndUserId(),
       msisdn = command.msisdn,
       email = command.email,
       firstName = command.firstName,
@@ -44,12 +47,14 @@ class EndUser() : IndexableAggregate {
   }
 
   @EventSourcingHandler
-  fun on(event: UserRegistrationStartedEvent): UUID {
-    userId = event.userId
+  private fun on(event: UserRegistrationStartedEvent): EndUserId {
+    id = event.userId
+
     msisdn = event.msisdn
     email = event.email
     firstName = event.firstName
     lastName = event.lastName
-    return userId
+
+    return id
   }
 }

@@ -14,7 +14,8 @@ import org.valiktor.validate
 
 data class ValidationError(val error: String)
 
-inline class NonEmptyString private constructor(val value: String) {
+@JvmInline
+value class NonEmptyString private constructor(val value: String) {
   companion object {
     fun of(value: String): ValidatedNel<ValidationError, NonEmptyString> = ensure {
       validate(NonEmptyString(value)) {
@@ -24,7 +25,8 @@ inline class NonEmptyString private constructor(val value: String) {
   }
 }
 
-inline class EmailAddress private constructor(val value: String) {
+@JvmInline
+value class EmailAddress private constructor(val value: String) {
   companion object {
     fun of(value: String): ValidatedNel<ValidationError, EmailAddress> = ensure {
       validate(EmailAddress(value)) {
@@ -35,7 +37,8 @@ inline class EmailAddress private constructor(val value: String) {
   }
 }
 
-inline class PostalCode private constructor(val value: String) {
+@JvmInline
+value class PostalCode private constructor(val value: String) {
   companion object {
     fun of(value: String): ValidatedNel<ValidationError, PostalCode> = ensure {
       validate(PostalCode(value)) {
@@ -45,7 +48,8 @@ inline class PostalCode private constructor(val value: String) {
   }
 }
 
-inline class Msisdn private constructor(val value: String) {
+@JvmInline
+value class Msisdn private constructor(val value: String) {
   companion object {
     fun of(value: String): ValidatedNel<ValidationError, Msisdn> = ensure {
       validate(Msisdn(value)) {

@@ -1,6 +1,6 @@
 create table if not exists index_entity
 (
-    id varchar(36)
+    id uuid
         constraint index_entity_pk
             primary key,
     aggregate_name varchar(100) not null,
