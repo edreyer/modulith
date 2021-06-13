@@ -8,11 +8,13 @@ import org.axonframework.spring.stereotype.Aggregate
 import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.RegisterUserCommand
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
+import ventures.dvx.base.user.api.ValidTokenEvent
+import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
-import ventures.dvx.common.error.PreconditionFailedException
-import ventures.dvx.common.mapping.DataClassMapper
-import java.util.*
+import ventures.dvx.common.error.ApplicationException
+import java.time.Clock
+import java.time.temporal.ChronoUnit
 
 @Aggregate(cache = "userCache")
 class EndUser() : User() {
@@ -25,6 +27,8 @@ class EndUser() : User() {
   private lateinit var firstName :String
   private lateinit var lastName :String
 
+  private lateinit var activeTokens: List<MsisdnToken>
+
   override val businessKey: String
     get() = msisdn
 
@@ -34,7 +38,7 @@ class EndUser() : User() {
     indexRepository: IndexRepository
   ) : this() {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
-      ?.let { throw PreconditionFailedException("User already exists with msisdn: ${command.msisdn}") }
+      ?.let { throw ApplicationException("User already exists with msisdn: ${command.msisdn}") }
 
     apply(UserRegistrationStartedEvent(
       ia = IndexableAggregateDto(aggregateName, command.msisdn),
@@ -46,9 +50,30 @@ class EndUser() : User() {
     ))
   }
 
+  @CommandHandler
+  fun on(command: ValidateEndUserTokenCommand) {
+    val validToken = activeTokens
+      .filter { it.isTokenValid() }
+      .find { it.matches(command.token, command.msisdn) }
+      ?: throw ApplicationException("Invalid token")
+
+    apply(ValidTokenEvent(validToken))
+  }
+
   @EventSourcingHandler
-  private fun on(event: UserRegistrationStartedEvent): EndUserId {
+  private fun on(
+    event: UserRegistrationStartedEvent,
+    clock: Clock
+  ): EndUserId {
     id = event.userId
+
+    val token = "1234" // TODO: plugin actual token generation mechanism
+    activeTokens = listOf(MsisdnToken(
+      token = token,
+      msisdn = event.msisdn,
+      email = event.email,
+      expires = clock.instant().plus(1, ChronoUnit.HOURS)
+    ))
 
     msisdn = event.msisdn
     email = event.email
@@ -57,4 +82,14 @@ class EndUser() : User() {
 
     return id
   }
+
+  @EventSourcingHandler
+  private fun on(
+    event: ValidTokenEvent
+  ) {
+    // delete the token we just used, and also clear out any expired tokens
+    activeTokens = activeTokens
+      .filter { it.isTokenValid() } - event.msisdnToken
+  }
+
 }
