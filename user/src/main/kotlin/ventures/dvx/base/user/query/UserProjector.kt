@@ -16,7 +16,7 @@ class UserProjector(
 
   @EventHandler
   fun on(event: UserRegistrationStartedEvent) {
-    userViewRepository.save(UserView(event.userId.id, event.msisdn, event.email))
+    userViewRepository.save(UserView(event.userId.id, event.msisdn, event.email, listOf(UserRole.USER)))
   }
 
   @QueryHandler
@@ -28,7 +28,8 @@ class UserProjector(
       ?.let { User(
         id = it.userId,
         username = it.username,
-        email = it.email
+        email = it.email,
+        roles = it.roles.map { role -> "ROLE_${role}" }
       )
       } ?: throw NotFoundException("User with username ${query.username} not found")
 }

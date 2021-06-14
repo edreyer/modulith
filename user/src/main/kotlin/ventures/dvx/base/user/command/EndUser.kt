@@ -7,6 +7,8 @@ import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
 import org.axonframework.modelling.command.CreationPolicy
 import org.axonframework.spring.stereotype.Aggregate
+import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.crypto.password.PasswordEncoder
 import ventures.dvx.base.user.api.RegisterUserCommand
 import ventures.dvx.base.user.api.User
@@ -35,6 +37,8 @@ class EndUser() : IndexableAggregate() {
   private lateinit var lastName :String
 
   private lateinit var activeTokens: List<MsisdnToken>
+
+  private var roles : List<GrantedAuthority> = listOf(SimpleGrantedAuthority("ROLE_USER"))
 
   override val businessKey: String
     get() = msisdn
@@ -72,7 +76,8 @@ class EndUser() : IndexableAggregate() {
 
     apply(ValidTokenEvent(validToken))
 
-    return User(id = id.id, username = msisdn, email = email)
+    val roles = this.roles.map { it.toString() }
+    return User(id = id.id, username = msisdn, email = email, roles = roles)
   }
 
   @EventSourcingHandler

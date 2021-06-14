@@ -77,8 +77,7 @@ class SecurityConfig {
   fun userDetailsService(queryGateway: QueryGateway): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
       queryGateway.query(FindUserQuery(username), ventures.dvx.base.user.api.User::class.java)
-        // TODO: create system for real roles
-        ?.thenApply { User(it.username, "", listOf(SimpleGrantedAuthority("ROLE_USER"))) }
+        ?.thenApply { User(it.username, "", it.roles.map { role -> SimpleGrantedAuthority(role) }) }
         ?.let { Mono.fromFuture(it)}
     }
   }

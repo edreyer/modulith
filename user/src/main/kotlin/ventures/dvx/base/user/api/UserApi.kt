@@ -10,7 +10,7 @@ import java.util.*
 // public API
 
 data class EndUserId(val id: UUID = UUID.randomUUID())
-data class User(val id: UUID, val email: String, val username: String)
+data class User(val id: UUID, val email: String, val username: String, val roles: List<String>)
 
 // Commands
 

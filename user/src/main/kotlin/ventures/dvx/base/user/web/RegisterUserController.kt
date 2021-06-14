@@ -62,13 +62,9 @@ class RegisterUserController(
   suspend fun confirmToken(@Valid @RequestBody input: ValidateTokenInputDto)
   : UserLoginOutputDto
   {
-    // TODO: Load real user roles with user data
-    val authorities = listOf("ROLE_USER")
-      .map { SimpleGrantedAuthority(it) }
-
     return commandGateway.send<User>(input.toCommand())
       .get()
-      .let { tokenProvider.createToken(input.userId, authorities) }
+      .let { tokenProvider.createToken(input.userId, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
       .let {
         val headers = HttpHeaders()
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
