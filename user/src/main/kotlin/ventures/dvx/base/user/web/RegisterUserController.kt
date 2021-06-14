@@ -2,11 +2,13 @@ package ventures.dvx.base.user.web
 
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.springframework.http.HttpHeaders
-import org.springframework.security.authentication.ReactiveAuthenticationManager
+import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import reactor.core.publisher.Mono
 import ventures.dvx.base.user.api.RegisterUserCommand
 import ventures.dvx.base.user.api.User
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
@@ -37,39 +39,49 @@ data class ValidateTokenInputDto(
 
 sealed class RegisterUserOutputDto
 data class RegisteredUserDto(val id: UUID) : RegisterUserOutputDto()
+data class RegistrationErrorDto(val err: String) : RegisterUserOutputDto()
 
 sealed class UserLoginOutputDto
-data class SuccessfulLogin(val accessToken: String) : UserLoginOutputDto()
-data class LoginError(val err: String) : UserLoginOutputDto()
+data class SuccessfulLoginDto(val accessToken: String) : UserLoginOutputDto()
+data class LoginErrorDto(val err: String) : UserLoginOutputDto()
 
 @RestController
 class RegisterUserController(
   private val commandGateway: CommandGateway,
-  private val tokenProvider: JwtTokenProvider,
-  private val authenticationManager: ReactiveAuthenticationManager
+  private val tokenProvider: JwtTokenProvider
 ) {
 
   val log by LoggerDelegate()
 
   @PostMapping(path = ["/user/register"])
-  suspend fun register(@Valid @RequestBody input: RegisterEndUserInputDto): RegisteredUserDto =
+  fun register(@Valid @RequestBody input: RegisterEndUserInputDto): Mono<ResponseEntity<RegisterUserOutputDto>> =
     commandGateway.send<EndUserId>(input.toCommand())
       .thenApply { RegisteredUserDto(it.id) }
-      .get() // TODO Can't seem to get Mono/Future working as return type
+      .let { Mono.fromFuture(it) }
+      .map { ResponseEntity.ok(RegisteredUserDto(it.id) as RegisterUserOutputDto) }
+      .onErrorResume {
+        Mono.just(ResponseEntity
+          .status(HttpStatus.UNAUTHORIZED)
+          .body(RegistrationErrorDto(it.message ?: "RegistrationError") as RegisterUserOutputDto))
+      }
 
 
   @PostMapping(path = ["/user/confirmToken"])
-  suspend fun confirmToken(@Valid @RequestBody input: ValidateTokenInputDto)
-  : UserLoginOutputDto
+  fun confirmToken(@Valid @RequestBody input: ValidateTokenInputDto)
+  : Mono<ResponseEntity<UserLoginOutputDto>>
   {
     return commandGateway.send<User>(input.toCommand())
-      .get()
-      .let { tokenProvider.createToken(input.userId, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
-      .let {
+      .let { Mono.fromFuture(it) }
+      .map { tokenProvider.createToken(input.userId, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
+      .map {
         val headers = HttpHeaders()
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
-        val tokenBody = SuccessfulLogin(it) as UserLoginOutputDto
+        val tokenBody =
+          ResponseEntity.ok(SuccessfulLoginDto(it) as UserLoginOutputDto)
         tokenBody
+      }
+      .onErrorResume {
+        Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(LoginErrorDto("Unauthorized") as UserLoginOutputDto))
       }
   }
 
