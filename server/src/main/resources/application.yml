@@ -1,7 +1,8 @@
 ---
-#logging:
-#  level:
-#    org.springframework: TRACE
+logging:
+  level:
+    org.springframework: INFO
+    org.axonframework: DEBUG
 
 spring:
 
@@ -46,5 +47,10 @@ security:
       validityInMs: 3600000 # 1 HOUR
 
 axon:
+  serializer:
+    general: jackson
+    events: jackson
+    messages: jackson
+
   eventhandling:
     processors[indexEntity].mode: subscribing

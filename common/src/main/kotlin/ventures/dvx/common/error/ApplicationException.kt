@@ -1,6 +1,6 @@
 package ventures.dvx.common.error
 
-class ApplicationException : RuntimeException {
+open class ApplicationException : RuntimeException {
   override val message: String
   constructor(message: String) : super(message) {
     this.message = message

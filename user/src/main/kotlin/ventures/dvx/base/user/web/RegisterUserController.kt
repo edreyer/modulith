@@ -1,15 +1,18 @@
 package ventures.dvx.base.user.web
 
 import org.axonframework.commandhandling.gateway.CommandGateway
-import org.springframework.http.ResponseEntity
+import org.springframework.http.HttpHeaders
+import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.RegisterUserCommand
+import ventures.dvx.base.user.api.User
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
+import ventures.dvx.base.user.command.EndUserId
 import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.mapping.DataClassMapper
+import ventures.dvx.common.security.JwtTokenProvider
 import ventures.dvx.common.validation.Msisdn
 import java.util.*
 import javax.validation.Valid
@@ -34,16 +37,21 @@ data class ValidateTokenInputDto(
 sealed class RegisterUserOutputDto
 data class RegisteredUserDto(val id: UUID) : RegisterUserOutputDto()
 
+sealed class UserLoginOutputDto
+data class SuccessfulLogin(val accessToken: String) : UserLoginOutputDto()
+data class LoginError(val err: String) : UserLoginOutputDto()
+
 @RestController
 class RegisterUserController(
-  private val commandGateway: CommandGateway
+  private val commandGateway: CommandGateway,
+  private val tokenProvider: JwtTokenProvider,
+  private val authenticationManager: ReactiveAuthenticationManager
 ) {
 
   val log by LoggerDelegate()
 
   @PostMapping(path = ["/user/register"])
-  suspend fun register(@Valid @RequestBody input: RegisterEndUserInputDto)
-  : RegisteredUserDto =
+  suspend fun register(@Valid @RequestBody input: RegisterEndUserInputDto): RegisteredUserDto =
     commandGateway.send<EndUserId>(input.toCommand())
       .thenApply { RegisteredUserDto(it.id) }
       .get() // TODO Can't seem to get Mono/Future working as return type
@@ -51,15 +59,24 @@ class RegisterUserController(
 
   @PostMapping(path = ["/user/confirmToken"])
   suspend fun confirmToken(@Valid @RequestBody input: ValidateTokenInputDto)
-    : ResponseEntity<Unit> =
-    commandGateway.send<Unit>(input.toCommand())
-      .thenApply { ResponseEntity.ok(Unit) }
-      .get() // TODO Can't seem to get Mono/Future working as return type
+  : UserLoginOutputDto
+  {
+    return commandGateway.send<User>(input.toCommand())
+      .get()
+      .let { tokenProvider.createToken(input.userId) }
+      .let {
+        val headers = HttpHeaders()
+        headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
+        val tokenBody = SuccessfulLogin(it) as UserLoginOutputDto
+        tokenBody
+      }
+  }
 
 }
 
 fun RegisterEndUserInputDto.toCommand(): RegisterUserCommand =
-  DataClassMapper<RegisterEndUserInputDto, RegisterUserCommand>()(this)
+  DataClassMapper<RegisterEndUserInputDto, RegisterUserCommand>()
+    .targetParameterSupplier(RegisterUserCommand::userId) { EndUserId() } (this)
 
 fun ValidateTokenInputDto.toCommand(): ValidateEndUserTokenCommand =
   ValidateEndUserTokenCommand(

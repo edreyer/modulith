@@ -1,6 +1,5 @@
 package ventures.dvx.base.user.command.handler
 
-import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.eventhandling.EventHandler
 import org.axonframework.messaging.interceptors.ExceptionHandler
 import org.springframework.stereotype.Component
@@ -10,9 +9,7 @@ import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.error.PreconditionFailedCommandException
 
 @Component
-class EndUserEventHandler(
-  private val commandGateway: CommandGateway
-) {
+class EndUserEventHandler {
 
   @EventHandler
   private fun on(

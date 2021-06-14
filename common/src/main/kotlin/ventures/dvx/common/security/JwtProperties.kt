@@ -1,4 +1,4 @@
-package ventures.dvx.security
+package ventures.dvx.common.security
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

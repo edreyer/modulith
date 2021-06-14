@@ -1,4 +1,4 @@
-package ventures.dvx.security
+package ventures.dvx.common.security
 
 import org.springframework.http.HttpHeaders
 import org.springframework.http.server.reactive.ServerHttpRequest

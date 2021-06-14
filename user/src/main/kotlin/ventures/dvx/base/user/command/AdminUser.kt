@@ -1,9 +1,10 @@
 package ventures.dvx.base.user.command
 
 import org.axonframework.modelling.command.AggregateIdentifier
+import ventures.dvx.common.axon.IndexableAggregate
 import java.util.*
 
-class AdminUser: User() {
+class AdminUser: IndexableAggregate() {
 
   @AggregateIdentifier
   private lateinit var id: UUID

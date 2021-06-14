@@ -1,4 +1,4 @@
-package ventures.dvx.security
+package ventures.dvx.common.security
 
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jws
@@ -6,7 +6,6 @@ import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
-import org.slf4j.Logger
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
@@ -35,10 +34,9 @@ open class JwtTokenProvider(
     secretKey = Keys.hmacShaKeyFor(secret.toByteArray())
   }
 
-  fun createToken(authentication: Authentication): String {
-    val username: String = authentication.name
-    val authorities: Collection<GrantedAuthority> = authentication.authorities
-    val claims: Claims = Jwts.claims().setSubject(username)
+  fun createToken(userId: String): String {
+    val authorities: Collection<GrantedAuthority> = listOf()
+    val claims: Claims = Jwts.claims().setSubject(userId)
     claims[AUTHORITIES_KEY] = authorities.joinToString(",") {
         obj: GrantedAuthority -> obj.authority
     }

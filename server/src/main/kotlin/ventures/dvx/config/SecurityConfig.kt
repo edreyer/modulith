@@ -1,6 +1,6 @@
 package ventures.dvx.config
 
-import kotlinx.coroutines.runBlocking
+import org.axonframework.queryhandling.QueryGateway
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.Authentication
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -18,11 +19,10 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import reactor.core.publisher.Mono
-import ventures.dvx.base.user.application.port.`in`.FindUserCommand
-import ventures.dvx.base.user.application.port.`in`.FindUserUseCase
-import ventures.dvx.security.JwtProperties
-import ventures.dvx.security.JwtTokenAuthenticationFilter
-import ventures.dvx.security.JwtTokenProvider
+import ventures.dvx.base.user.api.FindUserQuery
+import ventures.dvx.common.security.JwtProperties
+import ventures.dvx.common.security.JwtTokenAuthenticationFilter
+import ventures.dvx.common.security.JwtTokenProvider
 
 
 /**
@@ -46,7 +46,7 @@ class SecurityConfig {
   fun springWebFilterChain(
     http: ServerHttpSecurity,
     tokenProvider: JwtTokenProvider,
-    reactiveAuthenticationManager: ReactiveAuthenticationManager
+    reactiveAuthenticationManager: ReactiveAuthenticationManager,
   ): SecurityWebFilterChain {
     return http
       .csrf { it.disable() }
@@ -55,8 +55,8 @@ class SecurityConfig {
       .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
       .authorizeExchange { it
 //        .pathMatchers("/api/**").access(this::currentUserMatchesPath)
-        .pathMatchers("/auth/login").permitAll()
-        .pathMatchers("/auth/register").permitAll()
+        .pathMatchers("/user/login").permitAll()
+        .pathMatchers("/user/confirmToken").permitAll()
         .pathMatchers("/api/**").authenticated()
         .anyExchange().permitAll()
       }
@@ -66,7 +66,7 @@ class SecurityConfig {
 
   private fun currentUserMatchesPath(
     authentication: Mono<Authentication>,
-    context: AuthorizationContext
+    context: AuthorizationContext,
   ): Mono<AuthorizationDecision> {
     return authentication
       .map{ context.variables["user"] == it.name }
@@ -74,34 +74,19 @@ class SecurityConfig {
   }
 
   @Bean
-  fun userDetailsService(findUser: FindUserUseCase): ReactiveUserDetailsService {
+  fun userDetailsService(queryGateway: QueryGateway): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
-      runBlocking {
-        findUser(FindUserCommand(username))
-          .fold(
-            { Mono.empty() },
-            { event ->
-              event.userDto.let {
-                User
-                  .withUsername(it.username)
-                  .password(it.password)
-                  .authorities(*it.roles.map { r -> r.toString() }.toTypedArray())
-                  .accountExpired(!it.active)
-                  .credentialsExpired(!it.active)
-                  .disabled(!it.active)
-                  .accountLocked(!it.active)
-                  .build()
-              }.let { Mono.just(it) }
-            }
-          )
-      }
+      queryGateway.query(FindUserQuery(username), ventures.dvx.base.user.api.User::class.java)
+        // TODO: create system for real roles
+        ?.thenApply { User(it.username, "", listOf(SimpleGrantedAuthority("ROLE_USER"))) }
+        ?.let { Mono.fromFuture(it)}
     }
   }
 
   @Bean
   fun reactiveAuthenticationManager(
     userDetailsService: ReactiveUserDetailsService,
-    passwordEncoder: PasswordEncoder
+    passwordEncoder: PasswordEncoder,
   ): ReactiveAuthenticationManager {
     val authenticationManager = UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService)
     authenticationManager.setPasswordEncoder(passwordEncoder)
