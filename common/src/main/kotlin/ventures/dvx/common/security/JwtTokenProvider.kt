@@ -34,8 +34,7 @@ open class JwtTokenProvider(
     secretKey = Keys.hmacShaKeyFor(secret.toByteArray())
   }
 
-  fun createToken(userId: String): String {
-    val authorities: Collection<GrantedAuthority> = listOf()
+  fun createToken(userId: String, authorities: Collection<GrantedAuthority>): String {
     val claims: Claims = Jwts.claims().setSubject(userId)
     claims[AUTHORITIES_KEY] = authorities.joinToString(",") {
         obj: GrantedAuthority -> obj.authority

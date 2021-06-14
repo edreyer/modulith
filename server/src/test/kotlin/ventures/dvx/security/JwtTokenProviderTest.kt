@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import ventures.dvx.common.security.JwtProperties
 import ventures.dvx.common.security.JwtTokenProvider
@@ -103,9 +102,7 @@ internal class JwtTokenProviderTest {
 
   private fun generateToken(username: String, vararg roles: String): String {
     val authorities: Collection<GrantedAuthority> = AuthorityUtils.createAuthorityList(*roles)
-    val principal = User(username, "password", authorities)
-//    val usernamePasswordAuthenticationToken = UsernamePasswordAuthenticationToken(principal, null, authorities)
-    return jwtTokenProvider.createToken(username)
+    return jwtTokenProvider.createToken(username, authorities)
   }
 
   companion object {

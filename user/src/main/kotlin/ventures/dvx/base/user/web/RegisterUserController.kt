@@ -3,6 +3,7 @@ package ventures.dvx.base.user.web
 import org.axonframework.commandhandling.gateway.CommandGateway
 import org.springframework.http.HttpHeaders
 import org.springframework.security.authentication.ReactiveAuthenticationManager
+import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -61,9 +62,13 @@ class RegisterUserController(
   suspend fun confirmToken(@Valid @RequestBody input: ValidateTokenInputDto)
   : UserLoginOutputDto
   {
+    // TODO: Load real user roles with user data
+    val authorities = listOf("ROLE_USER")
+      .map { SimpleGrantedAuthority(it) }
+
     return commandGateway.send<User>(input.toCommand())
       .get()
-      .let { tokenProvider.createToken(input.userId) }
+      .let { tokenProvider.createToken(input.userId, authorities) }
       .let {
         val headers = HttpHeaders()
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
