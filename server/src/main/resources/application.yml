@@ -2,7 +2,7 @@
 logging:
   level:
     org.springframework: INFO
-    org.axonframework: DEBUG
+    org.axonframework: INFO
 
 spring:
 
@@ -51,6 +51,3 @@ axon:
     general: jackson
     events: jackson
     messages: jackson
-
-  eventhandling:
-    processors[indexEntity].mode: subscribing

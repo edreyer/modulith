@@ -23,7 +23,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <kotlin.version>1.5.10</kotlin.version>
         <arrow.version>0.13.2</arrow.version>
-        <axon.version>4.5</axon.version>
+        <axon.version>4.5.2</axon.version>
         <axon.kotlin.version>0.1.0</axon.kotlin.version>
         <jjwt.version>0.11.2</jjwt.version>
     </properties>

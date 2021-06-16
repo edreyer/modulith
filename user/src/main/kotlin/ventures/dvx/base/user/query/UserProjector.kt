@@ -4,9 +4,11 @@ import org.axonframework.eventhandling.EventHandler
 import org.axonframework.queryhandling.QueryHandler
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
+import ventures.dvx.base.user.api.AdminUserRegisteredEvent
 import ventures.dvx.base.user.api.FindUserQuery
 import ventures.dvx.base.user.api.User
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
+import ventures.dvx.base.user.command.UserRole
 import ventures.dvx.common.error.NotFoundException
 
 @Component
@@ -16,7 +18,12 @@ class UserProjector(
 
   @EventHandler
   fun on(event: UserRegistrationStartedEvent) {
-    userViewRepository.save(UserView(event.userId.id, event.msisdn, event.email, listOf(UserRole.USER)))
+    userViewRepository.save(UserView(event.userId.id, event.msisdn, "", event.email, listOf(UserRole.USER)))
+  }
+
+  @EventHandler
+  fun on(event: AdminUserRegisteredEvent) {
+    userViewRepository.save(UserView(event.userId.id, event.email, event.password, event.email, listOf(UserRole.ADMIN)))
   }
 
   @QueryHandler
@@ -28,8 +35,9 @@ class UserProjector(
       ?.let { User(
         id = it.userId,
         username = it.username,
+        password = it.password,
         email = it.email,
-        roles = it.roles.map { role -> "ROLE_${role}" }
+        roles = it.roles.map { role -> role.toString() }
       )
       } ?: throw NotFoundException("User with username ${query.username} not found")
 }

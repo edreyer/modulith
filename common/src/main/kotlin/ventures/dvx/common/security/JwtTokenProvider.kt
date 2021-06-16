@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct
 import javax.crypto.SecretKey
 
 open class JwtTokenProvider(
-  private val jwtProperties: JwtProperties
+  private val jwtProperties: JwtProperties,
 ) {
 
   private val logger by LoggerDelegate()
@@ -39,7 +39,23 @@ open class JwtTokenProvider(
     claims[AUTHORITIES_KEY] = authorities.joinToString(",") {
         obj: GrantedAuthority -> obj.authority
     }
+    val now = Date()
+    val validity = Date(now.time + jwtProperties.validityInMs)
+    return Jwts.builder() //
+      .setClaims(claims) //
+      .setIssuedAt(now) //
+      .setExpiration(validity) //
+      .signWith(secretKey, SignatureAlgorithm.HS256) //
+      .compact()
+  }
 
+  fun createToken(authentication: Authentication): String {
+    val username: String = authentication.name
+    val authorities: Collection<GrantedAuthority> = authentication.authorities
+    val claims: Claims = Jwts.claims().setSubject(username)
+    claims[AUTHORITIES_KEY] = authorities.joinToString(",") {
+        obj: GrantedAuthority -> obj.authority
+    }
     val now = Date()
     val validity = Date(now.time + jwtProperties.validityInMs)
     return Jwts.builder() //

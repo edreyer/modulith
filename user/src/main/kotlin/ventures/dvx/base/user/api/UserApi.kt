@@ -1,7 +1,6 @@
 package ventures.dvx.base.user.api
 
 import org.axonframework.modelling.command.TargetAggregateIdentifier
-import ventures.dvx.base.user.command.EndUserId
 import ventures.dvx.base.user.command.MsisdnToken
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.IndexableAggregateEvent
@@ -10,11 +9,12 @@ import java.util.*
 // public API
 
 data class EndUserId(val id: UUID = UUID.randomUUID())
-data class User(val id: UUID, val email: String, val username: String, val roles: List<String>)
+data class AdminUserId(val id: UUID = UUID.randomUUID())
+data class User(val id: UUID, val username: String, val password: String, val email: String, val roles: List<String>)
 
 // Commands
 
-data class RegisterUserCommand(
+data class RegisterEndUserCommand(
   @TargetAggregateIdentifier
   val userId: EndUserId,
   val msisdn: String,
@@ -22,21 +22,20 @@ data class RegisterUserCommand(
   val firstName: String,
   val lastName: String
 )
-data class LoginUserCommand(
+
+data class RegisterAdminUserCommand(
   @TargetAggregateIdentifier
-  val id: String,
-  val msisdn: String
+  val userId: AdminUserId,
+  val plainPassword: String, // unencrypted password
+  val email: String,
+  val firstName: String,
+  val lastName: String
 )
+
 data class ValidateEndUserTokenCommand(
   @TargetAggregateIdentifier val id: EndUserId,
   val msisdn: String,
   val token: String
-)
-
-data class RegisterAdminCommand(
-  @TargetAggregateIdentifier val id: String,
-  val email: String,
-  val password: String
 )
 
 // Events
@@ -49,12 +48,19 @@ data class UserRegistrationStartedEvent(
   val firstName: String,
   val lastName: String
 ) : IndexableAggregateEvent
-data class ValidTokenEvent(
+
+data class AdminUserRegisteredEvent(
+  override val ia: IndexableAggregateDto,
+  val userId: AdminUserId,
+  val password: String,
+  val email: String,
+  val firstName: String,
+  val lastName: String
+) : IndexableAggregateEvent
+
+data class TokenValidatedEvent(
   val msisdnToken: MsisdnToken
 )
-data class UserRegisteredEvent(val userId: UUID)
-data class AdminRegisteredEvent(val userId: UUID, val email: String, val encryptedPassword: String)
-data class UserLoggedInEvent(val userId: UUID)
 
 // Queries
 

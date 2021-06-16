@@ -1,16 +1,65 @@
 package ventures.dvx.base.user.command
 
+import org.axonframework.commandhandling.CommandHandler
+import org.axonframework.eventsourcing.EventSourcingHandler
+import org.axonframework.modelling.command.AggregateCreationPolicy
 import org.axonframework.modelling.command.AggregateIdentifier
+import org.axonframework.modelling.command.AggregateLifecycle.apply
+import org.axonframework.modelling.command.CreationPolicy
+import org.axonframework.spring.stereotype.Aggregate
+import org.springframework.security.crypto.password.PasswordEncoder
+import ventures.dvx.base.user.api.AdminUserId
+import ventures.dvx.base.user.api.AdminUserRegisteredEvent
+import ventures.dvx.base.user.api.RegisterAdminUserCommand
 import ventures.dvx.common.axon.IndexableAggregate
-import java.util.*
+import ventures.dvx.common.axon.IndexableAggregateDto
+import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.error.ApplicationException
 
-class AdminUser: IndexableAggregate() {
+@Aggregate(cache = "userCache")
+class AdminUser: BaseUser, IndexableAggregate() {
 
   @AggregateIdentifier
-  private lateinit var id: UUID
+  private lateinit var id: AdminUserId
 
-  private lateinit var username: String
+  lateinit var password: String // encrypted
+  override lateinit var email :String
+  override lateinit var firstName :String
+  override lateinit var lastName :String
+
+  override var roles : List<UserRole> = listOf(UserRole.ADMIN)
 
   override val businessKey: String
-    get() = username
+    get() = email
+
+  @CommandHandler
+  @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
+  fun on(
+    command: RegisterAdminUserCommand,
+    indexRepository: IndexRepository,
+    passwordEncoder: PasswordEncoder
+  ) {
+    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.email)
+      ?.let { throw ApplicationException("Admin User already exists with email: ${command.email}") }
+
+    apply(
+      AdminUserRegisteredEvent(
+        ia = IndexableAggregateDto(aggregateName, command.email),
+        userId = command.userId,
+        password = passwordEncoder.encode(command.plainPassword),
+        email = command.email,
+        firstName = command.firstName,
+        lastName = command.lastName
+      )
+    )
+  }
+
+  @EventSourcingHandler
+  private fun on(event: AdminUserRegisteredEvent) {
+    id = event.userId
+    email = event.email
+    password = event.password
+    firstName = event.firstName
+    lastName = event.lastName
+  }
 }

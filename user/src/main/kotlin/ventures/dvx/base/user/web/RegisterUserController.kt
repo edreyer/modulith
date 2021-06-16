@@ -9,12 +9,11 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import ventures.dvx.base.user.api.RegisterUserCommand
+import ventures.dvx.base.user.api.EndUserId
+import ventures.dvx.base.user.api.RegisterEndUserCommand
 import ventures.dvx.base.user.api.User
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
-import ventures.dvx.base.user.command.EndUserId
 import ventures.dvx.common.logging.LoggerDelegate
-import ventures.dvx.common.mapping.DataClassMapper
 import ventures.dvx.common.security.JwtTokenProvider
 import ventures.dvx.common.validation.Msisdn
 import java.util.*
@@ -41,9 +40,6 @@ sealed class RegisterUserOutputDto
 data class RegisteredUserDto(val id: UUID) : RegisterUserOutputDto()
 data class RegistrationErrorDto(val err: String) : RegisterUserOutputDto()
 
-sealed class UserLoginOutputDto
-data class SuccessfulLoginDto(val accessToken: String) : UserLoginOutputDto()
-data class LoginErrorDto(val err: String) : UserLoginOutputDto()
 
 @RestController
 class RegisterUserController(
@@ -81,15 +77,21 @@ class RegisterUserController(
         tokenBody
       }
       .onErrorResume {
-        Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(LoginErrorDto("Unauthorized") as UserLoginOutputDto))
+        Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+          .body(LoginErrorDto("Unauthorized") as UserLoginOutputDto))
       }
   }
 
 }
 
-fun RegisterEndUserInputDto.toCommand(): RegisterUserCommand =
-  DataClassMapper<RegisterEndUserInputDto, RegisterUserCommand>()
-    .targetParameterSupplier(RegisterUserCommand::userId) { EndUserId() } (this)
+fun RegisterEndUserInputDto.toCommand(): RegisterEndUserCommand =
+  RegisterEndUserCommand(
+    userId = EndUserId(),
+    msisdn = this.msisdn,
+    email = this.email,
+    firstName = this.firstName,
+    lastName = this.lastName
+  )
 
 fun ValidateTokenInputDto.toCommand(): ValidateEndUserTokenCommand =
   ValidateEndUserTokenCommand(
