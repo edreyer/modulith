@@ -1,5 +1,7 @@
 package ventures.dvx.common.axon
 
+import java.util.*
+
 abstract class IndexableAggregate {
   /**
    * The type of the aggregate
@@ -27,5 +29,6 @@ interface IndexableAggregateEvent {
 }
 data class IndexableAggregateDto(
   val aggregateName: String,
+  val aggregateId: UUID,
   val businessKey: String
 )

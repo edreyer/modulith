@@ -2,10 +2,8 @@ package ventures.dvx.base.user.command
 
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.eventsourcing.EventSourcingHandler
-import org.axonframework.modelling.command.AggregateCreationPolicy
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
-import org.axonframework.modelling.command.CreationPolicy
 import org.axonframework.spring.stereotype.Aggregate
 import org.springframework.security.crypto.password.PasswordEncoder
 import ventures.dvx.base.user.api.AdminUserId
@@ -17,7 +15,7 @@ import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.error.ApplicationException
 
 @Aggregate(cache = "userCache")
-class AdminUser: BaseUser, IndexableAggregate() {
+class AdminUser(): BaseUser, IndexableAggregate() {
 
   @AggregateIdentifier
   private lateinit var id: AdminUserId
@@ -33,18 +31,17 @@ class AdminUser: BaseUser, IndexableAggregate() {
     get() = email
 
   @CommandHandler
-  @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-  fun on(
+  constructor(
     command: RegisterAdminUserCommand,
     indexRepository: IndexRepository,
     passwordEncoder: PasswordEncoder
-  ) {
+  ) : this() {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.email)
       ?.let { throw ApplicationException("Admin User already exists with email: ${command.email}") }
 
     apply(
       AdminUserRegisteredEvent(
-        ia = IndexableAggregateDto(aggregateName, command.email),
+        ia = IndexableAggregateDto(aggregateName, command.userId.id, command.email),
         userId = command.userId,
         password = passwordEncoder.encode(command.plainPassword),
         email = command.email,

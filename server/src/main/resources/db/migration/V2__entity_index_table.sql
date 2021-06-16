@@ -3,6 +3,7 @@ create table if not exists index_entity
     id uuid
         constraint index_entity_pk
             primary key,
+    aggregate_id uuid not null,
     aggregate_name varchar(100) not null,
     key varchar(500) not null
 );

@@ -10,6 +10,7 @@ import javax.persistence.Table
 data class IndexJpaEntity(
   @Id
   val id: UUID = UUID.randomUUID(),
+  val aggregateId: UUID,
   val aggregateName: String,
   val key: String
 )

@@ -28,6 +28,7 @@ class UserEventHandlers {
     indexRepository.save(
       IndexJpaEntity(
         aggregateName = event.ia.aggregateName,
+        aggregateId = event.ia.aggregateId,
         key = event.ia.businessKey,
       )
     )

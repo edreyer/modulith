@@ -1,5 +1,6 @@
 package ventures.dvx.base.user.api
 
+import org.axonframework.commandhandling.RoutingKey
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import ventures.dvx.base.user.command.MsisdnToken
 import ventures.dvx.common.axon.IndexableAggregateDto
@@ -24,7 +25,7 @@ data class RegisterEndUserCommand(
 )
 
 data class RegisterAdminUserCommand(
-  @TargetAggregateIdentifier
+  @RoutingKey
   val userId: AdminUserId,
   val plainPassword: String, // unencrypted password
   val email: String,
@@ -32,8 +33,15 @@ data class RegisterAdminUserCommand(
   val lastName: String
 )
 
+data class LoginEndUserCommand(
+  @TargetAggregateIdentifier
+  val userId: EndUserId,
+  val msisdn: String
+)
+
 data class ValidateEndUserTokenCommand(
-  @TargetAggregateIdentifier val id: EndUserId,
+  @TargetAggregateIdentifier
+  val userId: EndUserId,
   val msisdn: String,
   val token: String
 )
@@ -48,6 +56,10 @@ data class UserRegistrationStartedEvent(
   val firstName: String,
   val lastName: String
 ) : IndexableAggregateEvent
+
+data class EndUserLoginStartedEvent(
+  val userId: EndUserId
+)
 
 data class AdminUserRegisteredEvent(
   override val ia: IndexableAggregateDto,

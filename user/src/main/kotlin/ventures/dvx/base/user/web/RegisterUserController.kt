@@ -1,20 +1,15 @@
 package ventures.dvx.base.user.web
 
 import org.axonframework.commandhandling.gateway.CommandGateway
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.RegisterEndUserCommand
-import ventures.dvx.base.user.api.User
-import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.common.logging.LoggerDelegate
-import ventures.dvx.common.security.JwtTokenProvider
 import ventures.dvx.common.validation.Msisdn
 import java.util.*
 import javax.validation.Valid
@@ -43,8 +38,7 @@ data class RegistrationErrorDto(val err: String) : RegisterUserOutputDto()
 
 @RestController
 class RegisterUserController(
-  private val commandGateway: CommandGateway,
-  private val tokenProvider: JwtTokenProvider
+  private val commandGateway: CommandGateway
 ) {
 
   val log by LoggerDelegate()
@@ -61,27 +55,6 @@ class RegisterUserController(
           .body(RegistrationErrorDto(it.message ?: "RegistrationError") as RegisterUserOutputDto))
       }
 
-
-  @PostMapping(path = ["/user/confirmToken"])
-  fun confirmToken(@Valid @RequestBody input: ValidateTokenInputDto)
-  : Mono<ResponseEntity<UserLoginOutputDto>>
-  {
-    return commandGateway.send<User>(input.toCommand())
-      .let { Mono.fromFuture(it) }
-      .map { tokenProvider.createToken(input.userId, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
-      .map {
-        val headers = HttpHeaders()
-        headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
-        val tokenBody =
-          ResponseEntity.ok(SuccessfulLoginDto(it) as UserLoginOutputDto)
-        tokenBody
-      }
-      .onErrorResume {
-        Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-          .body(LoginErrorDto("Unauthorized") as UserLoginOutputDto))
-      }
-  }
-
 }
 
 fun RegisterEndUserInputDto.toCommand(): RegisterEndUserCommand =
@@ -93,9 +66,4 @@ fun RegisterEndUserInputDto.toCommand(): RegisterEndUserCommand =
     lastName = this.lastName
   )
 
-fun ValidateTokenInputDto.toCommand(): ValidateEndUserTokenCommand =
-  ValidateEndUserTokenCommand(
-    id = EndUserId(UUID.fromString(this.userId)),
-    msisdn = this.msisdn,
-    token = this.token
-  )
+

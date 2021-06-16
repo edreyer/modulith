@@ -9,6 +9,8 @@ import org.axonframework.modelling.command.CreationPolicy
 import org.axonframework.spring.stereotype.Aggregate
 import org.springframework.security.crypto.password.PasswordEncoder
 import ventures.dvx.base.user.api.EndUserId
+import ventures.dvx.base.user.api.EndUserLoginStartedEvent
+import ventures.dvx.base.user.api.LoginEndUserCommand
 import ventures.dvx.base.user.api.RegisterEndUserCommand
 import ventures.dvx.base.user.api.TokenValidatedEvent
 import ventures.dvx.base.user.api.User
@@ -22,7 +24,7 @@ import java.time.Clock
 import java.time.temporal.ChronoUnit
 
 @Aggregate(cache = "userCache")
-class EndUser() : BaseUser, IndexableAggregate() {
+class EndUser : BaseUser, IndexableAggregate() {
 
   @AggregateIdentifier
   private lateinit var id: EndUserId
@@ -34,10 +36,14 @@ class EndUser() : BaseUser, IndexableAggregate() {
 
   override var roles : List<UserRole> = listOf(UserRole.USER)
 
-  private lateinit var activeTokens: List<MsisdnToken>
+  private var token: MsisdnToken? = null
 
   override val businessKey: String
     get() = msisdn
+
+  companion object {
+    fun aggregateName() : String = EndUser::class.simpleName!!
+  }
 
   @CommandHandler
   @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
@@ -50,7 +56,7 @@ class EndUser() : BaseUser, IndexableAggregate() {
 
     apply(
       UserRegistrationStartedEvent(
-        ia = IndexableAggregateDto(aggregateName, command.msisdn),
+        ia = IndexableAggregateDto(aggregateName, command.userId.id, command.msisdn),
         userId = command.userId,
         msisdn = command.msisdn,
         email = command.email,
@@ -63,16 +69,20 @@ class EndUser() : BaseUser, IndexableAggregate() {
   }
 
   @CommandHandler
+  fun on(command: LoginEndUserCommand): EndUserId {
+    apply(EndUserLoginStartedEvent(id))
+    return id
+  }
+
+  @CommandHandler
   fun on(
     command: ValidateEndUserTokenCommand,
     passwordEncoder: PasswordEncoder
   ): User {
-    val validToken = activeTokens
-      .filter { it.isTokenValid() }
-      .find { it.matches(command.token, command.msisdn) }
-      ?: throw ApplicationException("Invalid token")
-
-    apply(TokenValidatedEvent(validToken))
+    token
+      ?.takeIf { it.isTokenValid() }
+      ?.takeIf { it.matches(command.token, command.msisdn) }
+      ?.run { apply(TokenValidatedEvent(this)) }
 
     val roles = this.roles.map { it.toString() }
     return User(id = id.id, username = msisdn, email = email, password = "", roles = roles)
@@ -85,13 +95,13 @@ class EndUser() : BaseUser, IndexableAggregate() {
   ) {
     id = event.userId
 
-    val token = "1234" // TODO: plugin actual token generation mechanism
-    activeTokens = listOf(MsisdnToken(
-      token = token,
+    val tokenStr = "1234" // TODO: plugin actual token generation mechanism
+    token = MsisdnToken(
+      token = tokenStr,
       msisdn = event.msisdn,
       email = event.email,
       expires = clock.instant().plus(1, ChronoUnit.HOURS)
-    ))
+    )
 
     msisdn = event.msisdn
     email = event.email
@@ -100,11 +110,20 @@ class EndUser() : BaseUser, IndexableAggregate() {
   }
 
   @EventSourcingHandler
+  private fun on(event: EndUserLoginStartedEvent, clock: Clock) {
+    val tokenStr = "1234" // TODO: plugin actual token generation mechanism
+    token = MsisdnToken(
+      token = tokenStr,
+      msisdn = msisdn,
+      email = email,
+      expires = clock.instant().plus(1, ChronoUnit.HOURS)
+    )
+  }
+
+  @EventSourcingHandler
   private fun on(event: TokenValidatedEvent) {
-    // delete the token we just used, and also clear out any expired tokens
-    activeTokens = activeTokens
-      .filter { it.isTokenValid() }
-      .minus(event.msisdnToken)
+    // delete the token we just used
+    token = null
   }
 
 }
