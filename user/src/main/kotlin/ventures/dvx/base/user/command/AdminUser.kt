@@ -30,6 +30,10 @@ class AdminUser(): BaseUser, IndexableAggregate() {
   override val businessKey: String
     get() = email
 
+  companion object {
+    fun aggregateName() : String = AdminUser::class.simpleName!!
+  }
+
   @CommandHandler
   constructor(
     command: RegisterAdminUserCommand,

@@ -51,3 +51,8 @@ axon:
     general: jackson
     events: jackson
     messages: jackson
+
+  #see: https://axoniq.io/blog-overview/set-based-validation
+  eventhandling:
+    processors:
+      indexEntity.mode: subscribing

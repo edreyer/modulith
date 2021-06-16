@@ -1,5 +1,6 @@
 package ventures.dvx.base.user.command.handler
 
+import org.axonframework.config.ProcessingGroup
 import org.axonframework.eventhandling.EventHandler
 import org.axonframework.messaging.interceptors.ExceptionHandler
 import org.springframework.stereotype.Component
@@ -11,6 +12,7 @@ import ventures.dvx.common.logging.LoggerDelegate
 import javax.annotation.PostConstruct
 
 @Component
+@ProcessingGroup("indexEntity")
 class UserEventHandlers {
 
   val log by LoggerDelegate()

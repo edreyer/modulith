@@ -9,10 +9,15 @@ import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
 import ventures.dvx.base.user.api.AdminUserId
 import ventures.dvx.base.user.api.RegisterAdminUserCommand
+import ventures.dvx.base.user.command.AdminUser
+import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.logging.LoggerDelegate
 
 @Configuration
-class UserConfig(val commandGateway: CommandGateway) {
+class UserConfig(
+  val commandGateway: CommandGateway,
+  val indexRepository: IndexRepository
+) {
 
   val log by LoggerDelegate()
 
@@ -26,13 +31,18 @@ class UserConfig(val commandGateway: CommandGateway) {
   fun initializeAdmin(event: ContextRefreshedEvent) {
     val adminEmail = "admin@dvx.ventures"
     log.trace("Setting up default admin: $adminEmail")
-    commandGateway.send<Unit>(RegisterAdminUserCommand(
+
+    indexRepository.findEntityByAggregateNameAndKey(AdminUser.aggregateName(), adminEmail)
+      ?: commandGateway.send<Unit>(RegisterAdminUserCommand(
       userId = AdminUserId(),
       email = adminEmail, // TODO: Make configurable (YML)
       plainPassword = "DVxR0cks!!!",
       firstName = "DVx",
       lastName = "Admin"
     ))
+      .whenComplete { unit: Unit?, ex: Throwable? ->
+        ex?.let { log.info("Admin user already exists") }
+      }
   }
 
 }

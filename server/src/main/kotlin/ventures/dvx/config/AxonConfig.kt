@@ -37,7 +37,10 @@ class AxonConfig {
   }
 
   @Autowired
-  fun configureLoggingInterceptorFor(eventBus: EventBus, loggingInterceptor: LoggingInterceptor<Message<*>>) {
+  fun configureLoggingInterceptorFor(
+    eventBus: EventBus,
+    loggingInterceptor: LoggingInterceptor<Message<*>>
+  ) {
     eventBus.registerDispatchInterceptor(loggingInterceptor)
   }
 
@@ -52,7 +55,9 @@ class AxonConfig {
   }
 
   @Autowired
-  fun configureLoggingInterceptorFor(queryBus: QueryBus, loggingInterceptor: LoggingInterceptor<Message<*>>) {
+  fun configureLoggingInterceptorFor(
+    queryBus: QueryBus, loggingInterceptor: LoggingInterceptor<Message<*>>
+  ) {
     queryBus.registerDispatchInterceptor(loggingInterceptor)
     queryBus.registerHandlerInterceptor(loggingInterceptor)
   }
