@@ -18,6 +18,7 @@ import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.base.user.command.EndUser
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.security.JwtTokenProvider
+import ventures.dvx.common.validation.Msisdn
 import java.util.*
 import javax.validation.Valid
 import javax.validation.constraints.Email
@@ -28,7 +29,7 @@ data class EmailLoginDto(
   @NotEmpty val password: String,
 )
 data class MsisdnLoginDto(
-  @NotEmpty val msisdn: String
+  @NotEmpty @Msisdn val msisdn: String
 )
 
 @RestController

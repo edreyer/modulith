@@ -27,7 +27,7 @@ data class RegisterEndUserInputDto(
 
 data class ValidateTokenInputDto(
   @NotEmpty val userId: String,
-  @NotEmpty val msisdn: String,
+  @NotEmpty @Msisdn val msisdn: String,
   @NotEmpty val token: String
 )
 
