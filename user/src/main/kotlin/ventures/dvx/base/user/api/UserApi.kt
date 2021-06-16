@@ -16,7 +16,7 @@ data class User(val id: UUID, val username: String, val password: String, val em
 // Commands
 
 data class RegisterEndUserCommand(
-  @TargetAggregateIdentifier
+  @RoutingKey
   val userId: EndUserId,
   val msisdn: String,
   val email: String,

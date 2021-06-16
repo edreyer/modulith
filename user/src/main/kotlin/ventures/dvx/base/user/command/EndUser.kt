@@ -2,10 +2,8 @@ package ventures.dvx.base.user.command
 
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.eventsourcing.EventSourcingHandler
-import org.axonframework.modelling.command.AggregateCreationPolicy
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
-import org.axonframework.modelling.command.CreationPolicy
 import org.axonframework.spring.stereotype.Aggregate
 import org.springframework.security.crypto.password.PasswordEncoder
 import ventures.dvx.base.user.api.EndUserId
@@ -24,7 +22,7 @@ import java.time.Clock
 import java.time.temporal.ChronoUnit
 
 @Aggregate(cache = "userCache")
-class EndUser : BaseUser, IndexableAggregate() {
+class EndUser() : BaseUser, IndexableAggregate() {
 
   @AggregateIdentifier
   private lateinit var id: EndUserId
@@ -46,11 +44,10 @@ class EndUser : BaseUser, IndexableAggregate() {
   }
 
   @CommandHandler
-  @CreationPolicy(AggregateCreationPolicy.CREATE_IF_MISSING)
-  fun on(
+  constructor(
     command: RegisterEndUserCommand,
     indexRepository: IndexRepository
-  ): EndUserId {
+  ): this() {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
       ?.let { throw ApplicationException("User already exists with msisdn: ${command.msisdn}") }
 
@@ -64,8 +61,6 @@ class EndUser : BaseUser, IndexableAggregate() {
         lastName = command.lastName
       )
     )
-
-    return command.userId
   }
 
   @CommandHandler
