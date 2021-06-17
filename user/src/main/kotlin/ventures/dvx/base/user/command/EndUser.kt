@@ -18,6 +18,7 @@ import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.error.ApplicationException
+import ventures.dvx.common.validation.MsisdnParser
 import java.time.Clock
 import java.time.temporal.ChronoUnit
 
@@ -46,7 +47,8 @@ class EndUser() : BaseUser, IndexableAggregate() {
   @CommandHandler
   constructor(
     command: RegisterEndUserCommand,
-    indexRepository: IndexRepository
+    indexRepository: IndexRepository,
+    msisdnParser: MsisdnParser
   ): this() {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
       ?.let { throw ApplicationException("User already exists with msisdn: ${command.msisdn}") }
@@ -55,32 +57,12 @@ class EndUser() : BaseUser, IndexableAggregate() {
       UserRegistrationStartedEvent(
         ia = IndexableAggregateDto(aggregateName, command.userId.id, command.msisdn),
         userId = command.userId,
-        msisdn = command.msisdn,
+        msisdn = msisdnParser.toInternational(command.msisdn), // throws if invalid (we want this here)
         email = command.email,
         firstName = command.firstName,
         lastName = command.lastName
       )
     )
-  }
-
-  @CommandHandler
-  fun on(command: LoginEndUserCommand): EndUserId {
-    apply(EndUserLoginStartedEvent(id))
-    return id
-  }
-
-  @CommandHandler
-  fun on(
-    command: ValidateEndUserTokenCommand,
-    passwordEncoder: PasswordEncoder
-  ): User {
-    token
-      ?.takeIf { it.isTokenValid() }
-      ?.takeIf { it.matches(command.token, command.msisdn) }
-      ?.run { apply(TokenValidatedEvent(this)) }
-
-    val roles = this.roles.map { it.toString() }
-    return User(id = id.id, username = msisdn, email = email, password = "", roles = roles)
   }
 
   @EventSourcingHandler
@@ -104,6 +86,12 @@ class EndUser() : BaseUser, IndexableAggregate() {
     lastName = event.lastName
   }
 
+  @CommandHandler
+  fun on(command: LoginEndUserCommand): EndUserId {
+    apply(EndUserLoginStartedEvent(id))
+    return id
+  }
+
   @EventSourcingHandler
   private fun on(event: EndUserLoginStartedEvent, clock: Clock) {
     val tokenStr = "1234" // TODO: plugin actual token generation mechanism
@@ -113,6 +101,20 @@ class EndUser() : BaseUser, IndexableAggregate() {
       email = email,
       expires = clock.instant().plus(1, ChronoUnit.HOURS)
     )
+  }
+
+  @CommandHandler
+  fun on(
+    command: ValidateEndUserTokenCommand,
+    passwordEncoder: PasswordEncoder
+  ): User {
+    token
+      ?.takeIf { it.isTokenValid() }
+      ?.takeIf { it.matches(command.token, command.msisdn) }
+      ?.run { apply(TokenValidatedEvent(this)) }
+
+    val roles = this.roles.map { it.toString() }
+    return User(id = id.id, username = msisdn, email = email, password = "", roles = roles)
   }
 
   @EventSourcingHandler
