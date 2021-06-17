@@ -25,7 +25,9 @@
         <arrow.version>0.13.2</arrow.version>
         <axon.version>4.5.2</axon.version>
         <axon.kotlin.version>0.1.0</axon.kotlin.version>
+        <axon.reactor.version>4.5</axon.reactor.version>
         <jjwt.version>0.11.2</jjwt.version>
+        <assertk.version>0.24</assertk.version>
     </properties>
 
     <modules>
@@ -94,16 +96,16 @@
             <artifactId>axon-spring-boot-starter</artifactId>
             <version>${axon.version}</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.axonframework.extensions.kotlin</groupId>-->
-<!--            <artifactId>axon-kotlin</artifactId>-->
-<!--            <version>${axon.kotlin.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.axonframework.extensions.reactor</groupId>-->
-<!--            <artifactId>axon-reactor-spring-boot-starter</artifactId>-->
-<!--            <version>${axon.version}</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>org.axonframework.extensions.kotlin</groupId>
+            <artifactId>axon-kotlin</artifactId>
+            <version>${axon.kotlin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.axonframework.extensions.reactor</groupId>
+            <artifactId>axon-reactor-spring-boot-starter</artifactId>
+            <version>${axon.reactor.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>
@@ -116,9 +118,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
+            <groupId>com.willowtreeapps.assertk</groupId>
+            <artifactId>assertk-jvm</artifactId>
+            <version>${assertk.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -139,6 +141,13 @@
             <version>3.0.1</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.axonframework</groupId>
+            <artifactId>axon-test</artifactId>
+            <version>${axon.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>

@@ -1,6 +1,6 @@
 package ventures.dvx.base.user.web
 
-import org.axonframework.commandhandling.gateway.CommandGateway
+import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -38,7 +38,7 @@ data class RegistrationErrorDto(val err: String) : RegisterUserOutputDto()
 
 @RestController
 class RegisterUserController(
-  private val commandGateway: CommandGateway
+  private val commandGateway: ReactorCommandGateway
 ) {
 
   val log by LoggerDelegate()
@@ -46,15 +46,13 @@ class RegisterUserController(
   @PostMapping(path = ["/user/register"])
   fun register(@Valid @RequestBody input: RegisterEndUserInputDto): Mono<ResponseEntity<RegisterUserOutputDto>> =
     commandGateway.send<EndUserId>(input.toCommand())
-      .thenApply { RegisteredUserDto(it.id) }
-      .let { Mono.fromFuture(it) }
+      .map { RegisteredUserDto(it.id) }
       .map { ResponseEntity.ok(RegisteredUserDto(it.id) as RegisterUserOutputDto) }
       .onErrorResume {
         Mono.just(ResponseEntity
           .status(HttpStatus.UNAUTHORIZED)
           .body(RegistrationErrorDto(it.message ?: "RegistrationError") as RegisterUserOutputDto))
       }
-
 }
 
 fun RegisterEndUserInputDto.toCommand(): RegisterEndUserCommand =

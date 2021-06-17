@@ -1,8 +1,8 @@
 package ventures.dvx.base.user.config
 
-import org.axonframework.commandhandling.gateway.CommandGateway
 import org.axonframework.common.caching.Cache
 import org.axonframework.common.caching.WeakReferenceCache
+import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.ContextRefreshedEvent
@@ -15,7 +15,7 @@ import ventures.dvx.common.logging.LoggerDelegate
 
 @Configuration
 class UserConfig(
-  val commandGateway: CommandGateway,
+  val commandGateway: ReactorCommandGateway,
   val indexRepository: IndexRepository
 ) {
 
@@ -34,15 +34,14 @@ class UserConfig(
 
     indexRepository.findEntityByAggregateNameAndKey(AdminUser.aggregateName(), adminEmail)
       ?: commandGateway.send<Unit>(RegisterAdminUserCommand(
-      userId = AdminUserId(),
-      email = adminEmail, // TODO: Make configurable (YML)
-      plainPassword = "DVxR0cks!!!",
-      firstName = "DVx",
-      lastName = "Admin"
-    ))
-      .whenComplete { unit: Unit?, ex: Throwable? ->
-        ex?.let { log.info("Admin user already exists") }
-      }
+        userId = AdminUserId(),
+        email = adminEmail, // TODO: Make configurable (YML)
+        plainPassword = "DVxR0cks!!!",
+        firstName = "DVx",
+        lastName = "Admin"
+      ))
+        .doOnError { ex -> log.info("Admin user already exists") }
+        .subscribe()
   }
 
 }

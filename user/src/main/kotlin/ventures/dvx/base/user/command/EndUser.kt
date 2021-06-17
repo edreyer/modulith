@@ -26,7 +26,7 @@ import java.time.temporal.ChronoUnit
 class EndUser() : BaseUser, IndexableAggregate() {
 
   @AggregateIdentifier
-  private lateinit var id: EndUserId
+  lateinit var id: EndUserId
 
   private lateinit var msisdn: String
   override lateinit var email :String
@@ -35,7 +35,7 @@ class EndUser() : BaseUser, IndexableAggregate() {
 
   override var roles : List<UserRole> = listOf(UserRole.USER)
 
-  private var token: MsisdnToken? = null
+  var token: MsisdnToken? = null
 
   override val businessKey: String
     get() = msisdn
@@ -111,7 +111,7 @@ class EndUser() : BaseUser, IndexableAggregate() {
     token
       ?.takeIf { it.isTokenValid() }
       ?.takeIf { it.matches(command.token, command.msisdn) }
-      ?.run { apply(TokenValidatedEvent(this)) }
+      ?.run { apply(TokenValidatedEvent()) }
 
     val roles = this.roles.map { it.toString() }
     return User(id = id.id, username = msisdn, email = email, password = "", roles = roles)

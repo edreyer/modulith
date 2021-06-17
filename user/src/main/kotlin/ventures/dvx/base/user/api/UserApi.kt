@@ -2,7 +2,6 @@ package ventures.dvx.base.user.api
 
 import org.axonframework.commandhandling.RoutingKey
 import org.axonframework.modelling.command.TargetAggregateIdentifier
-import ventures.dvx.base.user.command.MsisdnToken
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.IndexableAggregateEvent
 import java.util.*
@@ -70,9 +69,7 @@ data class AdminUserRegisteredEvent(
   val lastName: String
 ) : IndexableAggregateEvent
 
-data class TokenValidatedEvent(
-  val msisdnToken: MsisdnToken
-)
+class TokenValidatedEvent
 
 // Queries
 

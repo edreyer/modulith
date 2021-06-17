@@ -1,6 +1,6 @@
 package ventures.dvx.base.user.web
 
-import org.axonframework.commandhandling.gateway.CommandGateway
+import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -34,7 +34,7 @@ data class MsisdnLoginDto(
 
 @RestController
 class UserLoginController(
-  private val commandGateway: CommandGateway,
+  private val commandGateway: ReactorCommandGateway,
   private val tokenProvider: JwtTokenProvider,
   private val authenticationManager: ReactiveAuthenticationManager,
   private val indexRepository: IndexRepository
@@ -69,7 +69,6 @@ class UserLoginController(
       ?: throw IllegalArgumentException("Unknown User")
 
     return commandGateway.send<EndUserId>(command)
-      .let { Mono.fromFuture(it) }
       .map { ResponseEntity.ok(SuccessfulMsisdnLoginDto() as MsisdnLoginStartedOutputDto) }
       .onErrorResume {
         Mono.just(ResponseEntity
@@ -83,7 +82,6 @@ class UserLoginController(
     : Mono<ResponseEntity<EmailLoginOutputDto>>
   {
     return commandGateway.send<User>(input.toCommand())
-      .let { Mono.fromFuture(it) }
       .map { tokenProvider.createToken(input.userId, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
       .map {
         val headers = HttpHeaders()

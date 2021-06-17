@@ -1,6 +1,6 @@
 package ventures.dvx.config
 
-import org.axonframework.queryhandling.QueryGateway
+import org.axonframework.extensions.reactor.queryhandling.gateway.ReactorQueryGateway
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -74,11 +74,10 @@ class SecurityConfig {
   }
 
   @Bean
-  fun userDetailsService(queryGateway: QueryGateway): ReactiveUserDetailsService {
+  fun userDetailsService(queryGateway: ReactorQueryGateway): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
       queryGateway.query(FindUserQuery(username), ventures.dvx.base.user.api.User::class.java)
-        ?.thenApply { User(it.username, it.password, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
-        ?.let { Mono.fromFuture(it)}
+        ?.map { User(it.username, it.password, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
     }
   }
 

@@ -18,7 +18,7 @@ import ventures.dvx.common.error.ApplicationException
 class AdminUser(): BaseUser, IndexableAggregate() {
 
   @AggregateIdentifier
-  private lateinit var id: AdminUserId
+  lateinit var id: AdminUserId
 
   lateinit var password: String // encrypted
   override lateinit var email :String
