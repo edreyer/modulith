@@ -9,7 +9,7 @@ enum class UserRole {
   }
 }
 
-interface BaseUser {
+interface UserAggregate {
   var email :String
   var firstName :String
   var lastName :String

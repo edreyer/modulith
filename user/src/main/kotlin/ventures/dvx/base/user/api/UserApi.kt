@@ -2,6 +2,7 @@ package ventures.dvx.base.user.api
 
 import org.axonframework.commandhandling.RoutingKey
 import org.axonframework.modelling.command.TargetAggregateIdentifier
+import org.springframework.http.HttpStatus
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.IndexableAggregateEvent
 import java.util.*
@@ -56,9 +57,7 @@ data class UserRegistrationStartedEvent(
   val lastName: String
 ) : IndexableAggregateEvent
 
-data class EndUserLoginStartedEvent(
-  val userId: EndUserId
-)
+class EndUserLoginStartedEvent
 
 data class AdminUserRegisteredEvent(
   override val ia: IndexableAggregateDto,
@@ -74,3 +73,22 @@ class TokenValidatedEvent
 // Queries
 
 data class FindUserQuery(val username: String)
+
+// Errors
+
+sealed class UserError {
+  abstract val responseStatus: HttpStatus
+  abstract val msg: String
+}
+data class EndUserExistsError(val msisdn: String): UserError() {
+  override val responseStatus = HttpStatus.PRECONDITION_FAILED
+  override val msg = "User already exists with phone: '$msisdn'"
+}
+data class AdminUserExistsError(val email: String): UserError() {
+  override val responseStatus = HttpStatus.PRECONDITION_FAILED
+  override val msg = "Admin already exists with email: '$email'"
+}
+data class UserNotFoundError(val username: String): UserError() {
+  override val responseStatus = HttpStatus.UNAUTHORIZED
+  override val msg = "User not found with username: '$username'"
+}

@@ -1,7 +1,6 @@
 package ventures.dvx.base.user.web
 
 import org.axonframework.extensions.reactor.commandhandling.gateway.ReactorCommandGateway
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -9,14 +8,13 @@ import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.RegisterEndUserCommand
-import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.validation.Msisdn
 import java.util.*
 import javax.validation.Valid
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty
 
-// input DTO
+// input DTOs
 
 data class RegisterEndUserInputDto(
   @NotEmpty @Msisdn val msisdn: String,
@@ -31,28 +29,25 @@ data class ValidateTokenInputDto(
   @NotEmpty val token: String
 )
 
-sealed class RegisterUserOutputDto
+// output DTOs
+
+sealed class RegisterUserOutputDto : OutputDto
 data class RegisteredUserDto(val id: UUID) : RegisterUserOutputDto()
-data class RegistrationErrorDto(val err: String) : RegisterUserOutputDto()
 
 
 @RestController
 class RegisterUserController(
   private val commandGateway: ReactorCommandGateway
-) {
-
-  val log by LoggerDelegate()
+) : BaseUserController() {
 
   @PostMapping(path = ["/user/register"])
-  fun register(@Valid @RequestBody input: RegisterEndUserInputDto): Mono<ResponseEntity<RegisterUserOutputDto>> =
-    commandGateway.send<EndUserId>(input.toCommand())
+  fun register(@Valid @RequestBody input: RegisterEndUserInputDto)
+  : Mono<ResponseEntity<OutputDto>> {
+    return commandGateway.send<EndUserId>(input.toCommand())
       .map { RegisteredUserDto(it.id) }
-      .map { ResponseEntity.ok(RegisteredUserDto(it.id) as RegisterUserOutputDto) }
-      .onErrorResume {
-        Mono.just(ResponseEntity
-          .status(HttpStatus.UNAUTHORIZED)
-          .body(RegistrationErrorDto(it.message ?: "RegistrationError") as RegisterUserOutputDto))
-      }
+      .map { ResponseEntity.ok(RegisteredUserDto(it.id) as OutputDto) }
+      .mapToResponseEntity()
+  }
 }
 
 fun RegisterEndUserInputDto.toCommand(): RegisterEndUserCommand =

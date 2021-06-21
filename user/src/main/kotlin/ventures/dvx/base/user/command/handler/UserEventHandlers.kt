@@ -7,8 +7,9 @@ import org.springframework.stereotype.Component
 import ventures.dvx.common.axon.IndexableAggregateEvent
 import ventures.dvx.common.axon.command.persistence.IndexJpaEntity
 import ventures.dvx.common.axon.command.persistence.IndexRepository
-import ventures.dvx.common.error.PreconditionFailedCommandException
 import ventures.dvx.common.logging.LoggerDelegate
+import ventures.dxv.base.user.error.UserCommandException
+import ventures.dxv.base.user.error.UserException
 import javax.annotation.PostConstruct
 
 @Component
@@ -36,11 +37,10 @@ class UserEventHandlers {
     )
   }
 
-  // TODO Why doesn't this get called?
-  @ExceptionHandler
-  fun handle(ex: Exception) {
-    val msg = ex.message  ?: "Unknown Error"
-    throw PreconditionFailedCommandException(msg, ex, msg)
+  // Doesn't get called on aggregate creation: https://github.com/AxonFramework/AxonFramework/issues/1850
+  @ExceptionHandler(resultType = UserException::class)
+  fun handle(ex: UserException) {
+    throw UserCommandException(ex.userError.msg, ex.userError, ex)
   }
 
 }

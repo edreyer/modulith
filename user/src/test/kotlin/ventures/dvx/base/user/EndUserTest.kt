@@ -24,6 +24,7 @@ import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.base.user.command.EndUser
 import ventures.dvx.base.user.command.UserRole
 import ventures.dvx.common.axon.IndexableAggregateDto
+import ventures.dvx.common.axon.command.persistence.IndexJpaEntity
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.validation.MsisdnParser
 import java.time.Clock
@@ -67,7 +68,9 @@ class EndUserTest {
 
   @Test
   fun shouldRegisterEndUser() {
-    every { indexRepository.findEntityByAggregateNameAndKey(EndUser.aggregateName(), any()) } returns null
+    every {
+      indexRepository.findEntityByAggregateNameAndKey(EndUser.aggregateName(), any())
+    } returns null
 
     fixture.givenNoPriorActivity()
       .`when`(registerUserCommand)
@@ -92,20 +95,28 @@ class EndUserTest {
 
   @Test
   fun shouldLoginEndUser() {
+    every {
+      indexRepository.findEntityByAggregateNameAndKey(any(), any())
+    } returns IndexJpaEntity(userId.id, EndUser.aggregateName(), "+15125551212")
+
     fixture.given(userRegistrationStartedEvent)
       .`when`(LoginEndUserCommand(userId = userId, msisdn = "+15125551212"))
       .expectSuccessfulHandlerExecution()
       .expectState {
         assertThat(it.token?.token).isEqualTo("1234")
       }
-      .expectEvents(EndUserLoginStartedEvent(userId))
+      .expectEvents(EndUserLoginStartedEvent())
   }
 
   @Test
   fun shouldValidateTokenTest() {
+    every {
+      indexRepository.findEntityByAggregateNameAndKey(any(), any())
+    } returns IndexJpaEntity(userId.id, EndUser.aggregateName(), "+15125551212")
+
     fixture.given(
       userRegistrationStartedEvent,
-      EndUserLoginStartedEvent(userId)
+      EndUserLoginStartedEvent()
     )
       .`when`(ValidateEndUserTokenCommand(userId = userId, msisdn = "+15125551212", token = "1234"))
       .expectSuccessfulHandlerExecution()

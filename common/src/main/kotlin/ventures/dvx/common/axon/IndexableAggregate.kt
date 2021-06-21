@@ -2,7 +2,7 @@ package ventures.dvx.common.axon
 
 import java.util.*
 
-abstract class IndexableAggregate {
+interface IndexableAggregate {
   /**
    * The type of the aggregate
    */
@@ -21,7 +21,7 @@ abstract class IndexableAggregate {
    * This method should return a string that makes this aggregate instance unique within the
    * aggregate class.
    */
-  abstract val businessKey: String
+  val businessKey: String
 }
 
 interface IndexableAggregateEvent {

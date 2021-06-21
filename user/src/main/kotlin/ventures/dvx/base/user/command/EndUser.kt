@@ -6,24 +6,27 @@ import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
 import org.axonframework.spring.stereotype.Aggregate
 import org.springframework.security.crypto.password.PasswordEncoder
+import ventures.dvx.base.user.api.EndUserExistsError
 import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.EndUserLoginStartedEvent
 import ventures.dvx.base.user.api.LoginEndUserCommand
 import ventures.dvx.base.user.api.RegisterEndUserCommand
 import ventures.dvx.base.user.api.TokenValidatedEvent
 import ventures.dvx.base.user.api.User
+import ventures.dvx.base.user.api.UserNotFoundError
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
-import ventures.dvx.common.error.ApplicationException
 import ventures.dvx.common.validation.MsisdnParser
+import ventures.dxv.base.user.error.UserCommandErrorSupport
+import ventures.dxv.base.user.error.UserException
 import java.time.Clock
 import java.time.temporal.ChronoUnit
 
 @Aggregate(cache = "userCache")
-class EndUser() : BaseUser, IndexableAggregate() {
+class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   @AggregateIdentifier
   lateinit var id: EndUserId
@@ -49,9 +52,9 @@ class EndUser() : BaseUser, IndexableAggregate() {
     command: RegisterEndUserCommand,
     indexRepository: IndexRepository,
     msisdnParser: MsisdnParser
-  ): this() {
+  ) : this() {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
-      ?.let { throw ApplicationException("User already exists with msisdn: ${command.msisdn}") }
+      ?.let { throw UserException(EndUserExistsError(command.msisdn)) }
 
     apply(
       UserRegistrationStartedEvent(
@@ -87,9 +90,15 @@ class EndUser() : BaseUser, IndexableAggregate() {
   }
 
   @CommandHandler
-  fun on(command: LoginEndUserCommand): EndUserId {
-    apply(EndUserLoginStartedEvent(id))
-    return id
+  fun on(
+    command: LoginEndUserCommand,
+    indexRepository: IndexRepository
+  ) {
+    // ensure user exists
+    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
+      ?: throw UserException(UserNotFoundError(command.msisdn))
+
+    apply(EndUserLoginStartedEvent())
   }
 
   @EventSourcingHandler
@@ -122,5 +131,4 @@ class EndUser() : BaseUser, IndexableAggregate() {
     // delete the token we just used
     token = null
   }
-
 }
