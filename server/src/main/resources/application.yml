@@ -47,6 +47,14 @@ security:
       validityInMs: 3600000 # 1 HOUR
 
 axon:
+
+  axonserver:
+    servers: axonserver.cloud.axoniq.io:443
+    keep-alive-time: 0
+    ssl-enabled: true
+    context: user@dvx-base
+    token: wfqmu3bVhlgbLI5aztNm
+
   serializer:
     general: jackson
     events: jackson
