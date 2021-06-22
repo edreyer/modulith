@@ -5,7 +5,7 @@ A foundational project for any DVx technology-basex venture
 ## What is it?
 
 A kotlin-based Spring Boot application using Reactive webflux APIs. 
-The project uses a hexagonal architecture, along with 
+The project uses a CQRS/event sourcing architecture provided by the Axon framework, along with 
 [DDD](https://en.wikipedia.org/wiki/Domain-driven_design) 
 principals to create a clean design that helps enforce good programming practice.
 
@@ -49,28 +49,27 @@ harder to change over time.
     * Working on different use cases will cause the same service to be edited in parallel which leads to merge conflicts and potentially regressions.
     
 
-### `dvx-base` bounded context layout
+### `dvx-base` bounded context
 
-```yml
-user: Name of your bounded context (in this case, "user")
-  domain: The core. Depends on nothing. All Business Logic. Built using ADTs
-  adapter: Adapters connect to outside systems
-    in: Input adapters "drive" the system, causing the system to act
-      web: Typically Spring Controllers 
-    out: Output adapters are "driven" by the system
-      persistence: Typically DB Entity classes and DAOs (e.g. Spring Repositories)
-  application: Comprised of Ports and Use Cases, these define the interface to our app.
-    usecase: Workflows with defined input/output types
-    port: Allows communication between the app core and the adapters
-      in: Use Case interfaces that define API and types for "driving" operations
-      out: Typically interfaces called by the core for "driven" operations
-```
+Each bounded context should exist within it's own Maven module. Out of the box, a `user` module is created
+for you. This module supports to basic roles, `USER` and `ADMIN`. An admin user is created
+on startup, if it doesn't already exist.
+
+Admins login using email/password.
+Users login using phone number and then a PIN code. Out of the box, we always use `1234`. 
+You'll want to provide your own mechanism, as well as a way to send the PIN to a user
 
 ## Running the application
 
 This Spring Boot application relies on Axon Server.
 To run that, execute the following before starting the Spring Boot application:
 
+You'l need to create a new database for the app
+```sql
+create database dvx_app;
+```
+
+To use an axon server instance running on localhost:
 ```bash
 docker pull axoniq/axonserver
 docker run -d --name axonserver -p 8024:8024 -p 8124:8124 axoniq/axonserver
