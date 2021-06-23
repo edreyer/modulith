@@ -2,10 +2,12 @@ package ventures.dvx.base.user.query
 
 import org.axonframework.eventhandling.EventHandler
 import org.axonframework.queryhandling.QueryHandler
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import ventures.dvx.base.user.api.AdminUserRegisteredEvent
-import ventures.dvx.base.user.api.FindUserQuery
+import ventures.dvx.base.user.api.FindUserByIdQuery
+import ventures.dvx.base.user.api.FindUserByUsernameQuery
 import ventures.dvx.base.user.api.User
 import ventures.dvx.base.user.api.UserNotFoundError
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
@@ -30,7 +32,7 @@ class UserProjector(
 
   @QueryHandler
   fun handle(
-    query: FindUserQuery,
+    query: FindUserByUsernameQuery,
     passwordEncoder: PasswordEncoder
   ): User =
     userViewRepository.findByUsername(query.username)
@@ -42,4 +44,20 @@ class UserProjector(
         roles = it.roles.map { role -> role.toString() }
       )
       } ?: throw UserException(UserNotFoundError(query.username))
+
+  @QueryHandler
+  fun handle(
+    query: FindUserByIdQuery,
+    passwordEncoder: PasswordEncoder
+  ): User =
+    userViewRepository.findByIdOrNull(query.id)
+      ?.let { User(
+        id = it.userId,
+        username = it.username,
+        password = it.password,
+        email = it.email,
+        roles = it.roles.map { role -> role.toString() }
+      )
+      } ?: throw UserException(UserNotFoundError(query.id.toString()))
+
 }

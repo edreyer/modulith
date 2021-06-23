@@ -97,7 +97,7 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     commonConfig: CommonConfig,
     userConfig: UserConfig,
     clock: Clock
-  ) {
+  ): EndUserId {
     // ensure user exists
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
       ?: throw UserException(UserNotFoundError(command.msisdn))
@@ -107,6 +107,8 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
         commonConfig, userConfig, clock, msisdnParser.toInternational(command.msisdn), email
       )
     ))
+
+    return id
   }
 
   @EventSourcingHandler

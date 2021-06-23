@@ -72,7 +72,8 @@ class TokenValidatedEvent
 
 // Queries
 
-data class FindUserQuery(val username: String)
+data class FindUserByIdQuery(val id: UUID)
+data class FindUserByUsernameQuery(val username: String)
 
 // Errors
 

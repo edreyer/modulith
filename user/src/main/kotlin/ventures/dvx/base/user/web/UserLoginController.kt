@@ -26,6 +26,8 @@ import javax.validation.Valid
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty
 
+// DTOs
+
 data class EmailLoginDto(
   @NotEmpty @Email val email: String,
   @NotEmpty val password: String,
@@ -55,7 +57,7 @@ class UserLoginController(
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
         ResponseEntity.ok(SuccessfulEmailLoginDto(it) as OutputDto)
       }
-      .mapToResponseEntity()
+      .mapErrorToResponseEntity()
   }
 
   @PostMapping(path = ["/user/loginByMsisdn"])
@@ -68,8 +70,8 @@ class UserLoginController(
     return user
       .map { LoginEndUserCommand(EndUserId(it.aggregateId), it.key) }
       .flatMap { commandGateway.send<EndUserId>(it) }
-      .map { ResponseEntity.ok(SuccessfulMsisdnLoginDto as OutputDto) }
-      .mapToResponseEntity()
+      .map { ResponseEntity.ok(SuccessfulMsisdnLoginDto(it.id) as OutputDto) }
+      .mapErrorToResponseEntity()
   }
 
   @PostMapping(path = ["/user/confirmToken"])
@@ -85,7 +87,7 @@ class UserLoginController(
           ResponseEntity.ok(SuccessfulEmailLoginDto(it) as OutputDto)
         tokenBody
       }
-      .mapToResponseEntity()
+      .mapErrorToResponseEntity()
   }
 
   fun ValidateTokenInputDto.toCommand(): ValidateEndUserTokenCommand =

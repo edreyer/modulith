@@ -14,7 +14,7 @@ abstract class BaseUserController {
   /**
    * Extension method to translate Monos in an exceptional state
    */
-  fun Mono<ResponseEntity<OutputDto>>.mapToResponseEntity(): Mono<ResponseEntity<OutputDto>> {
+  fun Mono<ResponseEntity<OutputDto>>.mapErrorToResponseEntity(): Mono<ResponseEntity<OutputDto>> {
     return this.onErrorResume { ex ->
       log.error(ex.message, ex)
       when (ex) {

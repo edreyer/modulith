@@ -46,7 +46,7 @@ class RegisterUserController(
     return commandGateway.send<EndUserId>(input.toCommand())
       .map { RegisteredUserDto(it.id) }
       .map { ResponseEntity.ok(RegisteredUserDto(it.id) as OutputDto) }
-      .mapToResponseEntity()
+      .mapErrorToResponseEntity()
   }
 }
 

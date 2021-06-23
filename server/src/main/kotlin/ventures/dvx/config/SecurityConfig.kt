@@ -19,7 +19,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import reactor.core.publisher.Mono
-import ventures.dvx.base.user.api.FindUserQuery
+import ventures.dvx.base.user.api.FindUserByUsernameQuery
 import ventures.dvx.common.security.JwtProperties
 import ventures.dvx.common.security.JwtTokenAuthenticationFilter
 import ventures.dvx.common.security.JwtTokenProvider
@@ -54,11 +54,13 @@ class SecurityConfig {
       .authenticationManager(reactiveAuthenticationManager)
       .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
       .authorizeExchange { it
-//        .pathMatchers("/api/**").access(this::currentUserMatchesPath)
-        .pathMatchers("/user/login").permitAll()
+        .pathMatchers("/user/register").permitAll()
+        .pathMatchers("/user/loginByMsisdn").permitAll()
+        .pathMatchers("/user/loginByEmail").permitAll()
         .pathMatchers("/user/confirmToken").permitAll()
+//        .pathMatchers("/api/**").access(this::currentUserMatchesPath)
         .pathMatchers("/api/**").authenticated()
-        .anyExchange().permitAll()
+        .anyExchange().authenticated()
       }
       .addFilterAt(JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)
       .build()
@@ -76,7 +78,7 @@ class SecurityConfig {
   @Bean
   fun userDetailsService(queryGateway: ReactorQueryGateway): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
-      queryGateway.query(FindUserQuery(username), ventures.dvx.base.user.api.User::class.java)
+      queryGateway.query(FindUserByUsernameQuery(username), ventures.dvx.base.user.api.User::class.java)
         ?.map { User(it.username, it.password, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
     }
   }
