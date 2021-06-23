@@ -31,7 +31,7 @@ abstract class BaseUserController {
           .body(OutputErrorDto(ex.message) as OutputDto)
         )
         else -> Mono.just(ResponseEntity
-          .badRequest()
+          .internalServerError()
           .body(OutputErrorDto(ex.message ?: "Server Error") as OutputDto)
         )
       }

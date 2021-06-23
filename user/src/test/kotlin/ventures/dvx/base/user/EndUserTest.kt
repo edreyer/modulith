@@ -22,19 +22,25 @@ import ventures.dvx.base.user.api.TokenValidatedEvent
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.base.user.command.EndUser
+import ventures.dvx.base.user.command.MsisdnToken
 import ventures.dvx.base.user.command.UserRole
+import ventures.dvx.base.user.config.UserConfig
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexJpaEntity
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.config.CommonConfig
 import ventures.dvx.common.validation.MsisdnParser
 import java.time.Clock
 import java.time.Instant
+import java.time.temporal.ChronoUnit.HOURS
+import java.util.*
 
 class EndUserTest {
 
   lateinit var fixture: FixtureConfiguration<EndUser>
   lateinit var indexRepository: IndexRepository
 
+  val userConfig = mockk<UserConfig>()
   val userId = EndUserId()
   val registerUserCommand = RegisterEndUserCommand(
     userId = userId,
@@ -43,11 +49,13 @@ class EndUserTest {
     firstName = "admin",
     lastName = "admin"
   )
+  val token = MsisdnToken(
+    "1234", "+15125551212", "email@email.com", Date().toInstant().plus(1, HOURS)
+  )
   val userRegistrationStartedEvent = UserRegistrationStartedEvent(
     ia = IndexableAggregateDto(EndUser.aggregateName(), userId.id, "+15125551212"),
+    token = token,
     userId = userId,
-    msisdn = "+15125551212",
-    email = "email@email.com",
     firstName = "User",
     lastName = "User"
   )
@@ -59,11 +67,19 @@ class EndUserTest {
     indexRepository = mockk()
     fixture.registerInjectableResource(indexRepository)
 
+    fixture.registerInjectableResource(CommonConfig("dev"))
+
+    fixture.registerInjectableResource(userConfig)
+    every { userConfig.forcedMsisdnToken } returns "1234"
+
     fixture.registerInjectableResource(BCryptPasswordEncoder())
     fixture.registerInjectableResource(MsisdnParser())
+
     val clock: Clock = mockk()
     every { clock.instant() } returns Instant.now()
     fixture.registerInjectableResource(clock)
+
+    fixture.registerIgnoredField(EndUserLoginStartedEvent::class.java, "token")
   }
 
   @Test
@@ -85,7 +101,7 @@ class EndUserTest {
         exactSequenceOf(
           messageWithPayload(
             matches { event: UserRegistrationStartedEvent ->
-              event.email == "email@email.com"
+              event.token.email == "email@email.com"
                 && event.userId == userId
             }
           )
@@ -105,7 +121,7 @@ class EndUserTest {
       .expectState {
         assertThat(it.token?.token).isEqualTo("1234")
       }
-      .expectEvents(EndUserLoginStartedEvent())
+      .expectEvents(EndUserLoginStartedEvent(token))
   }
 
   @Test
@@ -116,7 +132,7 @@ class EndUserTest {
 
     fixture.given(
       userRegistrationStartedEvent,
-      EndUserLoginStartedEvent()
+      EndUserLoginStartedEvent(token)
     )
       .`when`(ValidateEndUserTokenCommand(userId = userId, msisdn = "+15125551212", token = "1234"))
       .expectSuccessfulHandlerExecution()
@@ -124,7 +140,6 @@ class EndUserTest {
         assertThat(it.token).isNull()
       }
       .expectEvents(TokenValidatedEvent())
-
   }
 
 }

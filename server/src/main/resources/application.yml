@@ -6,6 +6,9 @@ logging:
 
 spring:
 
+  config:
+    import: classpath:common.yml
+
   datasource:
     url: jdbc:postgresql://localhost:5432/dvx_app
     driver-class-name: org.postgresql.Driver
@@ -48,12 +51,12 @@ security:
 
 axon:
 
-  axonserver:
-    servers: axonserver.cloud.axoniq.io:443
-    keep-alive-time: 0
-    ssl-enabled: true
-    context: user@dvx-base
-    token: wfqmu3bVhlgbLI5aztNm
+#  axonserver:
+#    servers: axonserver.cloud.axoniq.io:443
+#    keep-alive-time: 0
+#    ssl-enabled: true
+#    context: user@dvx-base
+#    token: wfqmu3bVhlgbLI5aztNm
 
   serializer:
     general: jackson

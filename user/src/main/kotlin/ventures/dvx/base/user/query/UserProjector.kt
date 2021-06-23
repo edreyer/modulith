@@ -20,7 +20,7 @@ class UserProjector(
 
   @EventHandler
   fun on(event: UserRegistrationStartedEvent) {
-    userViewRepository.save(UserView(event.userId.id, event.msisdn, "", event.email, listOf(UserRole.USER)))
+    userViewRepository.save(UserView(event.userId.id, event.token.msisdn, "", event.token.email, listOf(UserRole.USER)))
   }
 
   @EventHandler

@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import ventures.dvx.base.user.api.EndUserExistsError
 import ventures.dvx.base.user.api.EndUserId
 import ventures.dvx.base.user.api.EndUserLoginStartedEvent
+import ventures.dvx.base.user.api.InvalidTokenError
 import ventures.dvx.base.user.api.LoginEndUserCommand
 import ventures.dvx.base.user.api.RegisterEndUserCommand
 import ventures.dvx.base.user.api.TokenValidatedEvent
@@ -16,9 +17,11 @@ import ventures.dvx.base.user.api.User
 import ventures.dvx.base.user.api.UserNotFoundError
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
+import ventures.dvx.base.user.config.UserConfig
 import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.config.CommonConfig
 import ventures.dvx.common.validation.MsisdnParser
 import ventures.dxv.base.user.error.UserCommandErrorSupport
 import ventures.dxv.base.user.error.UserException
@@ -32,9 +35,9 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   lateinit var id: EndUserId
 
   private lateinit var msisdn: String
-  override lateinit var email :String
-  override lateinit var firstName :String
-  override lateinit var lastName :String
+  override lateinit var email: String
+  override lateinit var firstName: String
+  override lateinit var lastName: String
 
   override var roles : List<UserRole> = listOf(UserRole.USER)
 
@@ -50,18 +53,24 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   @CommandHandler
   constructor(
     command: RegisterEndUserCommand,
+    commonConfig: CommonConfig,
+    userConfig: UserConfig,
     indexRepository: IndexRepository,
-    msisdnParser: MsisdnParser
+    msisdnParser: MsisdnParser,
+    clock: Clock
   ) : this() {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
       ?.let { throw UserException(EndUserExistsError(command.msisdn)) }
 
+    val token = createToken(
+      commonConfig, userConfig, clock, msisdnParser.toInternational(command.msisdn), command.email
+    )
+
     apply(
       UserRegistrationStartedEvent(
         ia = IndexableAggregateDto(aggregateName, command.userId.id, command.msisdn),
+        token = token,
         userId = command.userId,
-        msisdn = msisdnParser.toInternational(command.msisdn), // throws if invalid (we want this here)
-        email = command.email,
         firstName = command.firstName,
         lastName = command.lastName
       )
@@ -70,21 +79,12 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   @EventSourcingHandler
   private fun on(
-    event: UserRegistrationStartedEvent,
-    clock: Clock
+    event: UserRegistrationStartedEvent
   ) {
     id = event.userId
-
-    val tokenStr = "1234" // TODO: plugin actual token generation mechanism
-    token = MsisdnToken(
-      token = tokenStr,
-      msisdn = event.msisdn,
-      email = event.email,
-      expires = clock.instant().plus(1, ChronoUnit.HOURS)
-    )
-
-    msisdn = event.msisdn
-    email = event.email
+    token = event.token
+    msisdn = event.token.msisdn
+    email = event.token.email
     firstName = event.firstName
     lastName = event.lastName
   }
@@ -92,43 +92,60 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   @CommandHandler
   fun on(
     command: LoginEndUserCommand,
-    indexRepository: IndexRepository
+    indexRepository: IndexRepository,
+    msisdnParser: MsisdnParser,
+    commonConfig: CommonConfig,
+    userConfig: UserConfig,
+    clock: Clock
   ) {
     // ensure user exists
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
       ?: throw UserException(UserNotFoundError(command.msisdn))
 
-    apply(EndUserLoginStartedEvent())
+    apply(EndUserLoginStartedEvent(
+      createToken(
+        commonConfig, userConfig, clock, msisdnParser.toInternational(command.msisdn), email
+      )
+    ))
   }
 
   @EventSourcingHandler
-  private fun on(event: EndUserLoginStartedEvent, clock: Clock) {
-    val tokenStr = "1234" // TODO: plugin actual token generation mechanism
-    token = MsisdnToken(
-      token = tokenStr,
-      msisdn = msisdn,
-      email = email,
-      expires = clock.instant().plus(1, ChronoUnit.HOURS)
-    )
+  private fun on(event: EndUserLoginStartedEvent) {
+    token = event.token
   }
 
   @CommandHandler
   fun on(
     command: ValidateEndUserTokenCommand,
     passwordEncoder: PasswordEncoder
-  ): User {
-    token
-      ?.takeIf { it.isTokenValid() }
-      ?.takeIf { it.matches(command.token, command.msisdn) }
-      ?.run { apply(TokenValidatedEvent()) }
-
-    val roles = this.roles.map { it.toString() }
-    return User(id = id.id, username = msisdn, email = email, password = "", roles = roles)
-  }
+  ): User = token
+    ?.takeIf { it.isTokenValid() }
+    ?.takeIf { it.matches(command.token, command.msisdn) }
+    ?.apply { apply(TokenValidatedEvent()) }
+    ?.let {
+      val roles = this.roles.map { it.toString() }
+      return User(id = id.id, username = msisdn, email = email, password = "", roles = roles)
+    } ?: throw UserException(InvalidTokenError)
 
   @EventSourcingHandler
   private fun on(event: TokenValidatedEvent) {
     // delete the token we just used
     token = null
+  }
+
+  private fun createToken(
+    commonConfig: CommonConfig,
+    userConfig: UserConfig,
+    clock: Clock,
+    msisdn: String,
+    email: String,
+  ): MsisdnToken {
+    val tokenStr = if (commonConfig.isDev()) userConfig.forcedMsisdnToken else MsisdnToken.generateToken()
+    return MsisdnToken(
+      token = tokenStr,
+      msisdn = msisdn,
+      email = email,
+      expires = clock.instant().plus(1, ChronoUnit.HOURS)
+    )
   }
 }
