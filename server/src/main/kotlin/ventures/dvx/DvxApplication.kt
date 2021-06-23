@@ -3,6 +3,7 @@ package ventures.dvx
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
+import ventures.dvx.base.user.config.UserConfig
 import ventures.dvx.common.config.CommonConfig
 
 @SpringBootApplication(
@@ -10,7 +11,10 @@ import ventures.dvx.common.config.CommonConfig
 )
 @ConfigurationPropertiesScan(
   basePackages = ["ventures.dvx"],
-  basePackageClasses = [CommonConfig::class]
+  basePackageClasses = [
+    CommonConfig::class,
+    UserConfig::class
+  ]
 )
 class DvxApplication
 

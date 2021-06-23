@@ -7,7 +7,9 @@ logging:
 spring:
 
   config:
-    import: classpath:common.yml
+    import:
+      - classpath:common.yml
+      - classpath:user.yml
 
   datasource:
     url: jdbc:postgresql://localhost:5432/dvx_app
