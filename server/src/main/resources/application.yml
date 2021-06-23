@@ -58,11 +58,6 @@ axon:
 #    context: user@dvx-base
 #    token: wfqmu3bVhlgbLI5aztNm
 
-  serializer:
-    general: jackson
-    events: jackson
-    messages: jackson
-
   #see: https://axoniq.io/blog-overview/set-based-validation
   eventhandling:
     processors:
