@@ -19,7 +19,7 @@ import ventures.dxv.base.user.error.UserCommandErrorSupport
 import ventures.dxv.base.user.error.UserException
 
 @Aggregate(cache = "userCache")
-class AdminUser(): UserAggregate, UserCommandErrorSupport, IndexableAggregate {
+class AdminUser: UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   @AggregateIdentifier
   lateinit var id: AdminUserId
@@ -40,7 +40,7 @@ class AdminUser(): UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   @CommandHandler
   @CreationPolicy(AggregateCreationPolicy.ALWAYS)
-  fun on(
+  fun handle(
     command: RegisterAdminUserCommand,
     indexRepository: IndexRepository,
     passwordEncoder: PasswordEncoder

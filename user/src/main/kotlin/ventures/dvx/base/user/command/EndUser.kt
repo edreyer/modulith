@@ -1,7 +1,9 @@
 package ventures.dvx.base.user.command
 
 import org.axonframework.commandhandling.CommandHandler
+import org.axonframework.commandhandling.CommandMessage
 import org.axonframework.eventsourcing.EventSourcingHandler
+import org.axonframework.messaging.interceptors.MessageHandlerInterceptor
 import org.axonframework.modelling.command.AggregateCreationPolicy
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
@@ -31,7 +33,7 @@ import java.time.Clock
 import java.time.temporal.ChronoUnit
 
 @Aggregate(cache = "userCache")
-class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
+class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   @AggregateIdentifier
   lateinit var id: EndUserId
@@ -52,9 +54,16 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     fun aggregateName() : String = EndUser::class.simpleName!!
   }
 
+  @MessageHandlerInterceptor
+  fun intercept(msg: CommandMessage<*>) {
+    msg.commandName
+
+    println(msg)
+  }
+
   @CommandHandler
   @CreationPolicy(AggregateCreationPolicy.ALWAYS)
-  fun on(
+  fun handle(
     command: RegisterEndUserCommand,
     commonConfig: CommonConfig,
     userConfig: UserConfig,
@@ -93,7 +102,7 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   }
 
   @CommandHandler
-  fun on(
+  fun handle(
     command: LoginEndUserCommand,
     indexRepository: IndexRepository,
     msisdnParser: MsisdnParser,
@@ -120,7 +129,7 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   }
 
   @CommandHandler
-  fun on(
+  fun handle(
     command: ValidateEndUserTokenCommand,
     passwordEncoder: PasswordEncoder
   ): User = token
