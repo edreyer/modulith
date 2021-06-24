@@ -2,8 +2,10 @@ package ventures.dvx.base.user.command
 
 import org.axonframework.commandhandling.CommandHandler
 import org.axonframework.eventsourcing.EventSourcingHandler
+import org.axonframework.modelling.command.AggregateCreationPolicy
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
+import org.axonframework.modelling.command.CreationPolicy
 import org.axonframework.spring.stereotype.Aggregate
 import org.springframework.security.crypto.password.PasswordEncoder
 import ventures.dvx.base.user.api.EndUserExistsError
@@ -51,14 +53,15 @@ class EndUser() : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   }
 
   @CommandHandler
-  constructor(
+  @CreationPolicy(AggregateCreationPolicy.ALWAYS)
+  fun on(
     command: RegisterEndUserCommand,
     commonConfig: CommonConfig,
     userConfig: UserConfig,
     indexRepository: IndexRepository,
     msisdnParser: MsisdnParser,
     clock: Clock
-  ) : this() {
+  ) {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
       ?.let { throw UserException(EndUserExistsError(command.msisdn)) }
 
