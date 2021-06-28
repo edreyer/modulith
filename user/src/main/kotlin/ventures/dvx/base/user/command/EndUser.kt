@@ -1,9 +1,7 @@
 package ventures.dvx.base.user.command
 
 import org.axonframework.commandhandling.CommandHandler
-import org.axonframework.commandhandling.CommandMessage
 import org.axonframework.eventsourcing.EventSourcingHandler
-import org.axonframework.messaging.interceptors.MessageHandlerInterceptor
 import org.axonframework.modelling.command.AggregateCreationPolicy
 import org.axonframework.modelling.command.AggregateIdentifier
 import org.axonframework.modelling.command.AggregateLifecycle.apply
@@ -52,13 +50,6 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   companion object {
     fun aggregateName() : String = EndUser::class.simpleName!!
-  }
-
-  @MessageHandlerInterceptor
-  fun intercept(msg: CommandMessage<*>) {
-    msg.commandName
-
-    println(msg)
   }
 
   @CommandHandler
