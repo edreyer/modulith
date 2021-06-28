@@ -30,7 +30,10 @@ import ventures.dxv.base.user.error.UserException
 import java.time.Clock
 import java.time.temporal.ChronoUnit
 
-@Aggregate(cache = "userCache")
+@Aggregate(
+  snapshotTriggerDefinition = "endUserSnapshotTriggerDefinition",
+  cache = "userCache"
+)
 class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   @AggregateIdentifier

@@ -18,7 +18,9 @@ import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dxv.base.user.error.UserCommandErrorSupport
 import ventures.dxv.base.user.error.UserException
 
-@Aggregate(cache = "userCache")
+@Aggregate(
+  snapshotTriggerDefinition = "adminUserSnapshotTriggerDefinition",
+  cache = "userCache")
 class AdminUser: UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
   @AggregateIdentifier
