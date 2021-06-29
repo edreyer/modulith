@@ -29,6 +29,9 @@ import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexJpaEntity
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.config.CommonConfig
+import ventures.dvx.common.types.toEmailAddress
+import ventures.dvx.common.types.toMsisdn
+import ventures.dvx.common.types.toNonEmptyString
 import ventures.dvx.common.validation.MsisdnParser
 import java.time.Clock
 import java.time.Instant
@@ -44,20 +47,20 @@ class EndUserTest {
   val userId = EndUserId()
   val registerUserCommand = RegisterEndUserCommand(
     userId = userId,
-    msisdn = "+15125551212",
-    email = "email@email.com",
-    firstName = "admin",
-    lastName = "admin"
+    msisdn = "+15125551212".toMsisdn(),
+    email = "email@email.com".toEmailAddress(),
+    firstName = "admin".toNonEmptyString(),
+    lastName = "admin".toNonEmptyString()
   )
   val token = MsisdnToken(
-    "1234", "+15125551212", "email@email.com", Date().toInstant().plus(1, HOURS)
+    "1234", "+15125551212".toMsisdn(), "email@email.com".toEmailAddress(), Date().toInstant().plus(1, HOURS)
   )
   val userRegistrationStartedEvent = UserRegistrationStartedEvent(
     ia = IndexableAggregateDto(EndUser.aggregateName(), userId.id, "+15125551212"),
     token = token,
     userId = userId,
-    firstName = "User",
-    lastName = "User"
+    firstName = "User".toNonEmptyString(),
+    lastName = "User".toNonEmptyString()
   )
 
   @BeforeEach
@@ -93,7 +96,7 @@ class EndUserTest {
       .expectSuccessfulHandlerExecution()
       .expectState {
         assertThat(it.id).isEqualTo(userId)
-        assertThat(it.email).isEqualTo("email@email.com")
+        assertThat(it.email.value).isEqualTo("email@email.com")
         assertThat(it.roles).contains(UserRole.USER)
         assertThat(it.token?.token).isEqualTo("1234")
       }
@@ -101,7 +104,7 @@ class EndUserTest {
         exactSequenceOf(
           messageWithPayload(
             matches { event: UserRegistrationStartedEvent ->
-              event.token.email == "email@email.com"
+              event.token.email.value == "email@email.com"
                 && event.userId == userId
             }
           )
@@ -116,7 +119,7 @@ class EndUserTest {
     } returns IndexJpaEntity(userId.id, EndUser.aggregateName(), "+15125551212")
 
     fixture.given(userRegistrationStartedEvent)
-      .`when`(LoginEndUserCommand(userId = userId, msisdn = "+15125551212"))
+      .`when`(LoginEndUserCommand(userId = userId, msisdn = "+15125551212".toMsisdn()))
       .expectSuccessfulHandlerExecution()
       .expectState {
         assertThat(it.token?.token).isEqualTo("1234")
@@ -134,7 +137,9 @@ class EndUserTest {
       userRegistrationStartedEvent,
       EndUserLoginStartedEvent(token)
     )
-      .`when`(ValidateEndUserTokenCommand(userId = userId, msisdn = "+15125551212", token = "1234"))
+      .`when`(ValidateEndUserTokenCommand(
+        userId = userId, msisdn = "+15125551212".toMsisdn(), token = "1234".toNonEmptyString())
+      )
       .expectSuccessfulHandlerExecution()
       .expectState {
         assertThat(it.token).isNull()

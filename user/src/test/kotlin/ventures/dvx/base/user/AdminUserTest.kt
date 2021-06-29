@@ -19,6 +19,8 @@ import ventures.dvx.base.user.api.RegisterAdminUserCommand
 import ventures.dvx.base.user.command.AdminUser
 import ventures.dvx.base.user.command.UserRole
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.types.toEmailAddress
+import ventures.dvx.common.types.toNonEmptyString
 
 class AdminUserTest {
 
@@ -43,22 +45,22 @@ class AdminUserTest {
     fixture.givenNoPriorActivity()
       .`when`(RegisterAdminUserCommand(
         userId = userId,
-        plainPassword = "password",
-        email = "email@email.com",
-        firstName = "admin",
-        lastName = "admin"
+        email = "email@email.com".toEmailAddress(),
+        plainPassword = "password".toNonEmptyString(),
+        firstName = "admin".toNonEmptyString(),
+        lastName = "admin".toNonEmptyString()
       ))
       .expectSuccessfulHandlerExecution()
       .expectState {
         assertThat(it.id).isEqualTo(userId)
-        assertThat(it.email).isEqualTo("email@email.com")
+        assertThat(it.email.value).isEqualTo("email@email.com")
         assertThat(it.roles).contains(UserRole.ADMIN)
       }
       .expectEventsMatching(
         exactSequenceOf(
           messageWithPayload(
             matches { event: AdminUserRegisteredEvent ->
-              event.email == "email@email.com"
+              event.email.value == "email@email.com"
                 && event.userId == userId
             }
           )

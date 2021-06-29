@@ -1,5 +1,8 @@
 package ventures.dvx.base.user.api
 
+import arrow.core.ValidatedNel
+import arrow.core.validNel
+import arrow.core.zip
 import org.axonframework.commandhandling.RoutingKey
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import org.springframework.http.HttpStatus
@@ -8,6 +11,10 @@ import ventures.dvx.base.user.command.SecuredCommand
 import ventures.dvx.bridgekeeper.Operation
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.IndexableAggregateEvent
+import ventures.dvx.common.types.EmailAddress
+import ventures.dvx.common.types.Msisdn
+import ventures.dvx.common.types.NonEmptyString
+import ventures.dvx.common.types.ValidationError
 import java.util.*
 
 // public API
@@ -21,33 +28,80 @@ data class User(val id: UUID, val username: String, val password: String, val em
 data class RegisterEndUserCommand(
   @RoutingKey
   val userId: EndUserId,
-  val msisdn: String,
-  val email: String,
-  val firstName: String,
-  val lastName: String
-)
+  val msisdn: Msisdn,
+  val email: EmailAddress,
+  val firstName: NonEmptyString,
+  val lastName: NonEmptyString
+) {
+  companion object {
+    fun of(userId: EndUserId, msisdn: String, email: String, firstName: String, lastName: String):
+      ValidatedNel<ValidationError, RegisterEndUserCommand> =
+      userId.validNel().zip(
+        Msisdn.of(msisdn),
+        EmailAddress.of(email),
+        NonEmptyString.of(firstName),
+        NonEmptyString.of(lastName)
+      ) { id, m, e, f, l ->
+        RegisterEndUserCommand(id, m, e, f, l)
+      }
+  }
+}
 
 data class RegisterAdminUserCommand(
   @RoutingKey
   val userId: AdminUserId,
-  val plainPassword: String, // unencrypted password
-  val email: String,
-  val firstName: String,
-  val lastName: String
-)
+  val email: EmailAddress,
+  val plainPassword: NonEmptyString, // unencrypted password
+  val firstName: NonEmptyString,
+  val lastName: NonEmptyString
+) {
+  companion object {
+    fun of(userId: AdminUserId, email: String, plainPassword: String, firstName: String, lastName: String):
+      ValidatedNel<ValidationError, RegisterAdminUserCommand> =
+      userId.validNel().zip(
+        EmailAddress.of(email),
+        NonEmptyString.of(plainPassword),
+        NonEmptyString.of(firstName),
+        NonEmptyString.of(lastName)
+      ) { id, e, p, f, l ->
+        RegisterAdminUserCommand(id, e, p, f, l)
+      }
+  }
+}
 
 data class LoginEndUserCommand(
   @TargetAggregateIdentifier
   val userId: EndUserId,
-  val msisdn: String
-)
+  val msisdn: Msisdn
+){
+  companion object {
+    fun of(userId: EndUserId, msisdn: String):
+      ValidatedNel<ValidationError, LoginEndUserCommand> =
+      userId.validNel().zip(Msisdn.of(msisdn)) {
+          id, m -> LoginEndUserCommand(id, m)
+      }
+  }
+}
+
 
 data class ValidateEndUserTokenCommand(
   @TargetAggregateIdentifier
   val userId: EndUserId,
-  val msisdn: String,
-  val token: String
-)
+  val msisdn: Msisdn,
+  val token: NonEmptyString
+) {
+  companion object {
+    fun of(userId: EndUserId, msisdn: String, token: String):
+      ValidatedNel<ValidationError, ValidateEndUserTokenCommand> =
+      userId.validNel().zip(
+        Msisdn.of(msisdn),
+        NonEmptyString.of(token)
+      ) { id, e, t ->
+        ValidateEndUserTokenCommand(id, e, t)
+      }
+  }
+}
+
 
 // Events
 
@@ -55,8 +109,8 @@ data class UserRegistrationStartedEvent(
   override val ia: IndexableAggregateDto,
   val token: MsisdnToken,
   val userId: EndUserId,
-  val firstName: String,
-  val lastName: String
+  val firstName: NonEmptyString,
+  val lastName: NonEmptyString
 ) : IndexableAggregateEvent
 
 data class EndUserLoginStartedEvent(val token: MsisdnToken)
@@ -64,10 +118,10 @@ data class EndUserLoginStartedEvent(val token: MsisdnToken)
 data class AdminUserRegisteredEvent(
   override val ia: IndexableAggregateDto,
   val userId: AdminUserId,
-  val password: String,
-  val email: String,
-  val firstName: String,
-  val lastName: String
+  val password: NonEmptyString,
+  val email: EmailAddress,
+  val firstName: NonEmptyString,
+  val lastName: NonEmptyString
 ) : IndexableAggregateEvent
 
 class TokenValidatedEvent
@@ -83,13 +137,17 @@ sealed class UserError {
   abstract val responseStatus: HttpStatus
   abstract val msg: String
 }
-data class EndUserExistsError(val msisdn: String): UserError() {
+data class InvalidInput(val errors: List<String>): UserError() {
   override val responseStatus = HttpStatus.BAD_REQUEST
-  override val msg = "User already exists with phone: '$msisdn'"
+  override val msg = "Validation errors: \n${errors.joinToString { "$it,\n" }}"
 }
-data class AdminUserExistsError(val email: String): UserError() {
+data class EndUserExistsError(val msisdn: Msisdn): UserError() {
   override val responseStatus = HttpStatus.BAD_REQUEST
-  override val msg = "Admin already exists with email: '$email'"
+  override val msg = "User already exists with phone: '${msisdn.value}'"
+}
+data class AdminUserExistsError(val email: EmailAddress): UserError() {
+  override val responseStatus = HttpStatus.BAD_REQUEST
+  override val msg = "Admin already exists with email: '${email.value}'"
 }
 data class UserNotFoundError(val username: String): UserError() {
   override val responseStatus = HttpStatus.UNAUTHORIZED

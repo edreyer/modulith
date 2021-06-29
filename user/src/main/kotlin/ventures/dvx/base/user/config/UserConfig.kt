@@ -11,6 +11,7 @@ import ventures.dvx.base.user.api.RegisterAdminUserCommand
 import ventures.dvx.base.user.command.AdminUser
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.logging.LoggerDelegate
+import ventures.dvx.common.types.toErrString
 
 @Configuration
 class UserConfig(
@@ -36,15 +37,20 @@ class UserConfig(
     log.trace("Setting up default admin: $adminEmail")
 
     indexRepository.findEntityByAggregateNameAndKey(AdminUser.aggregateName(), adminEmail)
-      ?: commandGateway.send<Unit>(RegisterAdminUserCommand(
+      ?: RegisterAdminUserCommand.of(
         userId = AdminUserId(),
         email = adminEmail, // TODO: Make configurable (YML)
         plainPassword = "DVxR0cks!!!",
         firstName = "DVx",
         lastName = "Admin"
-      ))
-        .doOnError { log.info("Admin user already exists") }
-        .subscribe()
+      ).fold({
+        log.error("RegisterAdminUserCommand error: ${it.toErrString()}")
+      },{
+        commandGateway.send<Unit>(it)
+          .doOnError { log.info("Admin user already exists") }
+          .subscribe()
+      })
+
   }
 
 }

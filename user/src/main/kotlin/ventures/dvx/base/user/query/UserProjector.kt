@@ -22,12 +22,16 @@ class UserProjector(
 
   @EventHandler
   fun on(event: UserRegistrationStartedEvent) {
-    userViewRepository.save(UserView(event.userId.id, event.token.msisdn, "", event.token.email, listOf(UserRole.USER)))
+    userViewRepository.save(
+      UserView(event.userId.id, event.token.msisdn.value, "", event.token.email.value, listOf(UserRole.USER))
+    )
   }
 
   @EventHandler
   fun on(event: AdminUserRegisteredEvent) {
-    userViewRepository.save(UserView(event.userId.id, event.email, event.password, event.email, listOf(UserRole.ADMIN)))
+    userViewRepository.save(
+      UserView(event.userId.id, event.email.value, event.password.value, event.email.value, listOf(UserRole.ADMIN))
+    )
   }
 
   @QueryHandler
@@ -42,8 +46,7 @@ class UserProjector(
         password = it.password,
         email = it.email,
         roles = it.roles.map { role -> role.toString() }
-      )
-      } ?: throw UserException(UserNotFoundError(query.username))
+      ) } ?: throw UserException(UserNotFoundError(query.username))
 
   @QueryHandler
   fun handle(
@@ -57,7 +60,6 @@ class UserProjector(
         password = it.password,
         email = it.email,
         roles = it.roles.map { role -> role.toString() }
-      )
-      } ?: throw UserException(UserNotFoundError(query.id.toString()))
+      ) } ?: throw UserException(UserNotFoundError(query.id.toString()))
 
 }

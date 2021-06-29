@@ -2,10 +2,6 @@ package ventures.dvx.common.types
 
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import ventures.dvx.common.types.EmailAddress
-import ventures.dvx.common.types.Msisdn
-import ventures.dvx.common.types.NonEmptyString
-import ventures.dvx.common.types.PostalCode
 
 
 class SimpleTypesTest {
@@ -33,7 +29,7 @@ class SimpleTypesTest {
   @Test
   fun `Test Msisdn`() {
     assertTrue(Msisdn.of("+15125551212").isValid)
-    assertTrue(Msisdn.of("5125551212").isInvalid)
+    assertTrue(Msisdn.of("5125551212").isValid)
     assertTrue(Msisdn.of("5551212").isInvalid)
   }
 

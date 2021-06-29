@@ -1,5 +1,8 @@
 package ventures.dvx.base.user.command
 
+import ventures.dvx.common.types.EmailAddress
+import ventures.dvx.common.types.NonEmptyString
+
 enum class UserRole {
   USER,
   ADMIN;
@@ -10,8 +13,8 @@ enum class UserRole {
 }
 
 interface UserAggregate {
-  var email :String
-  var firstName :String
-  var lastName :String
+  var email: EmailAddress
+  var firstName: NonEmptyString
+  var lastName: NonEmptyString
   var roles : List<UserRole>
 }

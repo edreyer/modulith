@@ -17,6 +17,9 @@ import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.types.EmailAddress
+import ventures.dvx.common.types.NonEmptyString
+import ventures.dvx.common.types.getOrThrow
 import ventures.dxv.base.user.error.UserCommandErrorSupport
 import ventures.dxv.base.user.error.UserException
 
@@ -28,15 +31,15 @@ class AdminUser: UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   @AggregateIdentifier
   var id: AdminUserId? = null
 
-  lateinit var password: String // encrypted
-  override lateinit var email :String
-  override lateinit var firstName :String
-  override lateinit var lastName :String
+  lateinit var password: NonEmptyString // encrypted
+  override lateinit var email: EmailAddress
+  override lateinit var firstName :NonEmptyString
+  override lateinit var lastName :NonEmptyString
 
   override var roles : List<UserRole> = listOf(UserRole.ADMIN)
 
   override val businessKey: String
-    get() = email
+    get() = email.toString()
 
   companion object {
     fun aggregateName() : String = AdminUser::class.simpleName!!
@@ -50,14 +53,16 @@ class AdminUser: UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     indexRepository: IndexRepository,
     passwordEncoder: PasswordEncoder
   ) {
-    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.email)
+    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.email.value)
       ?.let { throw UserException(AdminUserExistsError(command.email)) }
 
     apply(
       AdminUserRegisteredEvent(
-        ia = IndexableAggregateDto(aggregateName, command.userId.id, command.email),
+        ia = IndexableAggregateDto(aggregateName, command.userId.id, command.email.value),
         userId = command.userId,
-        password = passwordEncoder.encode(command.plainPassword),
+        password = command.plainPassword
+          .let { passwordEncoder.encode(it.value) }
+          .let { NonEmptyString.of(it).getOrThrow() },
         email = command.email,
         firstName = command.firstName,
         lastName = command.lastName

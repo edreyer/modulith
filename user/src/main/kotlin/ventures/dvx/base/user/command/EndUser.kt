@@ -24,6 +24,9 @@ import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.config.CommonConfig
+import ventures.dvx.common.types.EmailAddress
+import ventures.dvx.common.types.Msisdn
+import ventures.dvx.common.types.NonEmptyString
 import ventures.dvx.common.validation.MsisdnParser
 import ventures.dxv.base.user.error.UserCommandErrorSupport
 import ventures.dxv.base.user.error.UserException
@@ -39,17 +42,17 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   @AggregateIdentifier
   lateinit var id: EndUserId
 
-  private lateinit var msisdn: String
-  override lateinit var email: String
-  override lateinit var firstName: String
-  override lateinit var lastName: String
+  private lateinit var msisdn: Msisdn
+  override lateinit var email: EmailAddress
+  override lateinit var firstName: NonEmptyString
+  override lateinit var lastName: NonEmptyString
 
   override var roles : List<UserRole> = listOf(UserRole.USER)
 
   var token: MsisdnToken? = null
 
   override val businessKey: String
-    get() = msisdn
+    get() = msisdn.toString()
 
   companion object {
     fun aggregateName() : String = EndUser::class.simpleName!!
@@ -65,7 +68,7 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     msisdnParser: MsisdnParser,
     clock: Clock
   ) {
-    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
+    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn.value)
       ?.let { throw UserException(EndUserExistsError(command.msisdn)) }
 
     val token = createToken(
@@ -74,7 +77,7 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
 
     apply(
       UserRegistrationStartedEvent(
-        ia = IndexableAggregateDto(aggregateName, command.userId.id, command.msisdn),
+        ia = IndexableAggregateDto(aggregateName, command.userId.id, command.msisdn.value),
         token = token,
         userId = command.userId,
         firstName = command.firstName,
@@ -105,8 +108,8 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     clock: Clock
   ): EndUserId {
     // ensure user exists
-    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn)
-      ?: throw UserException(UserNotFoundError(command.msisdn))
+    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn.value)
+      ?: throw UserException(UserNotFoundError(command.msisdn.value))
 
     apply(EndUserLoginStartedEvent(
       createToken(
@@ -132,7 +135,7 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     ?.apply { apply(TokenValidatedEvent()) }
     ?.let {
       val roles = this.roles.map { it.toString() }
-      return User(id = id.id, username = msisdn, email = email, password = "", roles = roles)
+      return User(id = id.id, username = msisdn.value, email = email.value, password = "", roles = roles)
     } ?: throw UserException(InvalidTokenError)
 
   @EventSourcingHandler
@@ -145,8 +148,8 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     commonConfig: CommonConfig,
     userConfig: UserConfig,
     clock: Clock,
-    msisdn: String,
-    email: String,
+    msisdn: Msisdn,
+    email: EmailAddress,
   ): MsisdnToken {
     val tokenStr = if (commonConfig.isDev()) userConfig.forcedMsisdnToken else MsisdnToken.generateToken()
     return MsisdnToken(
