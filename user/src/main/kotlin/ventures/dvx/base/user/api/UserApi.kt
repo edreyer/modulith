@@ -4,6 +4,8 @@ import org.axonframework.commandhandling.RoutingKey
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import org.springframework.http.HttpStatus
 import ventures.dvx.base.user.command.MsisdnToken
+import ventures.dvx.base.user.command.SecuredCommand
+import ventures.dvx.bridgekeeper.Operation
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.IndexableAggregateEvent
 import java.util.*
@@ -92,6 +94,15 @@ data class AdminUserExistsError(val email: String): UserError() {
 data class UserNotFoundError(val username: String): UserError() {
   override val responseStatus = HttpStatus.UNAUTHORIZED
   override val msg = "User not found with username: '$username'"
+}
+data class UnauthorizedCommand(
+  val user: String,
+  val secureCommand: SecuredCommand,
+  val aggregateId: String? = "[new object]")
+  : UserError() {
+  override val responseStatus = HttpStatus.UNAUTHORIZED
+  val command = Operation(secureCommand.javaClass.simpleName)
+  override val msg = "User $user is not authorized to perform $command on aggregate $aggregateId"
 }
 object InvalidTokenError: UserError() {
   override val responseStatus = HttpStatus.UNAUTHORIZED
