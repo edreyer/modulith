@@ -5,25 +5,20 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
-import org.springframework.security.authorization.AuthorizationDecision
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder
 import org.springframework.security.config.web.server.ServerHttpSecurity
-import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
-import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
-import reactor.core.publisher.Mono
 import ventures.dvx.base.user.api.FindUserByUsernameQuery
 import ventures.dvx.common.security.JwtProperties
 import ventures.dvx.common.security.JwtTokenAuthenticationFilter
 import ventures.dvx.common.security.JwtTokenProvider
-
 
 /**
  * JWT for WebFlux from:
@@ -58,21 +53,11 @@ class SecurityConfig {
         .pathMatchers("/user/loginByMsisdn").permitAll()
         .pathMatchers("/user/loginByEmail").permitAll()
         .pathMatchers("/user/confirmToken").permitAll()
-//        .pathMatchers("/api/**").access(this::currentUserMatchesPath)
         .pathMatchers("/api/**").authenticated()
         .anyExchange().authenticated()
       }
       .addFilterAt(JwtTokenAuthenticationFilter(tokenProvider), SecurityWebFiltersOrder.HTTP_BASIC)
       .build()
-  }
-
-  private fun currentUserMatchesPath(
-    authentication: Mono<Authentication>,
-    context: AuthorizationContext,
-  ): Mono<AuthorizationDecision> {
-    return authentication
-      .map{ context.variables["user"] == it.name }
-      .map { AuthorizationDecision(it) }
   }
 
   @Bean

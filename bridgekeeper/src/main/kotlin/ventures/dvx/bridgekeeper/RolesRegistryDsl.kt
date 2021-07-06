@@ -67,7 +67,7 @@ class AddOperation {
 
   fun getOperations(): Set<Operation> = operations
 
-  operator fun Any.unaryPlus(): Any {
+  operator fun String.unaryPlus(): String {
     operations += Operation(this)
     return this
   }

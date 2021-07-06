@@ -11,7 +11,7 @@
 
     <artifactId>user</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>user-hex</name>
+    <name>user</name>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>

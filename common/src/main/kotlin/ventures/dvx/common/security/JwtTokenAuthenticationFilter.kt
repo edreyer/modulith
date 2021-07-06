@@ -10,7 +10,6 @@ import org.springframework.web.server.WebFilter
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
 
-
 class JwtTokenAuthenticationFilter(
   private val tokenProvider: JwtTokenProvider
 ) : WebFilter {

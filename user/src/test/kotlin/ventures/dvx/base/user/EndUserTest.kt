@@ -25,9 +25,11 @@ import ventures.dvx.base.user.command.EndUser
 import ventures.dvx.base.user.command.MsisdnToken
 import ventures.dvx.base.user.command.UserRole
 import ventures.dvx.base.user.config.UserConfig
+import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexJpaEntity
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.axon.security.AccessControlCommandDispatchInterceptor
 import ventures.dvx.common.config.CommonConfig
 import ventures.dvx.common.types.toEmailAddress
 import ventures.dvx.common.types.toMsisdn
@@ -67,6 +69,8 @@ class EndUserTest {
   fun setup() {
     fixture = AggregateTestFixture(EndUser::class.java)
 
+    fixture.registerInjectableResource(mockk<BridgeKeeper>())
+
     indexRepository = mockk()
     fixture.registerInjectableResource(indexRepository)
 
@@ -83,6 +87,8 @@ class EndUserTest {
     fixture.registerInjectableResource(clock)
 
     fixture.registerIgnoredField(EndUserLoginStartedEvent::class.java, "token")
+
+    fixture.registerCommandDispatchInterceptor(AccessControlCommandDispatchInterceptor(mapOf()))
   }
 
   @Test

@@ -20,6 +20,10 @@ import ventures.dvx.base.user.api.UserNotFoundError
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.base.user.config.UserConfig
+import ventures.dvx.base.user.config.UserConfig.ResourceTypes
+import ventures.dvx.bridgekeeper.AccessControlCommandSupport
+import ventures.dvx.bridgekeeper.Party
+import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
@@ -37,7 +41,7 @@ import java.time.temporal.ChronoUnit
   snapshotTriggerDefinition = "endUserSnapshotTriggerDefinition",
   cache = "userCache"
 )
-class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
+class EndUser : UserAggregate, AccessControlCommandSupport, UserCommandErrorSupport, IndexableAggregate {
 
   @AggregateIdentifier
   lateinit var id: EndUserId
@@ -54,6 +58,8 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
   override val businessKey: String
     get() = msisdn.toString()
 
+  override fun getId() = id.id.toString()
+
   companion object {
     fun aggregateName() : String = EndUser::class.simpleName!!
   }
@@ -67,7 +73,7 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     indexRepository: IndexRepository,
     msisdnParser: MsisdnParser,
     clock: Clock
-  ) {
+  ): EndUserId {
     indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn.value)
       ?.let { throw UserException(EndUserExistsError(command.msisdn)) }
 
@@ -84,18 +90,8 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
         lastName = command.lastName
       )
     )
-  }
 
-  @EventSourcingHandler
-  private fun on(
-    event: UserRegistrationStartedEvent
-  ) {
-    id = event.userId
-    token = event.token
-    msisdn = event.token.msisdn
-    email = event.token.email
-    firstName = event.firstName
-    lastName = event.lastName
+    return command.userId
   }
 
   @CommandHandler
@@ -120,11 +116,6 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     return id
   }
 
-  @EventSourcingHandler
-  private fun on(event: EndUserLoginStartedEvent) {
-    token = event.token
-  }
-
   @CommandHandler
   fun handle(
     command: ValidateEndUserTokenCommand,
@@ -135,14 +126,37 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
     ?.apply { apply(TokenValidatedEvent()) }
     ?.let {
       val roles = this.roles.map { it.toString() }
-      return User(id = id.id, username = msisdn.value, email = email.value, password = "", roles = roles)
+      return User(id = id!!.id, username = msisdn.value, email = email.value, password = "", roles = roles)
     } ?: throw UserException(InvalidTokenError)
+
+  @EventSourcingHandler
+  private fun on(
+    event: UserRegistrationStartedEvent
+  ) {
+    id = event.userId
+    token = event.token
+    msisdn = event.token.msisdn
+    email = event.token.email
+    firstName = event.firstName
+    lastName = event.lastName
+  }
+
+  @EventSourcingHandler
+  private fun on(event: EndUserLoginStartedEvent) {
+    token = event.token
+  }
 
   @EventSourcingHandler
   private fun on(event: TokenValidatedEvent) {
     // delete the token we just used
     token = null
   }
+
+  override fun establishResourceType(party: Party): ResourceType =
+    when (party.id == this.id.id.toString()) {
+      true -> ResourceTypes.MY_USER
+      false -> ResourceTypes.NOT_MY_USER
+    }
 
   private fun createToken(
     commonConfig: CommonConfig,
@@ -159,4 +173,5 @@ class EndUser : UserAggregate, UserCommandErrorSupport, IndexableAggregate {
       expires = clock.instant().plus(1, ChronoUnit.HOURS)
     )
   }
+
 }

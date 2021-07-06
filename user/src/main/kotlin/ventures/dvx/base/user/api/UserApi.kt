@@ -7,10 +7,10 @@ import org.axonframework.commandhandling.RoutingKey
 import org.axonframework.modelling.command.TargetAggregateIdentifier
 import org.springframework.http.HttpStatus
 import ventures.dvx.base.user.command.MsisdnToken
-import ventures.dvx.base.user.command.SecuredCommand
 import ventures.dvx.bridgekeeper.Operation
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.IndexableAggregateEvent
+import ventures.dvx.common.bridgekeeper.Secured
 import ventures.dvx.common.types.EmailAddress
 import ventures.dvx.common.types.Msisdn
 import ventures.dvx.common.types.NonEmptyString
@@ -54,7 +54,7 @@ data class RegisterAdminUserCommand(
   val plainPassword: NonEmptyString, // unencrypted password
   val firstName: NonEmptyString,
   val lastName: NonEmptyString
-) {
+) : Secured {
   companion object {
     fun of(userId: AdminUserId, email: String, plainPassword: String, firstName: String, lastName: String):
       ValidatedNel<ValidationError, RegisterAdminUserCommand> =
@@ -73,7 +73,7 @@ data class LoginEndUserCommand(
   @TargetAggregateIdentifier
   val userId: EndUserId,
   val msisdn: Msisdn
-){
+) {
   companion object {
     fun of(userId: EndUserId, msisdn: String):
       ValidatedNel<ValidationError, LoginEndUserCommand> =
@@ -128,8 +128,8 @@ class TokenValidatedEvent
 
 // Queries
 
-data class FindUserByIdQuery(val id: UUID)
-data class FindUserByUsernameQuery(val username: String)
+data class FindUserByIdQuery(val id: UUID) : Secured
+data class FindUserByUsernameQuery(val username: String) : Secured
 
 // Errors
 
@@ -155,7 +155,7 @@ data class UserNotFoundError(val username: String): UserError() {
 }
 data class UnauthorizedCommand(
   val user: String,
-  val secureCommand: SecuredCommand,
+  val secureCommand: Secured,
   val aggregateId: String? = "[new object]")
   : UserError() {
   override val responseStatus = HttpStatus.UNAUTHORIZED

@@ -16,15 +16,6 @@ import ventures.dxv.base.user.error.RemoteErrorMapper
 @Configuration
 class AxonUserConfig {
 
-// disable interceptor: https://github.com/AxonFramework/AxonFramework/issues/1850
-//  @Autowired
-//  fun configureLoggingInterceptorFor(
-//    commandBus: CommandBus,
-//    userCreationDispatchInterceptor: UserCreationDispatchInterceptor
-//  ) {
-//    commandBus.registerDispatchInterceptor(userCreationDispatchInterceptor)
-//  }
-
   @Autowired
   fun configureErrorMappingFor(
     commandBus: CommandBus,
