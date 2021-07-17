@@ -28,6 +28,7 @@ import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.config.CommonConfig
+import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.types.EmailAddress
 import ventures.dvx.common.types.Msisdn
 import ventures.dvx.common.types.NonEmptyString
@@ -42,6 +43,8 @@ import java.time.temporal.ChronoUnit
   cache = "userCache"
 )
 class EndUser : UserAggregate, AccessControlCommandSupport, UserCommandErrorSupport, IndexableAggregate {
+
+  override val log by LoggerDelegate()
 
   @AggregateIdentifier
   lateinit var id: EndUserId
@@ -126,7 +129,7 @@ class EndUser : UserAggregate, AccessControlCommandSupport, UserCommandErrorSupp
     ?.apply { apply(TokenValidatedEvent()) }
     ?.let {
       val roles = this.roles.map { it.toString() }
-      return User(id = id!!.id, username = msisdn.value, email = email.value, password = "", roles = roles)
+      return User(id = id.id, username = msisdn.value, email = email.value, password = "", roles = roles)
     } ?: throw UserException(InvalidTokenError)
 
   @EventSourcingHandler

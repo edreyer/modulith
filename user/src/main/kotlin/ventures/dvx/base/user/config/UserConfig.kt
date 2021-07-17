@@ -21,6 +21,8 @@ import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.bridgekeeper.RoleHandle
 import ventures.dvx.bridgekeeper.Visibility
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.axon.security.ROLE_SYSTEM
+import ventures.dvx.common.axon.security.runAsSuperUser
 import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.types.toErrString
 
@@ -28,7 +30,7 @@ import ventures.dvx.common.types.toErrString
 class UserConfig(
   private val commandGateway: ReactorCommandGateway,
   private val indexRepository: IndexRepository,
-  private val userConfigProperties: UserConfigProperties
+  private val userConfigProperties: UserConfigProperties,
 ) {
 
   @ConstructorBinding
@@ -45,7 +47,6 @@ class UserConfig(
   @EventListener
   fun initializeAdmin(event: ContextRefreshedEvent) {
     val adminEmail = "admin@dvx.ventures"
-    log.trace("Setting up default admin: $adminEmail")
 
     indexRepository.findEntityByAggregateNameAndKey(AdminUser.aggregateName(), adminEmail)
       ?: RegisterAdminUserCommand.of(
@@ -57,9 +58,10 @@ class UserConfig(
       ).fold({
         log.error("RegisterAdminUserCommand error: ${it.toErrString()}")
       },{
+        log.info("Setting up default admin: $adminEmail")
         commandGateway.send<Unit>(it)
           .doOnError { log.info("Admin user already exists") }
-          .subscribe()
+          .runAsSuperUser()
       })
 
   }
@@ -79,6 +81,7 @@ class UserConfig(
 
   @Bean("roleHandleMap")
   fun roleHandleMap() = mapOf(
+    ROLE_SYSTEM.name to ROLE_SYSTEM,
     UserRole.ADMIN.toString() to UserRoles.ROLE_ADMIN,
     UserRole.USER.toString() to UserRoles.ROLE_END_USER
   )
@@ -99,8 +102,8 @@ class UserConfig(
         visibility = Visibility.VISIBLE
         operations {
           +RegisterAdminUserCommand::class.simpleName!!
-          +FindUserByIdQuery::class.simpleName!!
-          +FindUserByUsernameQuery::class.simpleName!!
+          +FindUserByIdQuery::class.qualifiedName!!
+          +FindUserByUsernameQuery::class.qualifiedName!!
         }
       }
     }
@@ -108,7 +111,15 @@ class UserConfig(
       resourceType(MY_USER) {
         visibility = Visibility.VISIBLE
         operations {
-          +FindUserByIdQuery::class.simpleName!!
+          +FindUserByIdQuery::class.qualifiedName!!
+        }
+      }
+    }
+    role(ROLE_SYSTEM) {
+      resourceType(MY_USER) {
+        visibility = Visibility.VISIBLE
+        operations {
+          +RegisterAdminUserCommand::class.simpleName!!
         }
       }
     }

@@ -21,14 +21,14 @@
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <kotlin.version>1.5.20</kotlin.version>
+        <kotlin.version>1.5.21</kotlin.version>
         <arrow.version>0.13.2</arrow.version>
-        <axon.version>4.5.2</axon.version>
+        <axon.version>4.5.3</axon.version>
         <axon.kotlin.version>0.1.0</axon.kotlin.version>
         <axon.reactor.version>4.5</axon.reactor.version>
         <jjwt.version>0.11.2</jjwt.version>
         <assertk.version>0.24</assertk.version>
-        <reactor.tools.version>3.4.7</reactor.tools.version>
+        <reactor.version>3.4.7</reactor.version>
     </properties>
 
     <modules>
@@ -153,11 +153,21 @@
             <version>${axon.version}</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <version>${reactor.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>ventures.dvx</groupId>
+                <artifactId>bridgekeeper</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>ventures.dvx</groupId>
                 <artifactId>common</artifactId>
@@ -208,7 +218,14 @@
             <dependency>
                 <groupId>io.projectreactor</groupId>
                 <artifactId>reactor-tools</artifactId>
-                <version>${reactor.tools.version}</version>
+                <version>${reactor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ventures.dvx</groupId>
+                <artifactId>bridgekeeper</artifactId>
+                <version>1.0-SNAPSHOT</version>
+                <type>test-jar</type>
+                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>ventures.dvx</groupId>

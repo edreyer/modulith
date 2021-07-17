@@ -13,14 +13,14 @@ import org.axonframework.test.matchers.Matchers.messageWithPayload
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import reactor.core.publisher.Hooks
-import reactor.tools.agent.ReactorDebugAgent
 import ventures.dvx.base.user.api.AdminUserId
 import ventures.dvx.base.user.api.AdminUserRegisteredEvent
 import ventures.dvx.base.user.api.RegisterAdminUserCommand
 import ventures.dvx.base.user.command.AdminUser
 import ventures.dvx.base.user.command.UserRole
+import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.axon.security.AccessControlCommandDispatchInterceptor
 import ventures.dvx.common.types.toEmailAddress
 import ventures.dvx.common.types.toNonEmptyString
 
@@ -36,9 +36,8 @@ class AdminUserTest {
     indexRepository = mockk()
     fixture.registerInjectableResource(indexRepository)
     fixture.registerInjectableResource(BCryptPasswordEncoder())
-
-    Hooks.onOperatorDebug();
-    ReactorDebugAgent.init();
+    fixture.registerCommandDispatchInterceptor(AccessControlCommandDispatchInterceptor(mapOf()))
+    fixture.registerInjectableResource(mockk<BridgeKeeper>())
   }
 
   @Test

@@ -13,7 +13,7 @@ import ventures.dvx.bridgekeeper.RoleHandle
 import ventures.dvx.bridgekeeper.UserParty
 import ventures.dvx.common.logging.LoggerDelegate
 
-private fun UserDetails.toUserParty(roleHandleMap: Map<String, RoleHandle> ) =
+private fun UserDetails.toParty(roleHandleMap: Map<String, RoleHandle> ) =
   UserParty(
     id = username,
     roles = authorities.map {
@@ -36,8 +36,8 @@ class AccessControlCommandDispatchInterceptor(
           .filter { it != null }
           .doOnNext { log.info("The principal: ${it?.principal}") }
           .map { when (it) {
-            is UserDetails -> it.toUserParty(roleHandleMap)
-            is UsernamePasswordAuthenticationToken -> (it.principal as UserDetails).toUserParty(roleHandleMap)
+            is UserDetails -> it.toParty(roleHandleMap)
+            is UsernamePasswordAuthenticationToken -> (it.principal as UserDetails).toParty(roleHandleMap)
             else -> throw IllegalStateException("Unexpected Authentication type")
           }}
           .map {
@@ -63,8 +63,8 @@ class AccessControlQueryDispatchInterceptor(
       .filter { it != null}
       .doOnNext { log.info("The principal: ${it?.principal}") }
       .map { when (it) {
-        is UserDetails -> it.toUserParty(roleHandleMap)
-        is UsernamePasswordAuthenticationToken -> (it.principal as UserDetails).toUserParty(roleHandleMap)
+        is UserDetails -> it.toParty(roleHandleMap)
+        is UsernamePasswordAuthenticationToken -> (it.principal as UserDetails).toParty(roleHandleMap)
         else -> throw IllegalStateException("Unexpected Authentication type")
       }}
       .flatMap {

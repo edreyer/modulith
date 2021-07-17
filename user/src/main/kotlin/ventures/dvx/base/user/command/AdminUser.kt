@@ -20,6 +20,7 @@ import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.common.axon.IndexableAggregate
 import ventures.dvx.common.axon.IndexableAggregateDto
 import ventures.dvx.common.axon.command.persistence.IndexRepository
+import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.types.EmailAddress
 import ventures.dvx.common.types.NonEmptyString
 import ventures.dvx.common.types.getOrThrow
@@ -30,6 +31,8 @@ import ventures.dxv.base.user.error.UserException
   snapshotTriggerDefinition = "adminUserSnapshotTriggerDefinition",
   cache = "userCache")
 class AdminUser: UserAggregate, AccessControlCommandSupport, UserCommandErrorSupport, IndexableAggregate {
+
+  override val log by LoggerDelegate()
 
   @AggregateIdentifier
   lateinit var id: AdminUserId
