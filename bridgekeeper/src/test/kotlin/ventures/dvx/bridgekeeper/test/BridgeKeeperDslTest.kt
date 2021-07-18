@@ -7,6 +7,7 @@ import assertk.assertions.isInstanceOf
 import org.junit.jupiter.api.Test
 import ventures.dvx.bridgekeeper.ANONYMOUS
 import ventures.dvx.bridgekeeper.UserParty
+import ventures.dvx.bridgekeeper.fns.className
 
 class BridgeKeeperDslTest {
 
@@ -21,19 +22,19 @@ class BridgeKeeperDslTest {
 
     assertThat(
       bridgeKeeper.assertCanPerform(adminUser,
-        BridgeKeeperTestConfig.MY_APPOINTMENT, BridgeKeeperTestConfig.FakeCommand1::class.simpleName!!)
+        BridgeKeeperTestConfig.MY_APPOINTMENT, className<BridgeKeeperTestConfig.FakeCommand1>())
         .orElseThrow { NullPointerException() }
     ).isEqualTo(Unit)
 
     assertThat(
       bridgeKeeper.assertCanPerform(endUserA,
-        BridgeKeeperTestConfig.MY_APPOINTMENT, BridgeKeeperTestConfig.FakeCommand3::class.simpleName!!)
+        BridgeKeeperTestConfig.MY_APPOINTMENT, className<BridgeKeeperTestConfig.FakeCommand3>())
         .orElseThrow { NullPointerException() }
     ).isEqualTo(Unit)
 
     assertThat {
       bridgeKeeper.assertCanPerform(ANONYMOUS,
-        BridgeKeeperTestConfig.MY_APPOINTMENT, BridgeKeeperTestConfig.FakeCommand1::class.simpleName!!)
+        BridgeKeeperTestConfig.MY_APPOINTMENT, className<BridgeKeeperTestConfig.FakeCommand1>())
         .orElseThrow { NullPointerException() }
     }.isFailure().isInstanceOf(NullPointerException::class)
 

@@ -65,7 +65,7 @@ class RolesRegistry private constructor(val roles: List<Role>) {
 
   private fun permissionFor(roleHandles: Set<RoleHandle>, rt: ResourceType): Permission =
     roles
-      .filter { roleHandles.contains(it.roleHandle) }
+      .filter { it.roleHandle.name in roleHandles.map{ rh -> rh.name }}
       .fold(Permission.EMPTY) { acc, cur -> acc.merge(cur.permissionFor(rt)) }
 
   class Builder {
@@ -107,7 +107,7 @@ class BridgeKeeper(private val appPermissions: RolesRegistry) {
 
   fun assertCanPerform(party: Party, rt: ResourceType, cmdCandidate: String): AssertionResult {
     val permission = appPermissions.permissionFor(party, rt)
-    if (!permission.operations.contains(Operation(cmdCandidate)) && !permission.operations.contains(Operation.ANY)) {
+    if (Operation(cmdCandidate) !in permission.operations && Operation.ANY !in permission.operations) {
       return Failure
     }
     return Success

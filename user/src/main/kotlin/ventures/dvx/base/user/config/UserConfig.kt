@@ -20,6 +20,7 @@ import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.bridgekeeper.RoleHandle
 import ventures.dvx.bridgekeeper.Visibility
+import ventures.dvx.bridgekeeper.fns.className
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.axon.security.ROLE_SYSTEM
 import ventures.dvx.common.axon.security.runAsSuperUser
@@ -93,17 +94,17 @@ class UserConfig(
       resourceType(MY_USER) {
         visibility = Visibility.VISIBLE
         operations {
-          +RegisterAdminUserCommand::class.simpleName!!
-          +FindUserByIdQuery::class.simpleName!!
-          +FindUserByUsernameQuery::class.simpleName!!
+          +className<RegisterAdminUserCommand>()
+          +className<FindUserByIdQuery>()
+          +className<FindUserByUsernameQuery>()
         }
       }
       resourceType(NOT_MY_USER) {
         visibility = Visibility.VISIBLE
         operations {
-          +RegisterAdminUserCommand::class.simpleName!!
-          +FindUserByIdQuery::class.qualifiedName!!
-          +FindUserByUsernameQuery::class.qualifiedName!!
+          +className<RegisterAdminUserCommand>()
+          +className<FindUserByIdQuery>()
+          +className<FindUserByUsernameQuery>()
         }
       }
     }
@@ -111,7 +112,7 @@ class UserConfig(
       resourceType(MY_USER) {
         visibility = Visibility.VISIBLE
         operations {
-          +FindUserByIdQuery::class.qualifiedName!!
+          +className<FindUserByIdQuery>()
         }
       }
     }
@@ -119,7 +120,7 @@ class UserConfig(
       resourceType(MY_USER) {
         visibility = Visibility.VISIBLE
         operations {
-          +RegisterAdminUserCommand::class.simpleName!!
+          +className<RegisterAdminUserCommand>()
         }
       }
     }
