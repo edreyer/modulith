@@ -42,22 +42,22 @@ import java.util.*
 
 class EndUserTest {
 
-  lateinit var fixture: FixtureConfiguration<EndUser>
-  lateinit var indexRepository: IndexRepository
+  private lateinit var fixture: FixtureConfiguration<EndUser>
+  private lateinit var indexRepository: IndexRepository
 
-  val userConfig = mockk<UserConfig>()
-  val userId = EndUserId()
-  val registerUserCommand = RegisterEndUserCommand(
+  private val userConfig = mockk<UserConfig>()
+  private val userId = EndUserId()
+  private val registerUserCommand = RegisterEndUserCommand(
     userId = userId,
     msisdn = "+15125551212".toMsisdn(),
     email = "email@email.com".toEmailAddress(),
     firstName = "admin".toNonEmptyString(),
     lastName = "admin".toNonEmptyString()
   )
-  val token = MsisdnToken(
+  private val token = MsisdnToken(
     "1234", "+15125551212".toMsisdn(), "email@email.com".toEmailAddress(), Date().toInstant().plus(1, HOURS)
   )
-  val userRegistrationStartedEvent = UserRegistrationStartedEvent(
+  private val userRegistrationStartedEvent = UserRegistrationStartedEvent(
     ia = IndexableAggregateDto(EndUser.aggregateName(), userId.id, "+15125551212"),
     token = token,
     userId = userId,

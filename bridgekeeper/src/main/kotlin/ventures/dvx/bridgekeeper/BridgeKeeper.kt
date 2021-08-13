@@ -21,7 +21,7 @@ value class Operation(val operation: String) {
   }
 }
 
-class Permission private constructor(val operations: Set<Operation>, val viewConstraint: Visibility) {
+class Permission private constructor(val operations: Set<Operation>, private val viewConstraint: Visibility) {
 
   class Builder(private val viewConstraint: Visibility) {
     private val operations: MutableSet<Operation> = mutableSetOf()
@@ -41,7 +41,7 @@ data class ResourceTypePermission(val resourceType: ResourceType, val permission
 
 open class RoleHandle(val name: String)
 
-class Role private constructor(val roleHandle: RoleHandle, val resourceTypePermissions: List<ResourceTypePermission>) {
+class Role private constructor(val roleHandle: RoleHandle, private val resourceTypePermissions: List<ResourceTypePermission>) {
 
   fun permissionFor(rt: ResourceType): Permission = resourceTypePermissions
     .filter { it.resourceType == rt }

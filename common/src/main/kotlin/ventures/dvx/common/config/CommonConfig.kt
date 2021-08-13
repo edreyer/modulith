@@ -7,7 +7,7 @@ import ventures.dvx.common.logging.LoggerDelegate
 @ConstructorBinding
 @ConfigurationProperties(prefix = "common")
 class CommonConfig(
-  val mode: String
+  private val mode: String
 ) {
 
   val log by LoggerDelegate()

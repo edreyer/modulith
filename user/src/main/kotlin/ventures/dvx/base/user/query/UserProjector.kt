@@ -66,7 +66,7 @@ class UserProjector(
   ): User =
     userViewRepository.findByUsername(query.username)
       ?.let { User(
-        id = it.userId,
+        id = it.id,
         username = it.username,
         password = it.password,
         email = it.email,
@@ -97,7 +97,7 @@ class UserProjector(
   ): User =
     userViewRepository.findByIdOrNull(query.id)
       ?.let { User(
-        id = it.userId,
+        id = it.id,
         username = it.username,
         password = it.password,
         email = it.email,

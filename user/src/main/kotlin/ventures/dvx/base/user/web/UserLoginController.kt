@@ -72,7 +72,7 @@ class UserLoginController(
       ?.let { Mono.just(it) } ?: Mono.error(UserException(UserNotFoundError(input.msisdn)))
 
     return user
-      .map { LoginEndUserCommand.of(EndUserId(it.aggregateId), it.key) }
+      .map { LoginEndUserCommand.of(EndUserId(it.id), it.key) }
       .flatMap { it.fold(
         { errors -> Mono.error(UserException(InvalidInput(errors.toErrStrings())))},
         { cmd -> Mono.just(cmd) }

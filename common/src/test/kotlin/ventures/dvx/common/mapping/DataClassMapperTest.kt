@@ -1,10 +1,8 @@
 package ventures.dvx.common.mapping
 
 
-import org.junit.jupiter.api.Test
-
 import org.assertj.core.api.Assertions.assertThat
-import ventures.dvx.common.mapping.DataClassMapper
+import org.junit.jupiter.api.Test
 import ventures.dvx.common.mapping.DataClassMapper.Companion.setMapper
 
 internal class DataClassMapperTest {

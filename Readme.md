@@ -66,7 +66,7 @@ To run that, execute the following before starting the Spring Boot application:
 
 You'l need to create a new database for the app
 ```sql
-create database dvx_app;
+create database dvx_base;
 ```
 
 To use an axon server instance running on localhost:

@@ -25,7 +25,7 @@ internal class JwtTokenProviderTest {
   @BeforeEach
   private fun setup() {
     properties = JwtProperties()
-    log.debug("jwt properties::" + properties)
+    log.debug("jwt properties::$properties")
     jwtTokenProvider = JwtTokenProvider(properties)
     Assertions.assertNotNull(jwtTokenProvider)
     jwtTokenProvider.init()

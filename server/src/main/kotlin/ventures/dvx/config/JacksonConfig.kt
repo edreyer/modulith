@@ -7,6 +7,6 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class JacksonConfig(objectMapper: ObjectMapper) {
   init {
-    objectMapper.setSerializationInclusion(NON_NULL);
+    objectMapper.setSerializationInclusion(NON_NULL)
   }
 }

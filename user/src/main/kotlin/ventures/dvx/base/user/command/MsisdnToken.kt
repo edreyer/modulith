@@ -3,8 +3,8 @@ package ventures.dvx.base.user.command
 import ventures.dvx.common.types.EmailAddress
 import ventures.dvx.common.types.Msisdn
 import ventures.dvx.common.types.NonEmptyString
+import java.security.SecureRandom
 import java.time.Instant
-import java.util.*
 
 data class MsisdnToken(
   val token: String,
@@ -19,7 +19,7 @@ data class MsisdnToken(
       && this.msisdn.value == msisdn.value
 
   companion object {
-    val rand = Random()
+    private val rand = SecureRandom.getInstance("NativePRNG")
     fun generateToken() = String.format("%04d", rand.nextInt(9999))
   }
 }

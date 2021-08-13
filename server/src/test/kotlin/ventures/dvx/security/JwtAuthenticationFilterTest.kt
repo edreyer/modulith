@@ -1,3 +1,5 @@
+@file:Suppress("ReactiveStreamsUnusedPublisher")
+
 package ventures.dvx.security
 
 import com.ninjasquad.springmockk.MockkClear

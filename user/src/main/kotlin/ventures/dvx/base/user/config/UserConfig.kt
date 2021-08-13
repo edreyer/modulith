@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.event.ContextRefreshedEvent
 import org.springframework.context.event.EventListener
-import rolesPermissionRegistry
 import ventures.dvx.base.user.api.AdminUserId
 import ventures.dvx.base.user.api.FindUserByIdQuery
 import ventures.dvx.base.user.api.FindUserByUsernameQuery
@@ -21,6 +20,7 @@ import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.bridgekeeper.RoleHandle
 import ventures.dvx.bridgekeeper.Visibility
 import ventures.dvx.bridgekeeper.fns.className
+import ventures.dvx.bridgekeeper.rolesPermissionRegistry
 import ventures.dvx.common.axon.command.persistence.IndexRepository
 import ventures.dvx.common.axon.security.ROLE_SYSTEM
 import ventures.dvx.common.axon.security.runAsSuperUser

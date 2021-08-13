@@ -26,8 +26,8 @@ import ventures.dvx.common.types.toNonEmptyString
 
 class AdminUserTest {
 
-  lateinit var fixture: FixtureConfiguration<AdminUser>
-  lateinit var indexRepository: IndexRepository
+  private lateinit var fixture: FixtureConfiguration<AdminUser>
+  private lateinit var indexRepository: IndexRepository
 
   @BeforeEach
   fun setup() {

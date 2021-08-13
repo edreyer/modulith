@@ -1,6 +1,6 @@
 create table if not exists user_view
 (
-    user_id uuid
+    id uuid
         constraint end_user_view_pk
             primary key,
     username    varchar(50) not null,

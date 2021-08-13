@@ -28,7 +28,7 @@
         <axon.reactor.version>4.5</axon.reactor.version>
         <jjwt.version>0.11.2</jjwt.version>
         <assertk.version>0.24</assertk.version>
-        <reactor.version>3.4.7</reactor.version>
+        <reactor.version>3.4.8</reactor.version>
     </properties>
 
     <modules>
@@ -138,7 +138,7 @@
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
-            <version>0.18.0</version>
+            <version>0.20.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -171,11 +171,6 @@
             <dependency>
                 <groupId>ventures.dvx</groupId>
                 <artifactId>common</artifactId>
-                <version>1.0-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>ventures.dvx</groupId>
-                <artifactId>user-hex</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

@@ -1,10 +1,10 @@
 package ventures.dvx.bridgekeeper.test
 
-import rolesPermissionRegistry
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.bridgekeeper.RoleHandle
 import ventures.dvx.bridgekeeper.Visibility
+import ventures.dvx.bridgekeeper.rolesPermissionRegistry
 
 object BridgeKeeperTestConfig {
 
@@ -23,8 +23,8 @@ object BridgeKeeperTestConfig {
       resourceType(MY_APPOINTMENT) {
         visibility = Visibility.VISIBLE
         operations {
-          +FakeCommand1::class.simpleName!!
-          +FakeCommand2::class.simpleName!!
+          +FakeCommand1::class.qualifiedName!!
+          +FakeCommand2::class.qualifiedName!!
         }
       }
     }
@@ -32,7 +32,7 @@ object BridgeKeeperTestConfig {
       resourceType(MY_APPOINTMENT) {
         visibility = Visibility.VISIBLE
         operations {
-          +FakeCommand3::class.simpleName!!
+          +FakeCommand3::class.qualifiedName!!
         }
       }
     }

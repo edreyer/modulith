@@ -1,11 +1,4 @@
-import ventures.dvx.bridgekeeper.Operation
-import ventures.dvx.bridgekeeper.Permission
-import ventures.dvx.bridgekeeper.ResourceType
-import ventures.dvx.bridgekeeper.ResourceTypePermission
-import ventures.dvx.bridgekeeper.Role
-import ventures.dvx.bridgekeeper.RoleHandle
-import ventures.dvx.bridgekeeper.RolesRegistry
-import ventures.dvx.bridgekeeper.Visibility
+package ventures.dvx.bridgekeeper
 
 @DslMarker
 annotation class PermissionsMarker

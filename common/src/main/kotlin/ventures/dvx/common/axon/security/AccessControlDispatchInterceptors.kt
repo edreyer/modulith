@@ -1,3 +1,5 @@
+@file:Suppress("DuplicatedCode")
+
 package ventures.dvx.common.axon.security
 
 import org.axonframework.commandhandling.CommandMessage
@@ -32,8 +34,7 @@ class AccessControlCommandDispatchInterceptor(
     message
       .flatMap { msg ->
         ReactiveSecurityContextHolder.getContext()
-          .map { it?.authentication }
-          .filter { it != null }
+          .mapNotNull { it?.authentication }
           .doOnNext { log.info("The principal: ${it?.principal}") }
           .map { when (it) {
             is UserDetails -> it.toParty(roleHandleMap)
@@ -59,8 +60,7 @@ class AccessControlQueryDispatchInterceptor(
   // Adds principal to the message metadata for Access checking later
   override fun intercept(message: Mono<QueryMessage<*,*>>): Mono<QueryMessage<*,*>> =
     ReactiveSecurityContextHolder.getContext()
-      .map { it?.authentication }
-      .filter { it != null}
+      .mapNotNull { it?.authentication }
       .doOnNext { log.info("The principal: ${it?.principal}") }
       .map { when (it) {
         is UserDetails -> it.toParty(roleHandleMap)
