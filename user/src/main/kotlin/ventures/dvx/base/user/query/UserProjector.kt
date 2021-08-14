@@ -51,12 +51,13 @@ class UserProjector(
     chain: InterceptorChain,
     bridgeKeeper: BridgeKeeper,
     @MetaDataValue("party") party: Party
-  ) {
+  ): User {
     val user: User = chain.proceed() as User
     val userRt = if (party.id == user.id.toString())
       MY_USER else NOT_MY_USER
     bridgeKeeper.assertCanPerform(party, userRt, queryMsg.queryName)
       .orElseThrow { AccessControlQueryException(queryMsg.queryName, party.id) }
+    return user
   }
 
   @QueryHandler

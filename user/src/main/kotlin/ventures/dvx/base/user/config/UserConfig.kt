@@ -113,6 +113,7 @@ class UserConfig(
         visibility = Visibility.VISIBLE
         operations {
           +className<FindUserByIdQuery>()
+          +className<FindUserByUsernameQuery>()
         }
       }
     }
