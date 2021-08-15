@@ -1,8 +1,7 @@
-package ventures.dvx.ventures.dvx
+package ventures.dvx
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
-import ventures.dvx.DvxApplication
 
 @SpringBootTest(
   classes = [DvxApplication::class],

@@ -1,18 +1,60 @@
 ---
+logging:
+  level:
+    org.springframework: INFO
+    org.axonframework: INFO
+
 spring:
+
+  config:
+    import:
+      - classpath:common.yml
+      - classpath:user.yml
+
   datasource:
-    url: jdbc:postgresql://localhost:5432/dvx_app
+    url: jdbc:postgresql://localhost:5432/dvx_base
     driver-class-name: org.postgresql.Driver
-    username: postgres
+    username: ${USER}
     password:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  data:
+    jdbc:
+      repositories:
+        enabled: true
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: validate
+      hibernate.format_sql: false
+    generate-ddl: false
+    show-sql: false
+
+  flyway:
+    enabled: true
+    user: ${USER}
+    password:
+
   jackson:
 #    deserialization.UNWRAP_ROOT_VALUE: true
     serialization:
 #      WRAP_ROOT_VALUE: true
       WRITE_DATES_AS_TIMESTAMPS: false
 
-security:
-  jwt:
-    token:
-      secretKey: ThisIsSecretForJWTHS512SignatureAlgorithmThatMUSTHave64ByteLength
-      validityInMs: 3600000 # 1 HOUR
+axon:
+
+#  axonserver:
+#    servers: axonserver.cloud.axoniq.io:443
+#    keep-alive-time: 0
+#    ssl-enabled: true
+#    context: user@dvx-base
+#    token: wfqmu3bVhlgbLI5aztNm
+
+  #see: https://axoniq.io/blog-overview/set-based-validation
+  eventhandling:
+    processors:
+      indexEntity.mode: subscribing
