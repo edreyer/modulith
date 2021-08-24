@@ -31,24 +31,21 @@ class AccessControlCommandDispatchInterceptor(
 
   // Adds principal to the message metadata for Access checking later
   override fun intercept(message: Mono<CommandMessage<*>>): Mono<CommandMessage<*>> =
-    message
-      .flatMap { msg ->
-        ReactiveSecurityContextHolder.getContext()
-          .mapNotNull { it?.authentication }
-          .doOnNext { log.info("The principal: ${it?.principal}") }
-          .map { when (it) {
-            is UserDetails -> it.toParty(roleHandleMap)
-            is UsernamePasswordAuthenticationToken -> (it.principal as UserDetails).toParty(roleHandleMap)
-            else -> throw IllegalStateException("Unexpected Authentication type")
-          }}
-          .map {
-            msg.withMetaData(MetaData.with("party", it))
-          }
-      }
-      .switchIfEmpty(message.map {
-        it.withMetaData(MetaData.with("party", ANONYMOUS))
-      })
-      .doOnNext { log.info("cmd: $it") }
+    message.flatMap { msg ->
+      ReactiveSecurityContextHolder.getContext()
+        .mapNotNull { it?.authentication }
+        .doOnNext { log.info("The principal: ${it?.principal}") }
+        .map { when (it) {
+          is UserDetails -> it.toParty(roleHandleMap)
+          is UsernamePasswordAuthenticationToken -> (it.principal as UserDetails).toParty(roleHandleMap)
+          else -> throw IllegalStateException("Unexpected Authentication type")
+        }}
+        .map { msg.withMetaData(MetaData.with("party", it)) }
+    }
+    .switchIfEmpty(message.map {
+      it.withMetaData(MetaData.with("party", ANONYMOUS))
+    })
+    .doOnNext { log.info("cmd: $it") }
 }
 
 class AccessControlQueryDispatchInterceptor(

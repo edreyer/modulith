@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import ventures.dvx.base.user.api.FindUserByUsernameQuery
+import ventures.dvx.common.axon.security.runAsSuperUser
 import ventures.dvx.common.security.JwtProperties
 import ventures.dvx.common.security.JwtTokenAuthenticationFilter
 import ventures.dvx.common.security.JwtTokenProvider
@@ -49,6 +50,7 @@ class SecurityConfig {
       .authenticationManager(reactiveAuthenticationManager)
       .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
       .authorizeExchange { it
+        .pathMatchers("/admin/register").permitAll()
         .pathMatchers("/user/register").permitAll()
         .pathMatchers("/user/loginByMsisdn").permitAll()
         .pathMatchers("/user/loginByEmail").permitAll()
@@ -64,6 +66,7 @@ class SecurityConfig {
   fun userDetailsService(queryGateway: ReactorQueryGateway): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
       queryGateway.query(FindUserByUsernameQuery(username), ventures.dvx.base.user.api.User::class.java)
+        ?.runAsSuperUser()
         ?.map { User(it.username, it.password, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
     }
   }

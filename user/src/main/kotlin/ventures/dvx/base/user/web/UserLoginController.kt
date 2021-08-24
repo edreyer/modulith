@@ -36,8 +36,15 @@ data class EmailLoginDto(
   @NotEmpty @Email val email: String,
   @NotEmpty val password: String,
 )
+
 data class MsisdnLoginDto(
   @NotEmpty @Msisdn val msisdn: String
+)
+
+data class ValidateTokenInputDto(
+  @NotEmpty val userId: String,
+  @NotEmpty @Msisdn val msisdn: String,
+  @NotEmpty val token: String
 )
 
 @RestController
@@ -50,19 +57,16 @@ class UserLoginController(
 
   @PostMapping(path = ["/user/loginByEmail"])
   fun loginWithEmail(@Valid @RequestBody input: EmailLoginDto)
-    : Mono<ResponseEntity<OutputDto>>
-  {
-    return authenticationManager.authenticate(
-        UsernamePasswordAuthenticationToken(input.email, input.password)
-      )
+    : Mono<ResponseEntity<OutputDto>> =
+    authenticationManager.authenticate(
+      UsernamePasswordAuthenticationToken(input.email, input.password)
+    )
       .map { tokenProvider.createToken(it) }
-      .map {
+      .mapToResponse {
         val headers = HttpHeaders()
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
-        ResponseEntity.ok(SuccessfulEmailLoginDto(it) as OutputDto)
+        ResponseEntity.ok(SuccessfulEmailLoginDto(it))
       }
-      .mapErrorToResponseEntity()
-  }
 
   @PostMapping(path = ["/user/loginByMsisdn"])
   fun loginWithMsisdn(@Valid @RequestBody input: MsisdnLoginDto)
@@ -78,8 +82,7 @@ class UserLoginController(
         { cmd -> Mono.just(cmd) }
       )}
       .flatMap { commandGateway.send<EndUserId>(it) }
-      .map { ResponseEntity.ok(SuccessfulMsisdnLoginDto(it.id) as OutputDto) }
-      .mapErrorToResponseEntity()
+      .mapToResponse { ResponseEntity.ok(SuccessfulMsisdnLoginDto(it.id)) }
   }
 
   @PostMapping(path = ["/user/confirmToken"])
@@ -91,14 +94,11 @@ class UserLoginController(
     )
       .flatMap { commandGateway.send<User>(it) }
       .map { tokenProvider.createToken(input.userId, it.roles.map { role -> SimpleGrantedAuthority(role) }) }
-      .map {
+      .mapToResponse {
         val headers = HttpHeaders()
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
-        val tokenBody =
-          ResponseEntity.ok(SuccessfulEmailLoginDto(it) as OutputDto)
-        tokenBody
+        ResponseEntity.ok(SuccessfulEmailLoginDto(it))
       }
-      .mapErrorToResponseEntity()
 
   fun ValidateTokenInputDto.toCommand(): ValidatedNel<ValidationError, ValidateEndUserTokenCommand> =
     ValidateEndUserTokenCommand.of(

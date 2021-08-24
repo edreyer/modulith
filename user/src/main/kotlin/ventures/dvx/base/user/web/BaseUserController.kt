@@ -9,33 +9,37 @@ import ventures.dxv.base.user.error.UserQueryException
 
 abstract class BaseUserController {
 
-  val log by LoggerDelegate()
+  private val log by LoggerDelegate()
 
   /**
-   * Extension method to translate Monos in an exceptional state
+   * Extension method to translate both success and error responses
    */
-  fun Mono<ResponseEntity<OutputDto>>.mapErrorToResponseEntity(): Mono<ResponseEntity<OutputDto>> {
-    return this.onErrorResume { ex ->
-      log.error(ex.message, ex)
-      when (ex) {
-        is UserException -> Mono.just(ResponseEntity
-          .status(ex.userError.responseStatus)
-          .body(OutputErrorDto(ex.message) as OutputDto)
-        )
-        is UserCommandException -> Mono.just(ResponseEntity
-          .status(ex.details.responseStatus)
-          .body(OutputErrorDto(ex.message) as OutputDto)
-        )
-        is UserQueryException -> Mono.just(ResponseEntity
-          .status(ex.details.responseStatus)
-          .body(OutputErrorDto(ex.message) as OutputDto)
-        )
-        else -> Mono.just(ResponseEntity
-          .internalServerError()
-          .body(OutputErrorDto(ex.message ?: "Server Error") as OutputDto)
-        )
+  fun <T> Mono<T>.mapToResponse(onSuccess: (T) -> ResponseEntity<OutputDto>)
+  : Mono<ResponseEntity<OutputDto>> {
+    return this
+      .map { onSuccess(it) }
+      .onErrorResume { ex ->
+        log.error(ex.message, ex)
+        when (ex) {
+          is UserException -> Mono.just(ResponseEntity
+            .status(ex.userError.responseStatus)
+            .body(OutputErrorDto(ex.message))
+          )
+          is UserCommandException -> Mono.just(ResponseEntity
+            .status(ex.details.responseStatus)
+            .body(OutputErrorDto(ex.message))
+          )
+          is UserQueryException -> Mono.just(ResponseEntity
+            .status(ex.details.responseStatus)
+            .body(OutputErrorDto(ex.message))
+          )
+          else -> Mono.just(ResponseEntity
+            .internalServerError()
+            .body(OutputErrorDto(ex.message ?: "Server Error"))
+          )
+        }
       }
-    }
   }
+
 }
 

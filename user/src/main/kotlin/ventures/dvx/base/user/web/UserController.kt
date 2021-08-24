@@ -22,16 +22,13 @@ class UserController(
   @GetMapping(path = [UserPaths.USER_BY_ID])
   fun getUser(@PathVariable userId: UUID) : Mono<ResponseEntity<OutputDto>> {
     return queryGateway.query(FindUserByIdQuery(userId), User::class.java)
-      .map { ResponseEntity.ok(UserDto(it.id, it.username, it.email, it.roles) as OutputDto) }
-      .mapErrorToResponseEntity()
-
+      .mapToResponse { ResponseEntity.ok(UserDto(it.id, it.username, it.email, it.roles)) }
   }
 
   @GetMapping(path = [UserPaths.USER_BY_USERNAME])
   fun getUser(@PathVariable username: String) : Mono<ResponseEntity<OutputDto>> {
     return queryGateway.query(FindUserByUsernameQuery(username), User::class.java)
-      .map { ResponseEntity.ok(UserDto(it.id, it.username, it.email, it.roles) as OutputDto) }
-      .mapErrorToResponseEntity()
+      .mapToResponse { ResponseEntity.ok(UserDto(it.id, it.username, it.email, it.roles)) }
   }
 
 }

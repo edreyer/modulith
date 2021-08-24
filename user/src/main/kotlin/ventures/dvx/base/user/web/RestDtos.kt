@@ -7,5 +7,6 @@ interface OutputDto
 
 data class OutputErrorDto(val errorMsg: String) : OutputDto
 
+object AdminRegisteredDto : OutputDto
 data class SuccessfulEmailLoginDto(val accessToken: String) : OutputDto
 data class SuccessfulMsisdnLoginDto(val userId: UUID) : OutputDto
