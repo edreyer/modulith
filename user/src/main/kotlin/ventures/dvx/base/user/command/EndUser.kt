@@ -16,7 +16,6 @@ import ventures.dvx.base.user.api.LoginEndUserCommand
 import ventures.dvx.base.user.api.RegisterEndUserCommand
 import ventures.dvx.base.user.api.TokenValidatedEvent
 import ventures.dvx.base.user.api.User
-import ventures.dvx.base.user.api.UserNotFoundError
 import ventures.dvx.base.user.api.UserRegistrationStartedEvent
 import ventures.dvx.base.user.api.ValidateEndUserTokenCommand
 import ventures.dvx.base.user.config.UserConfig
@@ -100,16 +99,11 @@ class EndUser : UserAggregate, AccessControlCommandSupport, UserCommandErrorSupp
   @CommandHandler
   fun handle(
     command: LoginEndUserCommand,
-    indexRepository: IndexRepository,
     msisdnParser: MsisdnParser,
     commonConfig: CommonConfig,
     userConfig: UserConfig,
     clock: Clock
   ): EndUserId {
-    // ensure user exists
-    indexRepository.findEntityByAggregateNameAndKey(aggregateName, command.msisdn.value)
-      ?: throw UserException(UserNotFoundError(command.msisdn.value))
-
     apply(EndUserLoginStartedEvent(
       createToken(
         commonConfig, userConfig, clock, msisdnParser.toInternational(command.msisdn), email

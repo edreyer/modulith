@@ -83,7 +83,6 @@ data class LoginEndUserCommand(
   }
 }
 
-
 data class ValidateEndUserTokenCommand(
   @TargetAggregateIdentifier
   val userId: EndUserId,
@@ -101,7 +100,6 @@ data class ValidateEndUserTokenCommand(
       }
   }
 }
-
 
 // Events
 

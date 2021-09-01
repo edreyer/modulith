@@ -23,7 +23,9 @@ suspend fun <R : Any> runAsync(workflow: Workflow<R>): Result<R> = coroutineScop
 
 suspend fun <R : Any> runAsyncMono(workflow: MonoWorkflow<R>): Mono<R> = coroutineScope {
   async {
-    workflow.invoke()
+    try {
+      workflow.invoke()
+    } catch (e: Throwable) { Mono.error(e) }
   }.await()
 }
 
