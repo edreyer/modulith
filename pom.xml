@@ -26,9 +26,10 @@
     </properties>
 
     <modules>
-        <module>server</module>
-        <module>user</module>
+        <module>bridgekeeper</module>
         <module>common</module>
+        <module>user</module>
+        <module>server</module>
     </modules>
 
     <dependencies>
