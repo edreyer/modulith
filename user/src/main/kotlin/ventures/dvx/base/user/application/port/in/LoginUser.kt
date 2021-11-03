@@ -3,7 +3,8 @@ package ventures.dvx.base.user.application.port.`in`
 import arrow.core.Either
 
 // Inputs
-inline class FindUserCommand(val username: String)
+@JvmInline
+value class FindUserCommand(val username: String)
 
 // Outputs
 
@@ -11,7 +12,8 @@ data class FindUserEvent(val userDto: UserDto)
 
 // Error
 
-inline class UserNotFoundError(val username: String)
+@JvmInline
+value class UserNotFoundError(val username: String)
 
 // Use Case
 

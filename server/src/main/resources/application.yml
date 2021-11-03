@@ -1,10 +1,43 @@
 ---
+logging:
+  level:
+    org.springframework: INFO
+
 spring:
+
+  config:
+    import:
+      - classpath:common.yml
+      - classpath:user.yml
+
   datasource:
     url: jdbc:postgresql://localhost:5432/dvx_app
     driver-class-name: org.postgresql.Driver
-    username: postgres
+    username: ${USER}
     password:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  data:
+    jdbc:
+      repositories:
+        enabled: true
+
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: validate
+      hibernate.format_sql: false
+    generate-ddl: false
+    show-sql: false
+
+  flyway:
+    enabled: true
+    user: ${USER}
+    password:
+
   jackson:
 #    deserialization.UNWRAP_ROOT_VALUE: true
     serialization:

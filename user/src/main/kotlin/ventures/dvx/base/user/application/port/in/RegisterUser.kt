@@ -1,8 +1,10 @@
 package ventures.dvx.base.user.application.port.`in`
 
-import arrow.core.Either
 import arrow.core.Nel
 import ventures.dvx.common.types.ValidationError
+import ventures.dvx.common.workflow.Command
+import ventures.dvx.common.workflow.Event
+import ventures.dvx.common.workflow.SafeWorkflow
 
 // Input
 
@@ -10,27 +12,23 @@ data class RegisterUserCommand(
   val username: String,
   val email: String,
   val password: String
-)
+) : Command
 
 // Output
 
-sealed class RegisterUserEvent {
+sealed class RegisterUserEvent : Event {
   data class ValidUserRegistration(
     val username: String,
     val email: String
-  ) : RegisterUserEvent()
+  ) : RegisterUserEvent(), Event
 }
 
 // Errors
 
-sealed class RegisterUserError {
+sealed class RegisterUserError : RuntimeException() {
   data class UserExistsError(val error: String) : RegisterUserError()
   data class UserValidationErrors(val errors: Nel<ValidationError>) : RegisterUserError()
 }
 
-// Use Case
-
-interface RegisterUserUseCase {
-  suspend operator fun invoke(cmd: RegisterUserCommand): Either<RegisterUserError, Nel<RegisterUserEvent>>
-}
-
+// Workflow
+interface RegisterUserWorkflow : SafeWorkflow<RegisterUserCommand, RegisterUserEvent>

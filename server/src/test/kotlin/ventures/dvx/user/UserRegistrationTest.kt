@@ -8,7 +8,7 @@ import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisteredUserDto
 import ventures.dvx.test.BaseWebTest
 
-class UseRegistrationTest : BaseWebTest() {
+class UserRegistrationTest : BaseWebTest() {
 
   private lateinit var inputDto: RegisterUserInputDto
 

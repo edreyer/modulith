@@ -1,18 +1,18 @@
 package ventures.dvx.base.user.adapter.`in`.web
 
-import arrow.core.Nel
-import arrow.core.nel
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
 import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserExistsError
-import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserValidationErrors
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
-import ventures.dvx.base.user.application.port.`in`.RegisterUserUseCase
+import ventures.dvx.base.user.application.port.`in`.RegisterUserWorkflow
 import ventures.dvx.common.mapping.DataClassMapper
+import ventures.dvx.common.types.ValidationException
+import ventures.dvx.common.types.toErrStrings
+import ventures.dvx.common.workflow.RequestDispatcher
 import javax.validation.Valid
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty
@@ -31,35 +31,43 @@ data class RegisterUserErrorsDto(val errors: List<String>) : RegisterUserOutputD
 
 @RestController
 class RegisterUserController(
-  private val registerUserUseCase: RegisterUserUseCase
+  registerUserWorkflow: RegisterUserWorkflow
 ) {
+
+  init {
+    RequestDispatcher.registerCommandHandler(registerUserWorkflow)
+  }
 
   @PostMapping("/user/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
-  : ResponseEntity<RegisterUserOutputDto> =
-    registerUserUseCase(registerUser.toCommand())
-      .fold({ when (it) {
-        is UserExistsError -> ResponseEntity.badRequest().body(it.toOutputDto())
-        is UserValidationErrors -> ResponseEntity.badRequest().body(it.toOutputDto())
-      }
-      },{
-        ResponseEntity.ok(it.toOutputDto())
-      })
+    : ResponseEntity<RegisterUserOutputDto> =
+    RequestDispatcher.dispatch<RegisterUserEvent>(registerUser.toCommand())
+      .fold(
+        { ResponseEntity.ok(it.toOutputDto()) },
+        {
+          when (it) {
+            is UserExistsError -> ResponseEntity.badRequest().body(it.toOutputDto())
+            is ValidationException -> ResponseEntity.badRequest().body(it.toOutputDto())
+            else -> ResponseEntity.badRequest().body(it.toOutputDto())
+          }
+        }
+      )
+
+  fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
+    DataClassMapper<RegisterUserInputDto, RegisterUserCommand>()(this)
+
+  fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
+    DataClassMapper<UserExistsError, RegisterUserErrorsDto>()
+      .targetParameterSupplier("errors") { listOf(this.error) }(this)
+
+  fun ValidationException.toOutputDto(): RegisterUserOutputDto =
+    RegisterUserErrorsDto(this.errors.toErrStrings())
+
+  fun Throwable.toOutputDto(): RegisterUserOutputDto =
+    RegisterUserErrorsDto(listOf("Server Error: ${this.message}"))
+
+  fun RegisterUserEvent.toOutputDto(): RegisterUserOutputDto = when (this) {
+    is ValidUserRegistration -> DataClassMapper<ValidUserRegistration, RegisteredUserDto>()(this)
+  }
 }
-
-fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
-  DataClassMapper<RegisterUserInputDto, RegisterUserCommand>()(this)
-
-fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
-  DataClassMapper<UserExistsError, RegisterUserErrorsDto>()
-    .targetParameterSupplier("errors") { listOf(this.error) } (this)
-
-fun UserValidationErrors.toOutputDto(): RegisterUserOutputDto =
-  DataClassMapper<UserValidationErrors, RegisterUserErrorsDto>()
-    .targetParameterSupplier("errors") { this.errors.map { it.error }.toList() } (this)
-
-fun Nel<RegisterUserEvent>.toOutputDto(): RegisterUserOutputDto = this
-  .filterIsInstance<ValidUserRegistration>()
-  .map { DataClassMapper<ValidUserRegistration, RegisteredUserDto>()(it) }
-  .first()
 

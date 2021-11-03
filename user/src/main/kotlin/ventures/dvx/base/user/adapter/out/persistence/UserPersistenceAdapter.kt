@@ -21,14 +21,14 @@ class UserPersistenceAdapter(
   override fun findUserByEmail(email: String) : User? =
     userRepository.findByEmail(email)?.toUser()
 
-  override fun saveNewUser(user: UnregisteredUser): ActiveUser =
+  override fun saveNewUser(user: UnregisteredUser): User =
     when(val newUser = userRepository.save(user.toEntity()).toUser()) {
       is ActiveUser -> newUser
       else -> {
         val err = ""
         logger.error(err)
         throw IllegalStateException(err)
-      }
+    }
     }
 
   private fun UserEntity.toUser() : User = when {

@@ -15,6 +15,7 @@ typealias targetParameterSupplier<O> = () -> O
  * @param <I> inType (convert from)
  * @param <O> outType (convert to)
  */
+// TODO: Get rid of this class, it's not typesafe
 class DataClassMapper<I : Any, O : Any>(private val inType: KClass<I>, private val outType: KClass<O>) : Mapper<I, O> {
 
   companion object {

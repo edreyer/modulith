@@ -23,6 +23,10 @@
         </dependency>
         <dependency>
             <groupId>ventures.dvx</groupId>
+            <artifactId>bridgekeeper</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ventures.dvx</groupId>
             <artifactId>common</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
