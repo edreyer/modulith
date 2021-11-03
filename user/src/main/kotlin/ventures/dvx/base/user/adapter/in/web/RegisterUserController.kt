@@ -9,7 +9,6 @@ import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserExists
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
 import ventures.dvx.base.user.application.port.`in`.RegisterUserWorkflow
-import ventures.dvx.common.mapping.DataClassMapper
 import ventures.dvx.common.types.ValidationException
 import ventures.dvx.common.types.toErrStrings
 import ventures.dvx.common.workflow.RequestDispatcher
@@ -54,11 +53,14 @@ class RegisterUserController(
       )
 
   fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
-    DataClassMapper<RegisterUserInputDto, RegisterUserCommand>()(this)
+    RegisterUserCommand(
+      username = this.username,
+      email = this.email,
+      password = this.password
+    )
 
   fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
-    DataClassMapper<UserExistsError, RegisterUserErrorsDto>()
-      .targetParameterSupplier("errors") { listOf(this.error) }(this)
+    RegisterUserErrorsDto(listOf(this.error))
 
   fun ValidationException.toOutputDto(): RegisterUserOutputDto =
     RegisterUserErrorsDto(this.errors.toErrStrings())
@@ -67,7 +69,10 @@ class RegisterUserController(
     RegisterUserErrorsDto(listOf("Server Error: ${this.message}"))
 
   fun RegisterUserEvent.toOutputDto(): RegisterUserOutputDto = when (this) {
-    is ValidUserRegistration -> DataClassMapper<ValidUserRegistration, RegisteredUserDto>()(this)
+    is ValidUserRegistration -> RegisteredUserDto(
+      username = this.username,
+      email = this.email
+    )
   }
 }
 
