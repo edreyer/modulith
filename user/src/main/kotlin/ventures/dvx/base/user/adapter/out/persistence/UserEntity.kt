@@ -1,6 +1,9 @@
 package ventures.dvx.base.user.adapter.out.persistence
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import org.hibernate.annotations.Filter
+import org.hibernate.annotations.FilterDef
+import org.hibernate.annotations.Where
 import ventures.dvx.common.persistence.BaseEntity
 import ventures.dvx.common.persistence.NamespaceIdGenerator
 import javax.persistence.CollectionTable
@@ -20,6 +23,9 @@ enum class Role {
 
 @Entity
 @Table(name = "users")
+@Where(clause = "deleted_at is null")
+@FilterDef(name = "deletedProductFilter")
+@Filter(name = "deletedProductFilter", condition = "deleted_at is not null")
 class UserEntity(
 
   var msisdn: String,

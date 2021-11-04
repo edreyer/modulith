@@ -1,6 +1,6 @@
 package ventures.dvx.config
 
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.ReactiveAuthenticationManager
@@ -17,12 +17,12 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import reactor.core.publisher.Mono
-import ventures.dvx.base.user.application.port.`in`.FindUserByEmailCommand
-import ventures.dvx.base.user.application.port.`in`.FindUserUseCase
+import ventures.dvx.base.user.application.port.`in`.FindUserByEmailQuery
+import ventures.dvx.base.user.application.port.`in`.FindUserEvent
+import ventures.dvx.common.workflow.RequestDispatcher
 import ventures.dvx.security.JwtProperties
 import ventures.dvx.security.JwtTokenAuthenticationFilter
 import ventures.dvx.security.JwtTokenProvider
-
 
 /**
  * JWT for WebFlux from:
@@ -67,30 +67,12 @@ class SecurityConfig {
       .map { AuthorizationDecision(it) }
   }
 
-
-//  @Bean
-//  fun userDetailsService(users: UserRepository): ReactiveUserDetailsService {
-//    return ReactiveUserDetailsService { username ->
-//      users.findByUsername( username)?.let { User
-//        .withUsername(it.username)
-//        .password(it.password)
-//        .authorities(*it.roles.map { it.toString() }.toTypedArray())
-//        .accountExpired(!it.active)
-//        .credentialsExpired(!it.active)
-//        .disabled(!it.active)
-//        .accountLocked(!it.active)
-//        .build()
-//      }?.let { Mono.just(it) } ?: Mono.empty()
-//    }
-//  }
-
   @Bean
-  fun userDetailsService(findUser: FindUserUseCase): ReactiveUserDetailsService {
+  fun userDetailsService(): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
-      runBlocking {
-        findUser(FindUserByEmailCommand(username))
+      mono {
+        RequestDispatcher.dispatch<FindUserEvent>(FindUserByEmailQuery(username))
           .fold(
-            { Mono.empty() },
             { event ->
               event.userDto.let {
                 User
@@ -102,8 +84,9 @@ class SecurityConfig {
                   .disabled(!it.active)
                   .accountLocked(!it.active)
                   .build()
-              }.let { Mono.just(it) }
-            }
+              }
+            },
+            { null }
           )
       }
     }

@@ -20,7 +20,7 @@ class DependencyRuleTests {
       .and()
 
       .withApplicationLayer("application")
-      .useCases("usecase")
+      .workflows("workflows")
       .incomingPorts("port.in")
       .outgoingPorts("port.out")
       .and()

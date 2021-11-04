@@ -1,17 +1,12 @@
 package ventures.dvx.common.persistence
 
 import org.hibernate.annotations.CreationTimestamp
-import org.hibernate.annotations.Filter
-import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.UpdateTimestamp
-import org.hibernate.annotations.Where
 import org.springframework.data.domain.Persistable
 import java.time.Instant
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
-import javax.persistence.PrePersist
 import javax.persistence.PreRemove
-import javax.persistence.PreUpdate
 import javax.persistence.Version
 
 /**
@@ -19,9 +14,6 @@ import javax.persistence.Version
  * JPA Audit strategy: https://www.baeldung.com/database-auditing-jpa
  */
 @MappedSuperclass
-@Where(clause = "deleted_at is null")
-@FilterDef(name = "deletedProductFilter")
-@Filter(name = "deletedProductFilter", condition = "deleted_at is not null")
 abstract class BaseEntity(
   @Id private var id: String
 ) : Persistable<String> {
@@ -35,18 +27,7 @@ abstract class BaseEntity(
   @field:UpdateTimestamp
   var updatedAt: Instant? = null
 
-  @field:UpdateTimestamp
   var deletedAt: Instant? = null
-
-  @PrePersist
-  fun onPrePersist() {
-    createdAt = createdAt ?: Instant.now()
-  }
-
-  @PreUpdate
-  fun onPreUpdate() {
-    updatedAt = Instant.now()
-  }
 
   @PreRemove
   fun onPreRemove() {

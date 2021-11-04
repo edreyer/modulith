@@ -1,10 +1,11 @@
-package ventures.dvx.base.user.application.usecase
+package ventures.dvx.base.user.application.workflows
 
 import arrow.core.computations.result
 import org.springframework.security.crypto.password.PasswordEncoder
 import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
 import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserExistsError
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
+import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
 import ventures.dvx.base.user.application.port.`in`.RegisterUserWorkflow
 import ventures.dvx.base.user.application.port.out.FindUserPort
 import ventures.dvx.base.user.application.port.out.SaveNewUserPort
@@ -21,7 +22,7 @@ class RegisterUserWorkflowImpl(
     result {
       val unregisteredUser = validateNewUser(request).bind()
       val savedUser = saveNewUserPort.saveNewUser(unregisteredUser)
-      RegisterUserEvent.ValidUserRegistration(savedUser.msisdn.value, savedUser.email.value)
+      ValidUserRegistration(savedUser.msisdn.value, savedUser.email.value)
     }
 
   private fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =

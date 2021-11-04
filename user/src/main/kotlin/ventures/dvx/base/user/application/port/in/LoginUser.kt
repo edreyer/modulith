@@ -1,23 +1,22 @@
 package ventures.dvx.base.user.application.port.`in`
 
-import arrow.core.Either
+import ventures.dvx.common.workflow.Event
+import ventures.dvx.common.workflow.Query
+import ventures.dvx.common.workflow.SafeWorkflow
 
 // Inputs
 @JvmInline
-value class FindUserByEmailCommand(val email: String)
+value class FindUserByEmailQuery(val email: String) : Query
 @JvmInline
-value class FindUserByMsisdnCommand(val msisdn: String)
+value class FindUserByMsisdnQuery(val msisdn: String) : Query
 // Outputs
 
-data class FindUserEvent(val userDto: UserDto)
+data class FindUserEvent(val userDto: UserDto) : Event
 
 // Error
 
-@JvmInline
-value class UserNotFoundError(val lookupKey: String)
+data class UserNotFoundError(val lookupKey: String) : RuntimeException()
 
 // Use Case
 
-interface FindUserUseCase {
-  suspend operator fun invoke(cmd: FindUserByEmailCommand): Either<UserNotFoundError, FindUserEvent>
-}
+interface FindUserWorkflow : SafeWorkflow<FindUserByEmailQuery, FindUserEvent>

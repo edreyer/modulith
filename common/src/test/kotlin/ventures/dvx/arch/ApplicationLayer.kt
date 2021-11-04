@@ -17,7 +17,7 @@ class ApplicationLayer(basePackage: String, private val parentContext: Hexagonal
     return this
   }
 
-  fun useCases(packageName: String): ApplicationLayer {
+  fun workflows(packageName: String): ApplicationLayer {
     useCasePackages.add(fullQualifiedPackage(packageName))
     return this
   }
