@@ -1,15 +1,8 @@
 package ventures.dvx.config
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.ReactiveAuthenticationManager
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager
 import org.springframework.security.authorization.AuthorizationDecision
@@ -19,14 +12,12 @@ import org.springframework.security.config.web.server.ServerHttpSecurity
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService
 import org.springframework.security.core.userdetails.User
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import reactor.core.publisher.Mono
-import ventures.dvx.base.user.adapter.out.persistence.UserRepository
-import ventures.dvx.base.user.application.port.`in`.FindUserCommand
+import ventures.dvx.base.user.application.port.`in`.FindUserByEmailCommand
 import ventures.dvx.base.user.application.port.`in`.FindUserUseCase
 import ventures.dvx.security.JwtProperties
 import ventures.dvx.security.JwtTokenAuthenticationFilter
@@ -97,7 +88,7 @@ class SecurityConfig {
   fun userDetailsService(findUser: FindUserUseCase): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
       runBlocking {
-        findUser(FindUserCommand(username))
+        findUser(FindUserByEmailCommand(username))
           .fold(
             { Mono.empty() },
             { event ->

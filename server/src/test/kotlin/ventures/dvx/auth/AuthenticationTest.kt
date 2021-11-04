@@ -11,7 +11,7 @@ class AuthenticationTest : BaseWebTest() {
   private lateinit var inputDto: UserLoginInputDto
 
   val testData = RegisterUserInputDto(
-    username = "bob.loblaw",
+    msisdn = "5125550001",
     email = "bob@loblaw.com",
     password = "password"
   )
@@ -19,7 +19,7 @@ class AuthenticationTest : BaseWebTest() {
   @BeforeAll
   fun initUser() {
     inputDto = UserLoginInputDto(
-      username = testData.username,
+      username = testData.email,
       password = testData.password
     )
   }

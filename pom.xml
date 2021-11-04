@@ -202,7 +202,14 @@
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>
+                        <plugin>jpa</plugin>
+                        <plugin>all-open</plugin>
                     </compilerPlugins>
+                    <pluginOptions>
+                        <option>all-open:annotation=javax.persistence.Entity</option>
+                        <option>all-open:annotation=javax.persistence.MappedSuperclass</option>
+                        <option>all-open:annotation=javax.persistence.Embeddable</option>
+                    </pluginOptions>
                 </configuration>
                 <executions>
                     <!--          <execution>-->
@@ -263,6 +270,11 @@
                     <dependency>
                         <groupId>org.jetbrains.kotlin</groupId>
                         <artifactId>kotlin-maven-allopen</artifactId>
+                        <version>${kotlin.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-noarg</artifactId>
                         <version>${kotlin.version}</version>
                     </dependency>
                 </dependencies>

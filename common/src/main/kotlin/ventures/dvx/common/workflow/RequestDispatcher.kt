@@ -32,7 +32,7 @@ object RequestDispatcher {
 
   @Suppress("UNCHECKED_CAST")
   suspend fun <E: Event> dispatch(query: Query): Result<E> =
-    queryHandlers[query::class]?.let { runAsync(it, query) as Result<E> }
+    queryHandlers[query::class]?.let { it(query) as Result<E> }
       ?: throw IllegalStateException("No handler for query")
 
   // Use this to support List of Events
@@ -42,7 +42,7 @@ object RequestDispatcher {
 
   @Suppress("UNCHECKED_CAST")
   suspend fun <E: Event> dispatch(command: Command): Result<E> =
-    commandHandlers[command::class]?.let { runAsync(it, command) as Result<E> }
+    commandHandlers[command::class]?.let { it(command) as Result<E> }
       ?: throw IllegalStateException("No handler for command")
 
 }

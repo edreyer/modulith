@@ -80,11 +80,11 @@ class PostalCode private constructor(override val value: String): SimpleType<Str
 
 class Msisdn private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    private val msisdnParser = MsisdnParser()
     fun of(value: String): ValidatedNel<ValidationError, Msisdn> = ensure {
-      validate(Msisdn(value)) {
-        validate(Msisdn::value).isValid { msisdnParser.isValid(it) }
+      val msisdn = validate(Msisdn(value)) {
+        validate(Msisdn::value).isValid { MsisdnParser.isValid(it) }
       }
+      Msisdn(MsisdnParser.toInternational(msisdn.value))
     }
   }
 }

@@ -11,7 +11,7 @@ fun User.toUserDto(): UserDto {
     else -> listOf(RoleDto.ROLE_USER)
   }
   return UserDto(
-    username = this.username.value,
+    username = this.msisdn.value,
     password = this.encryptedPassword.value,
     email = this.email.value,
     active = true,

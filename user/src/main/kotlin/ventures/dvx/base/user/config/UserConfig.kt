@@ -3,7 +3,6 @@ package ventures.dvx.base.user.config
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.crypto.password.PasswordEncoder
-import ventures.dvx.base.user.adapter.out.persistence.InMemoryUserRepository
 import ventures.dvx.base.user.adapter.out.persistence.UserPersistenceAdapter
 import ventures.dvx.base.user.adapter.out.persistence.UserRepository
 import ventures.dvx.base.user.application.port.`in`.FindUserUseCase
@@ -14,9 +13,6 @@ import ventures.dvx.base.user.application.usecase.RegisterUserWorkflowImpl
 
 @Configuration
 class UserConfig {
-
-  @Bean
-  fun userRepository(): UserRepository = InMemoryUserRepository()
 
   @Bean
   fun userPersistenceAdapter(userRepository: UserRepository) : UserPersistenceAdapter =

@@ -21,6 +21,7 @@ class BaseWebTest {
   @Autowired
   lateinit var objectMapper: ObjectMapper
 
+  @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
   @LocalServerPort
   lateinit var port: Integer
 

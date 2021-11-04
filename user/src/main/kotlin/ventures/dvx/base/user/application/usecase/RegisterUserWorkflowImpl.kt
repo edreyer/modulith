@@ -21,14 +21,14 @@ class RegisterUserWorkflowImpl(
     result {
       val unregisteredUser = validateNewUser(request).bind()
       val savedUser = saveNewUserPort.saveNewUser(unregisteredUser)
-      RegisterUserEvent.ValidUserRegistration(savedUser.username.value, savedUser.email.value)
+      RegisterUserEvent.ValidUserRegistration(savedUser.msisdn.value, savedUser.email.value)
     }
 
   private fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =
-    findUserPort.findUserByUsername(cmd.username)
-      ?.let { Result.failure(UserExistsError("User ${cmd.username} exists")) }
+    findUserPort.findUserByEmail(cmd.email)
+      ?.let { Result.failure(UserExistsError("User ${cmd.msisdn} exists")) }
       ?: UnregisteredUser.of(
-        username = cmd.username,
+        msisdn = cmd.msisdn,
         email = cmd.email,
         encryptedPassword = passwordEncoder.encode(cmd.password)
       )

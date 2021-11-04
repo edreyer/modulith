@@ -11,6 +11,7 @@ import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserR
 import ventures.dvx.base.user.application.port.`in`.RegisterUserWorkflow
 import ventures.dvx.common.types.ValidationException
 import ventures.dvx.common.types.toErrStrings
+import ventures.dvx.common.validation.Msisdn
 import ventures.dvx.common.workflow.RequestDispatcher
 import javax.validation.Valid
 import javax.validation.constraints.Email
@@ -19,13 +20,13 @@ import javax.validation.constraints.NotEmpty
 // input DTO
 
 data class RegisterUserInputDto(
-  @NotEmpty val username: String,
+  @NotEmpty @Msisdn val msisdn: String,
   @NotEmpty @Email val email: String,
   @NotEmpty val password: String
 )
 
 sealed class RegisterUserOutputDto
-data class RegisteredUserDto(val username: String, val email: String) : RegisterUserOutputDto()
+data class RegisteredUserDto(val msisdn: String, val email: String) : RegisterUserOutputDto()
 data class RegisterUserErrorsDto(val errors: List<String>) : RegisterUserOutputDto()
 
 @RestController
@@ -54,7 +55,7 @@ class RegisterUserController(
 
   fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
     RegisterUserCommand(
-      username = this.username,
+      msisdn = this.msisdn,
       email = this.email,
       password = this.password
     )
@@ -70,7 +71,7 @@ class RegisterUserController(
 
   fun RegisterUserEvent.toOutputDto(): RegisterUserOutputDto = when (this) {
     is ValidUserRegistration -> RegisteredUserDto(
-      username = this.username,
+      msisdn = this.msisdn,
       email = this.email
     )
   }

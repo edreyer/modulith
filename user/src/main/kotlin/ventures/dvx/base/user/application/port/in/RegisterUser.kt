@@ -9,7 +9,7 @@ import ventures.dvx.common.workflow.SafeWorkflow
 // Input
 
 data class RegisterUserCommand(
-  val username: String,
+  val msisdn: String,
   val email: String,
   val password: String
 ) : Command
@@ -18,7 +18,7 @@ data class RegisterUserCommand(
 
 sealed class RegisterUserEvent : Event {
   data class ValidUserRegistration(
-    val username: String,
+    val msisdn: String,
     val email: String
   ) : RegisterUserEvent(), Event
 }
