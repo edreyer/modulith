@@ -49,6 +49,14 @@ harder to change over time.
     * Working on different use cases will cause the same service to be edited in parallel which leads to merge conflicts and potentially regressions.
     
 
+### Hexagonal Architecture to the rescue
+
+![Hexagonal Architecture](./docs/hexagonal-architecture.png)
+
+* This project was inspired by: https://reflectoring.io/spring-hexagonal/
+* Lots more about hexagonal architecture: https://blog.octo.com/en/hexagonal-architecture-three-principles-and-an-implementation-example/
+
+
 ### `dvx-base` bounded context layout
 
 ```yml
