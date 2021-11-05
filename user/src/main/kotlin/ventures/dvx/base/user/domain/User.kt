@@ -7,15 +7,17 @@ import ventures.dvx.common.types.Msisdn
 import ventures.dvx.common.types.NonEmptyString
 import ventures.dvx.common.types.ValidationError
 
+/**
+ * Delegate UserData class to cut down on copy-pasta in each ADT instance of User
+ * see: https://proandroiddev.com/simpler-kotlin-class-hierarchies-using-class-delegation-35464106fed5
+ */
+
 interface UserFields {
   val msisdn: Msisdn
   val email: EmailAddress
   val encryptedPassword: NonEmptyString
 }
 
-/**
- * Delegate class to cut down on copy-pasta in each ADT instance of User
- */
 data class UserData(
   override val msisdn: Msisdn,
   override val email: EmailAddress,
