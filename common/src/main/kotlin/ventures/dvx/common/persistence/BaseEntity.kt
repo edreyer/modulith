@@ -10,6 +10,7 @@ import javax.persistence.PreRemove
 import javax.persistence.Version
 
 /**
+ * This class inspired by: https://stackoverflow.com/questions/50233048/inherit-parent-properties-from-a-base-class-with-jpa-annotations-in-kotlin
  * Soft Delete strategy: https://www.baeldung.com/spring-jpa-soft-delete
  * JPA Audit strategy: https://www.baeldung.com/database-auditing-jpa
  */
