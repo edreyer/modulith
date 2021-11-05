@@ -123,3 +123,10 @@ with some notable changes, outlined here
 ## Algebraic Data Types in `dvx-base`
 
 TODO
+
+## CQRS 
+
+This project has some light tooling to support CQRS through the use
+of a RequestDispatcher where each request is either a Command or Query.
+
+It was inspired by: https://medium.com/swlh/cqrs-and-application-pipelines-in-kotlin-441d8f7fe427
