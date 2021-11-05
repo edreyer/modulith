@@ -7,64 +7,67 @@ import ventures.dvx.common.types.Msisdn
 import ventures.dvx.common.types.NonEmptyString
 import ventures.dvx.common.types.ValidationError
 
-sealed class User {
-  abstract val msisdn: Msisdn
-  abstract val email: EmailAddress
-  abstract val encryptedPassword: NonEmptyString
+interface UserFields {
+  val msisdn: Msisdn
+  val email: EmailAddress
+  val encryptedPassword: NonEmptyString
 }
 
-data class UnregisteredUser(
+/**
+ * Delegate class to cut down on copy-pasta in each ADT instance of User
+ */
+data class UserData(
   override val msisdn: Msisdn,
-  override val email : EmailAddress,
+  override val email: EmailAddress,
   override val encryptedPassword: NonEmptyString
-) : User() {
+) : UserFields
+
+sealed class User: UserFields
+
+data class UnregisteredUser(
+  val data: UserData,
+) : User(), UserFields by data {
   companion object {
     fun of(msisdn: String, email: String, encryptedPassword: String):
       ValidatedNel<ValidationError, UnregisteredUser> =
       validateAndCreate(msisdn, email, encryptedPassword) {
-        m, e, p -> UnregisteredUser(m, e, p)
+        m, e, p -> UnregisteredUser(UserData(m, e, p))
       }
   }
 }
 
 data class ActiveUser(
-  override val msisdn: Msisdn,
-  override val email: EmailAddress,
-  override val encryptedPassword: NonEmptyString,
-) : User() {
+  private val data: UserData
+) : User(), UserFields by data {
   companion object {
     fun of(msisdn: String, email: String, encryptedPassword: String):
       ValidatedNel<ValidationError, ActiveUser> =
       validateAndCreate(msisdn, email, encryptedPassword) {
-        u, e, p -> ActiveUser(u, e, p)
+        u, e, p -> ActiveUser(UserData(u, e, p))
       }
   }
 }
 
 data class AdminUser(
-  override val msisdn: Msisdn,
-  override val email: EmailAddress,
-  override val encryptedPassword: NonEmptyString,
-) : User() {
+  private val data: UserData
+) : User(), UserFields by data {
   companion object {
     fun of(msisdn: String, email: String, encryptedPassword: String):
       ValidatedNel<ValidationError, AdminUser> =
       validateAndCreate(msisdn, email, encryptedPassword) {
-        u, e, p -> AdminUser(u, e, p)
+        u, e, p -> AdminUser(UserData(u, e, p))
       }
   }
 }
 
 data class DisabledUser(
-  override val msisdn: Msisdn,
-  override val email: EmailAddress,
-  override val encryptedPassword: NonEmptyString,
-) : User() {
+  private val data: UserData
+) : User(), UserFields by data {
   companion object {
     fun of(msisdn: String, email: String, encryptedPassword: String):
       ValidatedNel<ValidationError, DisabledUser> =
       validateAndCreate(msisdn, email, encryptedPassword) {
-          u, e, p -> DisabledUser(u, e, p)
+          u, e, p -> DisabledUser(UserData(u, e, p))
       }
   }
 }
