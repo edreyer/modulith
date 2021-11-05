@@ -47,10 +47,10 @@ class DependencyRuleTests {
   }
 
   @Test
-  fun testUseCasePackageDependencies() {
+  fun testWorkflowPackageDependencies() {
     noClasses()
       .that()
-      .resideInAPackage("ventures.dvx.base.user.application.usecase..")
+      .resideInAPackage("ventures.dvx.base.user.application.workflows..")
       .should()
       .dependOnClassesThat()
       .resideInAnyPackage("ventures.dvx.base.user.adapter..")

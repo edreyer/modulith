@@ -6,7 +6,7 @@ class ApplicationLayer(basePackage: String, private val parentContext: Hexagonal
   ArchitectureElement(basePackage) {
   private val incomingPortsPackages: MutableList<String> = ArrayList()
   private val outgoingPortsPackages: MutableList<String> = ArrayList()
-  private val useCasePackages: MutableList<String> = ArrayList()
+  private val workflowPackages: MutableList<String> = ArrayList()
   fun incomingPorts(packageName: String): ApplicationLayer {
     incomingPortsPackages.add(fullQualifiedPackage(packageName))
     return this
@@ -18,7 +18,7 @@ class ApplicationLayer(basePackage: String, private val parentContext: Hexagonal
   }
 
   fun workflows(packageName: String): ApplicationLayer {
-    useCasePackages.add(fullQualifiedPackage(packageName))
+    workflowPackages.add(fullQualifiedPackage(packageName))
     return this
   }
 
@@ -39,7 +39,7 @@ class ApplicationLayer(basePackage: String, private val parentContext: Hexagonal
     val allPackages: MutableList<String> = ArrayList()
     allPackages.addAll(incomingPortsPackages)
     allPackages.addAll(outgoingPortsPackages)
-    allPackages.addAll(useCasePackages)
+    allPackages.addAll(workflowPackages)
     return allPackages
   }
 

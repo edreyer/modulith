@@ -68,7 +68,7 @@ user: Name of your bounded context (in this case, "user")
     out: Output adapters are "driven" by the system
       persistence: Typically DB Entity classes and DAOs (e.g. Spring Repositories)
   application: Comprised of Ports and Use Cases, these define the interface to our app.
-    usecase: Workflows with defined input/output types
+    workflows: Workflows with defined input/output types
     port: Allows communication between the app core and the adapters
       in: Use Case interfaces that define API and types for "driving" operations
       out: Typically interfaces called by the core for "driven" operations
@@ -112,10 +112,13 @@ with some notable changes, outlined here
 
     1. See: https://www.47deg.com/blog/functional-domain-modeling/
     2. See: https://www.47deg.com/blog/functional-domain-modeling-part-2/
+    3. See: https://medium.com/rocket-fuel/kotlin-by-class-delegation-favor-composition-over-inheritance-a1b97fecd839
     
 4. **Enforce Architecture with ArchUnit**
 
-    
+    This project enforces that the structure of each bounded context strictly enforces the purity
+    of the hexagonal architecture through the use of ArchUnit testing. Specifically, it ensures
+    that classes cannot import classes from other packages that it **should NOT** have access to.
     
 ## Algebraic Data Types in `dvx-base`
 
