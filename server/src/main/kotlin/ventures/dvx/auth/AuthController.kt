@@ -1,5 +1,6 @@
 package ventures.dvx.auth
 
+import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -32,8 +33,8 @@ class AuthController(
   val logger by LoggerDelegate()
 
   @PostMapping("/auth/login")
-  fun login(@Valid @RequestBody loginDto: UserLoginInputDto):
-    Mono<ResponseEntity<UserLoginOutputDto>> =
+  suspend fun login(@Valid @RequestBody loginDto: UserLoginInputDto):
+    ResponseEntity<UserLoginOutputDto> =
     authenticationManager
       .authenticate(UsernamePasswordAuthenticationToken(loginDto.username, loginDto.password))
       .map { tokenProvider.createToken(it) }
@@ -47,6 +48,6 @@ class AuthController(
         Mono.just(ResponseEntity.badRequest().body(
           LoginError("Unknown user: ${loginDto.username}")
         ))
-      }
+      }.awaitSingle()
 
 }
