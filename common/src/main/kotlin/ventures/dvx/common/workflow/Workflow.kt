@@ -1,7 +1,6 @@
 package ventures.dvx.common.workflow
 
 import arrow.core.computations.result
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.reactor.awaitSingle
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -41,26 +40,20 @@ interface FluxWorkflow<R: Request, E : Event> : Workflow<E> {
 //typealias MonoUseCase<I, R> = MonoWorkflow<I, R>
 //typealias FluxUseCase<I, R> = FluxWorkflow<I, R>
 
-suspend fun <R: Request, E : Event> runAsyncUnsafe(workflow: UnsafeWorkflow<R, E>, request: R): Result<E> = coroutineScope {
+suspend fun <R: Request, E : Event> runAsyncUnsafe(workflow: UnsafeWorkflow<R, E>, request: R): Result<E> =
   result {
     workflow.invoke(request)
   }
-}
 
-suspend fun <R: Request, E : Event> runAsync(workflow: SafeWorkflow<R, E>, request: R): Result<E> = coroutineScope {
-  workflow.invoke(request)
-}
-
-suspend fun <R: Request, E : Event> runAsyncMono(workflow: MonoWorkflow<R, E>, request: R): Result<E> = coroutineScope {
+suspend fun <R: Request, E : Event> runAsyncMono(workflow: MonoWorkflow<R, E>, request: R): Result<E> =
   result {
     workflow.invoke(request).awaitSingle()
   }
-}
 
-suspend fun <R: Request, E : Event> runAsyncFlux(workflow: FluxWorkflow<R, E>, request: R): Flux<E> = coroutineScope {
+suspend fun <R: Request, E : Event> runAsyncFlux(workflow: FluxWorkflow<R, E>, request: R): Flux<E> =
   try {
     workflow.invoke(request)
   } catch (e: Throwable) { Flux.error(e) }
-}
+
 
 

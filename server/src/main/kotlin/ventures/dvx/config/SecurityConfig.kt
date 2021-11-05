@@ -19,7 +19,7 @@ import org.springframework.security.web.server.context.NoOpServerSecurityContext
 import reactor.core.publisher.Mono
 import ventures.dvx.base.user.application.port.`in`.FindUserByEmailQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserEvent
-import ventures.dvx.common.workflow.RequestDispatcher
+import ventures.dvx.common.workflow.WorkflowDispatcher
 import ventures.dvx.security.JwtProperties
 import ventures.dvx.security.JwtTokenAuthenticationFilter
 import ventures.dvx.security.JwtTokenProvider
@@ -71,7 +71,7 @@ class SecurityConfig {
   fun userDetailsService(): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
       mono {
-        RequestDispatcher.dispatch<FindUserEvent>(FindUserByEmailQuery(username))
+        WorkflowDispatcher.dispatch<FindUserEvent>(FindUserByEmailQuery(username))
           .fold(
             { event ->
               event.userDto.let {

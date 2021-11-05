@@ -5,7 +5,7 @@ import kotlin.reflect.KClass
 /*
  Inspired by: https://medium.com/swlh/cqrs-and-application-pipelines-in-kotlin-441d8f7fe427
  */
-object RequestDispatcher {
+object WorkflowDispatcher {
   val queryHandlers = mutableMapOf<KClass<Query>, SafeWorkflow<Query, *>>()
   val commandHandlers = mutableMapOf<KClass<Command>, SafeWorkflow<Command, *>>()
 //  Use this to support List of Events

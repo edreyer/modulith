@@ -5,14 +5,15 @@ import ventures.dvx.base.user.domain.ActiveUser
 import ventures.dvx.base.user.domain.AdminUser
 import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.bridgekeeper.RoleHandle
+import ventures.dvx.bridgekeeper.fns.className
 
 // TODO: Configure Bridgekeeper
 @Configuration
 class UserBridgekeeperConfig {
 
   object UserRoles {
-    val ROLE_ADMIN = object: RoleHandle(AdminUser.javaClass.canonicalName) {}
-    val ROLE_END_USER = object: RoleHandle(ActiveUser.javaClass.canonicalName) {}
+    val ROLE_ADMIN = object: RoleHandle(className<AdminUser>()) {}
+    val ROLE_END_USER = object: RoleHandle(className<ActiveUser>()) {}
   }
 
   object ResourceTypes {

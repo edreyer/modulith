@@ -8,11 +8,10 @@ import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
 import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserExistsError
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
-import ventures.dvx.base.user.application.port.`in`.RegisterUserWorkflow
 import ventures.dvx.common.types.ValidationException
 import ventures.dvx.common.types.toErrStrings
 import ventures.dvx.common.validation.Msisdn
-import ventures.dvx.common.workflow.RequestDispatcher
+import ventures.dvx.common.workflow.WorkflowDispatcher
 import javax.validation.Valid
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty
@@ -30,18 +29,12 @@ data class RegisteredUserDto(val msisdn: String, val email: String) : RegisterUs
 data class RegisterUserErrorsDto(val errors: List<String>) : RegisterUserOutputDto()
 
 @RestController
-class RegisterUserController(
-  registerUserWorkflow: RegisterUserWorkflow
-) {
-
-  init {
-    RequestDispatcher.registerCommandHandler(registerUserWorkflow)
-  }
+class RegisterUserController {
 
   @PostMapping("/user/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
     : ResponseEntity<RegisterUserOutputDto> =
-    RequestDispatcher.dispatch<RegisterUserEvent>(registerUser.toCommand())
+    WorkflowDispatcher.dispatch<RegisterUserEvent>(registerUser.toCommand())
       .fold(
         { ResponseEntity.ok(it.toOutputDto()) },
         {
