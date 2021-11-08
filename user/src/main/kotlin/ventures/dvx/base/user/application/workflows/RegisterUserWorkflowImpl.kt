@@ -31,7 +31,7 @@ class RegisterUserWorkflowImpl(
     result {
       val unregisteredUser = validateNewUser(request).bind()
       val savedUser = saveNewUserPort.saveNewUser(unregisteredUser)
-      ValidUserRegistration(savedUser.msisdn.value, savedUser.email.value)
+      ValidUserRegistration(savedUser)
     }
 
   private fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =
@@ -40,7 +40,8 @@ class RegisterUserWorkflowImpl(
       ?: UnregisteredUser.of(
         msisdn = cmd.msisdn,
         email = cmd.email,
-        encryptedPassword = passwordEncoder.encode(cmd.password)
+        encryptedPassword = passwordEncoder.encode(cmd.password),
+        role = cmd.role
       )
         .toResult()
 

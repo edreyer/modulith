@@ -6,6 +6,8 @@ import ventures.dvx.common.workflow.SafeWorkflow
 
 // Inputs
 @JvmInline
+value class FindUserByIdQuery(val userId: String) : Query
+@JvmInline
 value class FindUserByEmailQuery(val email: String) : Query
 @JvmInline
 value class FindUserByMsisdnQuery(val msisdn: String) : Query
@@ -15,8 +17,10 @@ data class FindUserEvent(val userDto: UserDto) : Event
 
 // Error
 
-data class UserNotFoundError(val lookupKey: String) : RuntimeException()
+data class UserNotFoundError(override val message: String) : RuntimeException(message)
 
 // Use Case
 
-interface FindUserWorkflow : SafeWorkflow<FindUserByEmailQuery, FindUserEvent>
+interface FindUserByIdWorkflow : SafeWorkflow<FindUserByIdQuery, FindUserEvent>
+interface FindUserByEmailWorkflow : SafeWorkflow<FindUserByEmailQuery, FindUserEvent>
+interface FindUserByMsisdnWorkflow : SafeWorkflow<FindUserByMsisdnQuery, FindUserEvent>

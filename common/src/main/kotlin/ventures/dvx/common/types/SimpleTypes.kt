@@ -89,7 +89,7 @@ class Msisdn private constructor(override val value: String): SimpleType<String>
   }
 }
 
-internal inline fun <reified T> ensure(ensureFn: () -> T): ValidatedNel<ValidationError, T> = try {
+inline fun <reified T> ensure(ensureFn: () -> T): ValidatedNel<ValidationError, T> = try {
   ensureFn().validNel()
 } catch (ex: ConstraintViolationException) {
   ex

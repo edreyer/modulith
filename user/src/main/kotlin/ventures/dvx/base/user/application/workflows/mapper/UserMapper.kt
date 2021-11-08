@@ -13,16 +13,16 @@ fun User.toUserDto(): UserDto {
   }
   return when (this) {
     is DisabledUser -> UserDto(
-      username = this.msisdn.value,
-      password = this.encryptedPassword.value,
+      id = this.id.value,
       email = this.email.value,
+      msisdn = this.msisdn.value,
       active = false,
       roles = roles
     )
     else -> UserDto(
-      username = this.msisdn.value,
-      password = this.encryptedPassword.value,
+      id = this.id.value,
       email = this.email.value,
+      msisdn = this.msisdn.value,
       active = true,
       roles = roles
     )

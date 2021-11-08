@@ -4,6 +4,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
+import ventures.dvx.base.user.application.port.`in`.RoleDto
 import ventures.dvx.test.BaseWebTest
 
 class AuthenticationTest : BaseWebTest() {
@@ -13,7 +14,8 @@ class AuthenticationTest : BaseWebTest() {
   val testData = RegisterUserInputDto(
     msisdn = "5125550001",
     email = "bob@loblaw.com",
-    password = "password"
+    password = "password",
+    role = RoleDto.ROLE_USER
   )
 
   @BeforeAll

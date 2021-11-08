@@ -6,9 +6,9 @@ enum class RoleDto {
 }
 
 data class UserDto(
-  val username: String,
-  val password: String,
+  val id: String,
   val email: String,
+  val msisdn: String,
   val active: Boolean,
   val roles: List<RoleDto>
 )

@@ -8,6 +8,9 @@ import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
 import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserExistsError
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
+import ventures.dvx.base.user.application.port.`in`.RoleDto
+import ventures.dvx.base.user.application.port.`in`.UserDto
+import ventures.dvx.base.user.application.workflows.mapper.toUserDto
 import ventures.dvx.common.types.ValidationException
 import ventures.dvx.common.types.toErrStrings
 import ventures.dvx.common.validation.Msisdn
@@ -21,11 +24,12 @@ import javax.validation.constraints.NotEmpty
 data class RegisterUserInputDto(
   @NotEmpty @Msisdn val msisdn: String,
   @NotEmpty @Email val email: String,
-  @NotEmpty val password: String
+  @NotEmpty val password: String,
+  val role: RoleDto
 )
 
 sealed class RegisterUserOutputDto
-data class RegisteredUserDto(val msisdn: String, val email: String) : RegisterUserOutputDto()
+data class RegisteredUserDto(val user: UserDto) : RegisterUserOutputDto()
 data class RegisterUserErrorsDto(val errors: List<String>) : RegisterUserOutputDto()
 
 @RestController
@@ -41,7 +45,7 @@ class RegisterUserController {
           when (it) {
             is UserExistsError -> ResponseEntity.badRequest().body(it.toOutputDto())
             is ValidationException -> ResponseEntity.badRequest().body(it.toOutputDto())
-            else -> ResponseEntity.badRequest().body(it.toOutputDto())
+            else -> ResponseEntity.status(500).body(it.toOutputDto())
           }
         }
       )
@@ -50,7 +54,8 @@ class RegisterUserController {
     RegisterUserCommand(
       msisdn = this.msisdn,
       email = this.email,
-      password = this.password
+      password = this.password,
+      role = this.role.name
     )
 
   fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
@@ -63,10 +68,7 @@ class RegisterUserController {
     RegisterUserErrorsDto(listOf("Server Error: ${this.message}"))
 
   fun RegisterUserEvent.toOutputDto(): RegisterUserOutputDto = when (this) {
-    is ValidUserRegistration -> RegisteredUserDto(
-      msisdn = this.msisdn,
-      email = this.email
-    )
+    is ValidUserRegistration -> RegisteredUserDto(this.user.toUserDto())
   }
 }
 

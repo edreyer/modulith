@@ -1,6 +1,7 @@
 package ventures.dvx.base.user.application.port.`in`
 
 import arrow.core.Nel
+import ventures.dvx.base.user.domain.User
 import ventures.dvx.common.types.ValidationError
 import ventures.dvx.common.workflow.Command
 import ventures.dvx.common.workflow.Event
@@ -11,15 +12,15 @@ import ventures.dvx.common.workflow.SafeWorkflow
 data class RegisterUserCommand(
   val msisdn: String,
   val email: String,
-  val password: String
+  val password: String,
+  val role: String
 ) : Command
 
 // Output
 
 sealed class RegisterUserEvent : Event {
   data class ValidUserRegistration(
-    val msisdn: String,
-    val email: String
+    val user: User
   ) : RegisterUserEvent(), Event
 }
 

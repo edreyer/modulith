@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.Filter
 import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.Where
+import ventures.dvx.base.user.application.port.out.UserNamespace
 import ventures.dvx.common.persistence.BaseEntity
 import ventures.dvx.common.persistence.NamespaceIdGenerator
 import javax.persistence.CollectionTable
@@ -44,10 +45,4 @@ class UserEntity(
 
   var active: Boolean = true
 
-) : BaseEntity(NamespaceIdGenerator.nextId(ID_NAMESPACE)) {
-
-  companion object {
-    private const val ID_NAMESPACE = "u"
-  }
-
-}
+) : BaseEntity(NamespaceIdGenerator.nextId(UserNamespace.NAMESPACE))

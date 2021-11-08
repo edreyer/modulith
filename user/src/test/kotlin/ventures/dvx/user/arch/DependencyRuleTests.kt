@@ -9,7 +9,7 @@ import ventures.dvx.arch.HexagonalArchitecture
 class DependencyRuleTests {
 
   @Test
-  fun validateRegistrationContextArchitecture() {
+  fun validateUserContextArchitecture() {
     HexagonalArchitecture.boundedContext("ventures.dvx.base.user")
 
       .withDomainLayer("domain")

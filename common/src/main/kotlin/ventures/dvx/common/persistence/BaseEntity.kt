@@ -39,6 +39,10 @@ abstract class BaseEntity(
     return id
   }
 
+  final fun setId(id: String) {
+    this.id = id
+  }
+
   override fun isNew(): Boolean {
     return version == null
   }

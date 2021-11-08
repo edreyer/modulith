@@ -17,9 +17,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authorization.AuthorizationContext
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import reactor.core.publisher.Mono
-import ventures.dvx.base.user.application.port.`in`.FindUserByEmailQuery
-import ventures.dvx.base.user.application.port.`in`.FindUserEvent
-import ventures.dvx.common.workflow.WorkflowDispatcher
+import ventures.dvx.base.user.adapter.out.persistence.UserRepository
 import ventures.dvx.security.JwtProperties
 import ventures.dvx.security.JwtTokenAuthenticationFilter
 import ventures.dvx.security.JwtTokenProvider
@@ -68,26 +66,24 @@ class SecurityConfig {
   }
 
   @Bean
-  fun userDetailsService(): ReactiveUserDetailsService {
+  fun userDetailsService(userRepository: UserRepository): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
       mono {
-        WorkflowDispatcher.dispatch<FindUserEvent>(FindUserByEmailQuery(username))
-          .fold(
-            { event ->
-              event.userDto.let {
-                User
-                  .withUsername(it.username)
-                  .password(it.password)
-                  .authorities(*it.roles.map { r -> r.toString() }.toTypedArray())
-                  .accountExpired(!it.active)
-                  .credentialsExpired(!it.active)
-                  .disabled(!it.active)
-                  .accountLocked(!it.active)
-                  .build()
-              }
-            },
-            { null }
-          )
+        // Note: This is a violation of our hex arch
+        // but security configs require visibility into fields not necessarily easy to translate
+        // for all User types
+        userRepository.findByEmail(username)
+          ?.let {
+            User
+              .withUsername(it.email)
+              .password(it.password)
+              .authorities(*it.roles.map { r -> r.toString() }.toTypedArray())
+              .accountExpired(!it.active)
+              .credentialsExpired(!it.active)
+              .disabled(!it?.active)
+              .accountLocked(!it.active)
+              .build()
+          }
       }
     }
   }

@@ -6,6 +6,8 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisteredUserDto
+import ventures.dvx.base.user.application.port.`in`.RoleDto
+import ventures.dvx.base.user.application.port.`in`.UserDto
 import ventures.dvx.common.validation.MsisdnParser
 import ventures.dvx.test.BaseWebTest
 
@@ -18,18 +20,22 @@ class UserRegistrationTest : BaseWebTest() {
     inputDto = RegisterUserInputDto(
       msisdn = "5125550001",
       email = "foo@bar.com",
-      password = "password"
+      password = "password",
+      role = RoleDto.ROLE_USER
     )
   }
 
   @Test
   fun `register new user`() {
     val regReq = inputDto
-    val expected = RegisteredUserDto(
-      msisdn = MsisdnParser.toInternational(inputDto.msisdn),
-      email = inputDto.email
-    )
     val actual = registerUser(regReq)
+    val expected = RegisteredUserDto(UserDto(
+      id = actual.user.id,
+      email = inputDto.email,
+      msisdn = MsisdnParser.toInternational(inputDto.msisdn),
+      active = true,
+      roles = listOf(RoleDto.ROLE_USER)
+    ))
     assertThat(actual).isEqualTo(expected)
   }
 
