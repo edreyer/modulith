@@ -10,7 +10,7 @@ import ventures.dvx.base.user.domain.User
 import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.types.ValidationException
 
-class UserPersistenceAdapter(
+internal class UserPersistenceAdapter(
   private val userRepository: UserRepository
 ) : FindUserPort, SaveNewUserPort {
 
@@ -29,6 +29,15 @@ class UserPersistenceAdapter(
     userRepository.save(user.toEntity()).toUser()
 
   private fun UserEntity.toUser() : User = when {
+    !this.active -> DisabledUser.of(this.id, this.msisdn, this.email, this.password, this.roles.first().name)
+      .fold(
+        { errors ->
+          val err = errors.map { it.toString() }.joinToString { "\n" }
+          logger.error(err)
+          throw ValidationException(errors)
+        },
+        { user -> user }
+      )
     Role.ROLE_USER in this.roles -> ActiveUser.of(this.id, this.msisdn, this.email, this.password)
       .fold(
         { errors ->
@@ -47,15 +56,6 @@ class UserPersistenceAdapter(
         },
         { user -> user }
       )
-    !this.active -> DisabledUser.of(this.id, this.msisdn, this.email, this.password, this.roles.first().name
-    ).fold(
-      { errors ->
-        val err = errors.map { it.toString() }.joinToString { "\n" }
-        logger.error(err)
-        throw ValidationException(errors)
-      },
-      { user -> user }
-    )
     else -> {
       val err = "Unknown User Type. roles=${this.roles}"
       logger.error(err)

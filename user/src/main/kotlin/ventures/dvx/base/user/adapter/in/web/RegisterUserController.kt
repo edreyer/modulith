@@ -10,7 +10,6 @@ import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
 import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
 import ventures.dvx.base.user.application.port.`in`.RoleDto
 import ventures.dvx.base.user.application.port.`in`.UserDto
-import ventures.dvx.base.user.application.workflows.mapper.toUserDto
 import ventures.dvx.common.types.ValidationException
 import ventures.dvx.common.types.toErrStrings
 import ventures.dvx.common.validation.Msisdn
@@ -33,7 +32,7 @@ data class RegisteredUserDto(val user: UserDto) : RegisterUserOutputDto()
 data class RegisterUserErrorsDto(val errors: List<String>) : RegisterUserOutputDto()
 
 @RestController
-class RegisterUserController {
+internal class RegisterUserController {
 
   @PostMapping("/user/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
@@ -50,7 +49,7 @@ class RegisterUserController {
         }
       )
 
-  fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
+  suspend fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
     RegisterUserCommand(
       msisdn = this.msisdn,
       email = this.email,
@@ -68,7 +67,7 @@ class RegisterUserController {
     RegisterUserErrorsDto(listOf("Server Error: ${this.message}"))
 
   fun RegisterUserEvent.toOutputDto(): RegisterUserOutputDto = when (this) {
-    is ValidUserRegistration -> RegisteredUserDto(this.user.toUserDto())
+    is ValidUserRegistration -> RegisteredUserDto(this.user)
   }
 }
 

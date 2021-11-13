@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 @Repository
-interface UserRepository : JpaRepository<UserEntity, String> {
+internal interface UserRepository : JpaRepository<UserEntity, String> {
 
   @Query(value = "from UserEntity where id = :userId")
   fun findByUserId(userId: String) : UserEntity?

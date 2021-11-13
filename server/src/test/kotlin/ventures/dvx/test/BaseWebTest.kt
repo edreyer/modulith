@@ -10,8 +10,11 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import ventures.dvx.auth.SuccessfulLogin
+import ventures.dvx.auth.UserLoginInputDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisteredUserDto
+import ventures.dvx.base.user.application.port.`in`.RoleDto
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SpringExtension::class)
@@ -25,6 +28,15 @@ class BaseWebTest {
   @LocalServerPort
   lateinit var port: Integer
 
+  protected fun authorizeUser(email: String, msisdn: String) : SuccessfulLogin {
+    registerUser(RegisterUserInputDto(
+      email = email,
+      msisdn = msisdn,
+      password = "password",
+      role = RoleDto.ROLE_USER
+    ))
+    return loginUser(UserLoginInputDto(email, "password"))
+  }
 
   protected fun registerUser(newUser: RegisterUserInputDto) =
     post("/user/register", newUser)
@@ -32,6 +44,11 @@ class BaseWebTest {
       .statusCode(200)
       .extract().`as`(RegisteredUserDto::class.java)
 
+  protected fun loginUser(loginDto: UserLoginInputDto) =
+    post("/auth/login", loginDto)
+      .then()
+      .statusCode(200)
+      .extract().`as`(SuccessfulLogin::class.java)
 
   protected fun get(path: String, token: String? = null): Response =
     RestAssured.given().baseUri("http://localhost:${port}").apply {

@@ -39,7 +39,7 @@ abstract class BaseEntity(
     return id
   }
 
-  final fun setId(id: String) {
+  fun setId(id: String) {
     this.id = id
   }
 

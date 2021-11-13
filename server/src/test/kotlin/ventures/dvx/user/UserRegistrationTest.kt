@@ -18,7 +18,7 @@ class UserRegistrationTest : BaseWebTest() {
   @BeforeAll
   fun initUser() {
     inputDto = RegisterUserInputDto(
-      msisdn = "5125550001",
+      msisdn = "5125550002",
       email = "foo@bar.com",
       password = "password",
       role = RoleDto.ROLE_USER

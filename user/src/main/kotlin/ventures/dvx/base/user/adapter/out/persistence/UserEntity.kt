@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.Filter
 import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.Where
-import ventures.dvx.base.user.application.port.out.UserNamespace
+import ventures.dvx.base.user.domain.UserNamespace
 import ventures.dvx.common.persistence.BaseEntity
 import ventures.dvx.common.persistence.NamespaceIdGenerator
 import javax.persistence.CollectionTable
@@ -17,7 +17,7 @@ import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.Table
 
-enum class Role {
+internal enum class Role {
   ROLE_USER,
   ROLE_ADMIN
 }
@@ -27,7 +27,7 @@ enum class Role {
 @Where(clause = "deleted_at is null")
 @FilterDef(name = "deletedProductFilter")
 @Filter(name = "deletedProductFilter", condition = "deleted_at is not null")
-class UserEntity(
+internal class UserEntity(
 
   var msisdn: String,
 

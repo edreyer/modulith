@@ -29,11 +29,7 @@ class AuthenticationTest : BaseWebTest() {
   @Test
   fun `successful login`() {
     registerUser(testData)
-    val actual = post("/auth/login", inputDto)
-      .then()
-      .statusCode(200)
-      .extract().`as`(SuccessfulLogin::class.java)
-    assertThat(actual.accessToken).isNotBlank
+    assertThat(loginUser(inputDto).accessToken).isNotBlank
   }
 
   @Test

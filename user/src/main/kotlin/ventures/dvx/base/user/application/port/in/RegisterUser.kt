@@ -1,14 +1,12 @@
 package ventures.dvx.base.user.application.port.`in`
 
 import arrow.core.Nel
-import ventures.dvx.base.user.domain.User
 import ventures.dvx.common.types.ValidationError
+import ventures.dvx.common.workflow.BaseSafeWorkflow
 import ventures.dvx.common.workflow.Command
 import ventures.dvx.common.workflow.Event
-import ventures.dvx.common.workflow.SafeWorkflow
 
 // Input
-
 data class RegisterUserCommand(
   val msisdn: String,
   val email: String,
@@ -17,19 +15,17 @@ data class RegisterUserCommand(
 ) : Command
 
 // Output
-
 sealed class RegisterUserEvent : Event {
   data class ValidUserRegistration(
-    val user: User
+    val user: UserDto
   ) : RegisterUserEvent(), Event
 }
 
 // Errors
-
 sealed class RegisterUserError : RuntimeException() {
   data class UserExistsError(val error: String) : RegisterUserError()
   data class UserValidationErrors(val errors: Nel<ValidationError>) : RegisterUserError()
 }
 
 // Workflow
-interface RegisterUserWorkflow : SafeWorkflow<RegisterUserCommand, RegisterUserEvent>
+abstract class RegisterUserWorkflow : BaseSafeWorkflow<RegisterUserCommand, RegisterUserEvent>()

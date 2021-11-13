@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
 import ventures.dvx.common.logging.LoggerDelegate
-import ventures.dvx.security.JwtTokenProvider
+import ventures.dvx.common.security.JwtTokenProvider
 import javax.validation.Valid
 import javax.validation.constraints.NotEmpty
 
@@ -39,6 +39,7 @@ class AuthController(
       .authenticate(UsernamePasswordAuthenticationToken(loginDto.username, loginDto.password))
       .map { tokenProvider.createToken(it) }
       .map<ResponseEntity<UserLoginOutputDto>> {
+        logger.debug("Authenticated User: ${loginDto.username}")
         val headers = HttpHeaders()
         headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
         val tokenBody = SuccessfulLogin(it)

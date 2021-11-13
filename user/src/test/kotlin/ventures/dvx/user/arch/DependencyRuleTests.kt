@@ -24,7 +24,6 @@ class DependencyRuleTests {
       .incomingPorts("port.in")
       .outgoingPorts("port.out")
       .and()
-
       .withConfiguration("config")
       .check(
         ClassFileImporter()
@@ -44,6 +43,18 @@ class DependencyRuleTests {
         ClassFileImporter()
           .importPackages("ventures.dvx.base.user..")
       )
+
+    noClasses()
+      .that()
+      .resideInAPackage("ventures.dvx.base.user.domain..")
+      .should()
+      .dependOnClassesThat()
+      .resideInAnyPackage("ventures.dvx.base.user.adapter..")
+      .check(
+        ClassFileImporter()
+          .importPackages("ventures.dvx.base.user..")
+      )
+
   }
 
   @Test

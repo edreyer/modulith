@@ -6,7 +6,7 @@ import ventures.dvx.base.user.domain.AdminUser
 import ventures.dvx.base.user.domain.DisabledUser
 import ventures.dvx.base.user.domain.User
 
-fun User.toUserDto(): UserDto {
+internal fun User.toUserDto(): UserDto {
   val roles = when (this) {
     is AdminUser -> listOf(RoleDto.ROLE_ADMIN)
     else -> listOf(RoleDto.ROLE_USER)
@@ -28,3 +28,4 @@ fun User.toUserDto(): UserDto {
     )
   }
 }
+

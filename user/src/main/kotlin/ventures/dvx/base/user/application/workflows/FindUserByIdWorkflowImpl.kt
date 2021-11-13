@@ -1,31 +1,37 @@
 package ventures.dvx.base.user.application.workflows
 
-import arrow.core.computations.result
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.stereotype.Component
+import ventures.dvx.base.user.application.config.UserBridgekeeperConfig
+import ventures.dvx.base.user.application.context.UserContext
 import ventures.dvx.base.user.application.port.`in`.FindUserByIdQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserByIdWorkflow
 import ventures.dvx.base.user.application.port.`in`.FindUserEvent
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
 import ventures.dvx.base.user.application.workflows.mapper.toUserDto
+import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.common.workflow.WorkflowDispatcher
 import javax.annotation.PostConstruct
 
 @Component
-class FindUserByIdWorkflowImpl(
-  private val findUserPort: FindUserPort
-) : FindUserByIdWorkflow {
+internal class FindUserByIdWorkflowImpl(
+  private val findUserPort: FindUserPort,
+  override val uc: UserContext,
+  @Qualifier(UserBridgekeeperConfig.USER_BRIDGE_KEEPER) override val bk: BridgeKeeper
+) : FindUserByIdWorkflow() {
 
   @PostConstruct
   fun registerWithDispatcher() {
     WorkflowDispatcher.registerQueryHandler(this)
   }
 
-  override suspend operator fun invoke(request: FindUserByIdQuery): Result<FindUserEvent> =
-    result {
-      findUserPort.findUserById(request.userId)
-        ?.let { FindUserEvent(it.toUserDto()) }
-        ?: throw UserNotFoundError(request.userId)
-    }
+  override suspend fun userMatchingFn(request: FindUserByIdQuery): Boolean =
+    request.userId == uc.getCurrentUser().id
+
+  override suspend fun execute(request: FindUserByIdQuery): FindUserEvent =
+    findUserPort.findUserById(request.userId)
+      ?.let { FindUserEvent(it.toUserDto()) }
+      ?: throw UserNotFoundError(request.userId)
 
 }

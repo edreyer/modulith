@@ -84,9 +84,20 @@ object ANONYMOUS : Party {
   override val roles: Set<RoleHandle> = setOf()
   override val id = "anonymous"
 }
+
 data class OrganizationParty(override val id: String, override val roles: Set<RoleHandle>) : Party
 data class UserParty(override val id: String, override val roles: Set<RoleHandle>) : Party
-data class SystemParty(override val id: String, override val roles: Set<RoleHandle>) : Party
+data class SystemParty(val role: RoleHandle) : Party {
+  override val id = "SYSTEM"
+  override val roles = setOf(role)
+}
+
+val ROLE_SYSTEM_USER = object : RoleHandle("ROLE_SYSTEM") {}
+
+object ResourceTypes {
+  val EMPTY = object : ResourceType() {}
+  val SYSTEM = object : ResourceType() {}
+}
 
 class BridgeKeeper(private val appPermissions: RolesRegistry) {
 

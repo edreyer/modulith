@@ -1,11 +1,14 @@
 package ventures.dvx.common.workflow
 
+import ventures.dvx.common.logging.LoggerDelegate
 import kotlin.reflect.KClass
 
 /*
  Inspired by: https://medium.com/swlh/cqrs-and-application-pipelines-in-kotlin-441d8f7fe427
  */
 object WorkflowDispatcher {
+  val log by LoggerDelegate()
+
   val queryHandlers = mutableMapOf<KClass<Query>, SafeWorkflow<Query, *>>()
   val commandHandlers = mutableMapOf<KClass<Command>, SafeWorkflow<Command, *>>()
 //  Use this to support List of Events
@@ -32,8 +35,11 @@ object WorkflowDispatcher {
 
   @Suppress("UNCHECKED_CAST")
   suspend fun <E: Event> dispatch(query: Query): Result<E> =
-    queryHandlers[query::class]?.let { it(query) as Result<E> }
-      ?: throw IllegalStateException("No handler for query")
+    queryHandlers[query::class]?.let {
+      it.invoke(query) as Result<E>
+    }?.onFailure {
+      ex -> log.error("Query Error", ex)
+    } ?: throw IllegalStateException("No handler for query")
 
   // Use this to support List of Events
 //  @Suppress("UNCHECKED_CAST")
@@ -42,7 +48,10 @@ object WorkflowDispatcher {
 
   @Suppress("UNCHECKED_CAST")
   suspend fun <E: Event> dispatch(command: Command): Result<E> =
-    commandHandlers[command::class]?.let { it(command) as Result<E> }
-      ?: throw IllegalStateException("No handler for command")
+    commandHandlers[command::class]?.let {
+      it.invoke(command) as Result<E>
+    }?.onFailure {
+        ex -> log.error("Command Error", ex)
+    } ?: throw IllegalStateException("No handler for query")
 
 }

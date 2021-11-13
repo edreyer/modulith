@@ -20,7 +20,7 @@ data class FoundUserUserOutputDto(val userDto: UserDto) : FindUserOutputDto()
 data class RegisterUserErrorsDto(val errors: List<String>) : FindUserOutputDto()
 
 @RestController
-class UserV1Controller {
+internal class UserV1Controller {
 
   private suspend inline fun dispatchQuery(query: Query, msgOnError: String) : ResponseEntity<FindUserOutputDto> {
     val event: Result<FindUserEvent> = WorkflowDispatcher.dispatch(query)

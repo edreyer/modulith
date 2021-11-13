@@ -13,6 +13,8 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
+import ventures.dvx.common.security.JwtProperties
+import ventures.dvx.common.security.JwtTokenProvider
 import java.nio.charset.StandardCharsets
 import java.util.*
 import java.util.stream.Collectors
