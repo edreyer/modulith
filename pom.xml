@@ -19,9 +19,9 @@
     <description>DVx Hexagonal Architecture Base Project with Kotlin/Arrow</description>
 
     <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-        <kotlin.version>1.5.31</kotlin.version>
+        <maven.compiler.source>16</maven.compiler.source>
+        <maven.compiler.target>16</maven.compiler.target>
+        <kotlin.version>1.6.0</kotlin.version>
         <arrow.version>1.0.0</arrow.version>
         <jjwt.version>0.11.2</jjwt.version>
     </properties>
