@@ -1,4 +1,4 @@
-package ventures.dvx.security
+package ventures.dvx.base.web.integration.security
 
 import com.ninjasquad.springmockk.MockkClear
 import com.ninjasquad.springmockk.clear

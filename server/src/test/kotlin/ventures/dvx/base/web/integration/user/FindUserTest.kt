@@ -1,11 +1,11 @@
-package ventures.dvx.user
+package ventures.dvx.base.web.integration.user
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import ventures.dvx.base.test.BaseWebTest
 import ventures.dvx.base.user.adapter.`in`.web.api.v1.FoundUserUserOutputDto
-import ventures.dvx.test.BaseWebTest
 
 class FindUserTest : BaseWebTest() {
 

@@ -1,11 +1,13 @@
-package ventures.dvx.auth
+package ventures.dvx.base.web.integration.user
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import ventures.dvx.auth.LoginError
+import ventures.dvx.auth.UserLoginInputDto
+import ventures.dvx.base.test.BaseWebTest
 import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
 import ventures.dvx.base.user.application.port.`in`.RoleDto
-import ventures.dvx.test.BaseWebTest
 
 class AuthenticationTest : BaseWebTest() {
 

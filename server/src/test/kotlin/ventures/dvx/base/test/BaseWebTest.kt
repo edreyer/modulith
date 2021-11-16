@@ -1,4 +1,4 @@
-package ventures.dvx.test
+package ventures.dvx.base.test
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.restassured.RestAssured
@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import ventures.dvx.DvxApplication
 import ventures.dvx.auth.SuccessfulLogin
 import ventures.dvx.auth.UserLoginInputDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
@@ -18,7 +19,9 @@ import ventures.dvx.base.user.application.port.`in`.RoleDto
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SpringExtension::class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest(
+  classes = [DvxApplication::class],
+  webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BaseWebTest {
 
   @Autowired

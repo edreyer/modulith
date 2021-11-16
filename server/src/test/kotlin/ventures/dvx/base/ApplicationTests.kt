@@ -1,4 +1,4 @@
-package ventures.dvx.ventures.dvx
+package ventures.dvx.base
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest

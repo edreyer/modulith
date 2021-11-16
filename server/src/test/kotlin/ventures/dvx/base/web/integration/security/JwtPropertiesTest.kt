@@ -1,4 +1,4 @@
-package ventures.dvx.security
+package ventures.dvx.base.web.integration.security
 
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach

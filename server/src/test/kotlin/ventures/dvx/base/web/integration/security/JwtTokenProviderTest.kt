@@ -1,4 +1,4 @@
-package ventures.dvx.security
+package ventures.dvx.base.web.integration.security
 
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
