@@ -1,4 +1,4 @@
-package ventures.dvx.config
+package ventures.dvx.base.server.config
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import com.fasterxml.jackson.databind.ObjectMapper

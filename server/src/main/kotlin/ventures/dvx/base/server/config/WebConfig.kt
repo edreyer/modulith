@@ -1,4 +1,4 @@
-package ventures.dvx.config
+package ventures.dvx.base.server.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,4 +20,5 @@ class WebConfig {
     }
     return CorsWebFilter(source)
   }
+
 }

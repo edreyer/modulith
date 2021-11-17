@@ -1,4 +1,4 @@
-package ventures.dvx.auth
+package ventures.dvx.base.user.adapter.`in`.web
 
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpHeaders

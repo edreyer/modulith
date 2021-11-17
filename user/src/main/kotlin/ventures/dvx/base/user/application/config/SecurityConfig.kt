@@ -13,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository
 import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailQuery
-import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailWorkflow
 import ventures.dvx.base.user.application.port.`in`.SystemFindUserEvent
 import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.security.JwtProperties
@@ -58,7 +57,7 @@ internal class SecurityConfig {
   }
 
   @Bean
-  fun userDetailsService(findUser: SystemFindUserByEmailWorkflow): ReactiveUserDetailsService {
+  fun userDetailsService(): ReactiveUserDetailsService {
     return ReactiveUserDetailsService { username ->
       mono {
         WorkflowDispatcher.dispatch<SystemFindUserEvent>(SystemFindUserByEmailQuery(username))

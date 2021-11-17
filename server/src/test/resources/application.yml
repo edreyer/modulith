@@ -1,3 +1,7 @@
+#logging:
+#  level:
+#    org:
+#      springframework: DEBUG
 
 spring:
 

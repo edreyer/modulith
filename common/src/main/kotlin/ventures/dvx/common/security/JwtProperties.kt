@@ -2,7 +2,6 @@ package ventures.dvx.common.security
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 
-
 @ConfigurationProperties(prefix = "security.jwt.token")
 data class JwtProperties(
   var secretKey: String = "rzxlszyykpbgqcflzxsqcysyhljt",

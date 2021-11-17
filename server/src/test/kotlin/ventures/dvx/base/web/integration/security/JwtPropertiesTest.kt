@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.TestPropertySource
+import ventures.dvx.base.server.DvxApplication
 import ventures.dvx.common.security.JwtProperties
 
 class JwtPropertiesTest {
@@ -26,7 +27,7 @@ class JwtPropertiesTest {
   }
 
   @Nested
-  @SpringBootTest
+  @SpringBootTest(classes = [DvxApplication::class])
   @TestPropertySource(properties = [
     "security.jwt.token.secretKey=testrzxlszyykpbgqcflzxsqcysyhljt",
     "security.jwt.token.validityInMs=100"

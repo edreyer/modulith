@@ -10,17 +10,23 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import ventures.dvx.DvxApplication
-import ventures.dvx.auth.SuccessfulLogin
-import ventures.dvx.auth.UserLoginInputDto
+import ventures.dvx.base.server.DvxApplication
+import ventures.dvx.base.server.config.ServerConfig
 import ventures.dvx.base.user.adapter.`in`.web.RegisterUserInputDto
 import ventures.dvx.base.user.adapter.`in`.web.RegisteredUserDto
+import ventures.dvx.base.user.adapter.`in`.web.SuccessfulLogin
+import ventures.dvx.base.user.adapter.`in`.web.UserLoginInputDto
 import ventures.dvx.base.user.application.port.`in`.RoleDto
+import ventures.dvx.base.user.config.UserModuleConfig
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
-  classes = [DvxApplication::class],
+  classes = [
+    DvxApplication::class,
+    ServerConfig::class,
+    UserModuleConfig::class
+  ],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BaseWebTest {
 
