@@ -55,7 +55,7 @@ internal class UserPersistenceAdapter(
     }
     return when {
       !this.active -> DisabledUser.of(this.id, this.msisdn, this.email, this.password, this.roles.first())
-        .fold(errorHandler) { identity(it) }
+        .fold(errorHandler, ::identity)
       Role.ROLE_USER in this.roles -> ActiveUser.of(this.id, this.msisdn, this.email, this.password)
         .fold(errorHandler, ::identity)
       Role.ROLE_ADMIN in this.roles -> AdminUser.of(this.id, this.msisdn, this.email, this.password)
