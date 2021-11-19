@@ -11,7 +11,6 @@ import ventures.dvx.base.user.domain.ActiveUser
 import ventures.dvx.base.user.domain.AdminUser
 import ventures.dvx.base.user.domain.DisabledUser
 import ventures.dvx.base.user.domain.Role
-import ventures.dvx.base.user.domain.UnregisteredUser
 import ventures.dvx.base.user.domain.User
 import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.types.ValidationError
@@ -76,19 +75,6 @@ internal class UserPersistenceAdapter(
       email = this.userDto.email,
       password = this.password,
       roles = this.userDto.roles.map { it.toRole() }.toMutableList()
-    )
-  }
-
-  private fun UnregisteredUser.toEntity() : UserEntity {
-    val role = when(this.role) {
-      Role.ROLE_USER -> Role.ROLE_USER
-      Role.ROLE_ADMIN -> Role.ROLE_ADMIN
-    }
-    return UserEntity(
-      msisdn = this.msisdn.value,
-      email = this.email.value,
-      password = this.encryptedPassword.value,
-      roles = mutableListOf(role)
     )
   }
 
