@@ -3,7 +3,7 @@ package ventures.dvx.common.persistence
 import com.google.common.io.BaseEncoding
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.UUID
 
 /***
  * ID Generator that is tighter than the UUID generator. It is expected that IDs start with the name space.

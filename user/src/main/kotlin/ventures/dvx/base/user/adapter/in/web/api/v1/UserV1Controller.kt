@@ -1,14 +1,19 @@
 package ventures.dvx.base.user.adapter.`in`.web.api.v1
 
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RestController
+import ventures.dvx.base.user.application.port.`in`.DisableUserCommand
+import ventures.dvx.base.user.application.port.`in`.EnableUserCommand
 import ventures.dvx.base.user.application.port.`in`.FindUserByEmailQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserByIdQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserByMsisdnQuery
-import ventures.dvx.base.user.application.port.`in`.FindUserEvent
+import ventures.dvx.base.user.application.port.`in`.UserDisabledEvent
 import ventures.dvx.base.user.application.port.`in`.UserDto
+import ventures.dvx.base.user.application.port.`in`.UserEnabledEvent
+import ventures.dvx.base.user.application.port.`in`.UserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.common.workflow.Query
 import ventures.dvx.common.workflow.WorkflowDispatcher
@@ -23,7 +28,7 @@ data class RegisterUserErrorsDto(val errors: List<String>) : FindUserOutputDto()
 internal class UserV1Controller {
 
   private suspend inline fun dispatchQuery(query: Query, msgOnError: String) : ResponseEntity<FindUserOutputDto> {
-    val event: Result<FindUserEvent> = WorkflowDispatcher.dispatch(query)
+    val event: Result<UserFoundEvent> = WorkflowDispatcher.dispatch(query)
     return event
       .fold(
         { ResponseEntity.ok(FoundUserUserOutputDto(it.userDto)) },
@@ -47,5 +52,23 @@ internal class UserV1Controller {
   @GetMapping(path = [V1UserPaths.USER_BY_MSISDN])
   suspend fun getUserByMsisdn(@PathVariable @Valid @NotBlank msisdn: String) : ResponseEntity<FindUserOutputDto> =
     dispatchQuery(FindUserByMsisdnQuery(msisdn), "User not found with msisdn $msisdn")
+
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping(path = [V1UserPaths.ENABLE_USER])
+  suspend fun enableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
+    WorkflowDispatcher.dispatch<UserEnabledEvent>(EnableUserCommand(userId))
+      .fold(
+        { ResponseEntity.ok("OK")},
+        { ex -> throw ex }
+      )
+
+  @PreAuthorize("hasRole('ADMIN')")
+  @GetMapping(path = [V1UserPaths.DISABLE_USER])
+  suspend fun disableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
+    WorkflowDispatcher.dispatch<UserDisabledEvent>(DisableUserCommand(userId))
+      .fold(
+        { ResponseEntity.ok("OK")},
+        { ex -> throw ex }
+      )
 
 }

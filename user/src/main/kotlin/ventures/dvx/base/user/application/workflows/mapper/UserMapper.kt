@@ -4,6 +4,8 @@ import ventures.dvx.base.user.application.port.`in`.RoleDto
 import ventures.dvx.base.user.application.port.`in`.UserDto
 import ventures.dvx.base.user.domain.AdminUser
 import ventures.dvx.base.user.domain.DisabledUser
+import ventures.dvx.base.user.domain.Role
+import ventures.dvx.base.user.domain.UnregisteredUser
 import ventures.dvx.base.user.domain.User
 
 internal fun User.toUserDto(): UserDto {
@@ -29,3 +31,13 @@ internal fun User.toUserDto(): UserDto {
   }
 }
 
+internal fun UnregisteredUser.toUserDto() =
+  UserDto(
+    id = "",
+    email = this.email.value,
+    msisdn = this.msisdn.value,
+    active = true,
+    roles = listOf(role.toRoleDto())
+  )
+
+internal fun Role.toRoleDto() = RoleDto.valueOf(name)

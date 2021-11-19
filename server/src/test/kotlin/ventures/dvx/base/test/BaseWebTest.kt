@@ -18,6 +18,7 @@ import ventures.dvx.base.user.adapter.`in`.web.SuccessfulLogin
 import ventures.dvx.base.user.adapter.`in`.web.UserLoginInputDto
 import ventures.dvx.base.user.application.port.`in`.RoleDto
 import ventures.dvx.base.user.config.UserModuleConfig
+import ventures.dvx.common.logging.LoggerDelegate
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SpringExtension::class)
@@ -30,6 +31,8 @@ import ventures.dvx.base.user.config.UserModuleConfig
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BaseWebTest {
 
+  val log by LoggerDelegate()
+
   @Autowired
   lateinit var objectMapper: ObjectMapper
 
@@ -37,27 +40,47 @@ class BaseWebTest {
   @LocalServerPort
   lateinit var port: Integer
 
-  protected fun authorizeUser(email: String, msisdn: String) : SuccessfulLogin {
-    registerUser(RegisterUserInputDto(
+  protected fun createUser(email: String, msisdn: String): RegisteredUserDto {
+    return registerUser(RegisterUserInputDto(
       email = email,
       msisdn = msisdn,
       password = "password",
       role = RoleDto.ROLE_USER
     ))
+  }
+
+  protected fun authorizeUser(email: String, msisdn: String) : SuccessfulLogin {
+    createUser(email, msisdn)
     return loginUser(UserLoginInputDto(email, "password"))
   }
 
-  protected fun registerUser(newUser: RegisterUserInputDto) =
-    post("/user/register", newUser)
+  protected fun authorizeAdminUser() : SuccessfulLogin {
+    val email = "admin@dvx.ventures"
+    val password = "password"
+    registerUser(RegisterUserInputDto(
+      email = email,
+      msisdn = "5125551234",
+      password = password,
+      role = RoleDto.ROLE_ADMIN
+    ))
+    return loginUser(UserLoginInputDto(email, "password"))
+  }
+
+  protected fun registerUser(newUser: RegisterUserInputDto): RegisteredUserDto {
+    log.info("Registering User with email: ${newUser.email}")
+    return post("/user/register", newUser)
       .then()
       .statusCode(200)
       .extract().`as`(RegisteredUserDto::class.java)
+  }
 
-  protected fun loginUser(loginDto: UserLoginInputDto) =
-    post("/auth/login", loginDto)
+  protected fun loginUser(loginDto: UserLoginInputDto): SuccessfulLogin {
+    log.info("Authenticating User with email ${loginDto.username}")
+    return post("/auth/login", loginDto)
       .then()
       .statusCode(200)
       .extract().`as`(SuccessfulLogin::class.java)
+  }
 
   protected fun get(path: String, token: String? = null): Response =
     RestAssured.given().baseUri("http://localhost:${port}").apply {

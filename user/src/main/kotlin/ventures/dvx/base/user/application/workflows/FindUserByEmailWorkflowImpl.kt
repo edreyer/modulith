@@ -6,7 +6,7 @@ import ventures.dvx.base.user.application.config.UserBridgekeeperConfig.Companio
 import ventures.dvx.base.user.application.context.UserContext
 import ventures.dvx.base.user.application.port.`in`.FindUserByEmailQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserByEmailWorkflow
-import ventures.dvx.base.user.application.port.`in`.FindUserEvent
+import ventures.dvx.base.user.application.port.`in`.UserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
 import ventures.dvx.base.user.application.workflows.mapper.toUserDto
@@ -29,9 +29,9 @@ internal class FindUserByEmailWorkflowImpl(
   override suspend fun userMatchingFn(request: FindUserByEmailQuery): Boolean =
     request.email == uc.getCurrentUser().email
 
-  override suspend fun execute(request: FindUserByEmailQuery): FindUserEvent =
+  override suspend fun execute(request: FindUserByEmailQuery): UserFoundEvent =
     findUserPort.findUserByEmail(request.email)
-      ?.let { FindUserEvent(it.toUserDto()) }
+      ?.let { UserFoundEvent(it.toUserDto()) }
       ?: throw UserNotFoundError(request.email)
 
 }

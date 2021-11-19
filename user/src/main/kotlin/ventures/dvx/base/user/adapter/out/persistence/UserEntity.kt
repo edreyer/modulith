@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.Filter
 import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.Where
+import ventures.dvx.base.user.application.port.`in`.UserDisabledEvent
+import ventures.dvx.base.user.application.port.`in`.UserEnabledEvent
+import ventures.dvx.base.user.application.port.`in`.UserEvent
+import ventures.dvx.base.user.domain.Role
 import ventures.dvx.base.user.domain.UserNamespace
 import ventures.dvx.common.persistence.BaseEntity
 import ventures.dvx.common.persistence.NamespaceIdGenerator
@@ -16,11 +20,6 @@ import javax.persistence.Enumerated
 import javax.persistence.FetchType
 import javax.persistence.JoinColumn
 import javax.persistence.Table
-
-internal enum class Role {
-  ROLE_USER,
-  ROLE_ADMIN
-}
 
 @Entity
 @Table(name = "users")
@@ -45,4 +44,24 @@ internal class UserEntity(
 
   var active: Boolean = true
 
-) : BaseEntity(NamespaceIdGenerator.nextId(UserNamespace.NAMESPACE))
+) : BaseEntity(NamespaceIdGenerator.nextId(UserNamespace.NAMESPACE)) {
+
+  fun handle(event: UserEvent): UserEntity {
+    return when(event) {
+      is UserEnabledEvent -> handle(event)
+      is UserDisabledEvent -> handle(event)
+      else -> this
+    }
+  }
+
+  fun handle(event: UserEnabledEvent): UserEntity {
+    this.active = true
+    return this
+  }
+
+  fun handle(event: UserDisabledEvent): UserEntity {
+    this.active = false
+    return this
+  }
+
+}

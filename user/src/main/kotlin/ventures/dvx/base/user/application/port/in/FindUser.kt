@@ -13,24 +13,27 @@ data class FindUserByMsisdnQuery(val msisdn: String) : Query
 internal data class SystemFindUserByEmailQuery(val email: String) : Query
 
 // Outputs
-data class FindUserEvent(val userDto: UserDto) : Event
+data class UserFoundEvent(val userDto: UserDto) : Event()
 
-internal data class SystemFindUserEvent(val userDetailsDto: UserDetailsDto) : Event
+internal data class SystemUserFoundEvent(val userDetailsDto: UserDetailsDto) : Event()
 
 // Error
 data class UserNotFoundError(override val message: String) : RuntimeException(message)
 
 // Workflows
 abstract class FindUserByIdWorkflow :
-  BaseSafeWorkflow<FindUserByIdQuery, FindUserEvent>(),
+  BaseSafeWorkflow<FindUserByIdQuery, UserFoundEvent>(),
   UserSecured<FindUserByIdQuery>
+
 abstract class FindUserByEmailWorkflow :
-  BaseSafeSecureWorkflow<FindUserByEmailQuery, FindUserEvent>(),
+  BaseSafeSecureWorkflow<FindUserByEmailQuery, UserFoundEvent>(),
   UserSecured<FindUserByEmailQuery>
+
 abstract class FindUserByMsisdnWorkflow :
-  BaseSafeSecureWorkflow<FindUserByMsisdnQuery, FindUserEvent>(),
+  BaseSafeSecureWorkflow<FindUserByMsisdnQuery, UserFoundEvent>(),
   UserSecured<FindUserByMsisdnQuery>
 
 internal abstract class SystemFindUserByEmailWorkflow :
-  BaseSafeSecureWorkflow<SystemFindUserByEmailQuery, SystemFindUserEvent>(),
+  BaseSafeSecureWorkflow<SystemFindUserByEmailQuery, SystemUserFoundEvent>(),
   UserSecured<SystemFindUserByEmailQuery>
+

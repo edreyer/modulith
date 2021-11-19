@@ -6,10 +6,9 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
 import ventures.dvx.base.user.application.port.`in`.RegisterUserError.UserExistsError
-import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent
-import ventures.dvx.base.user.application.port.`in`.RegisterUserEvent.ValidUserRegistration
 import ventures.dvx.base.user.application.port.`in`.RoleDto
 import ventures.dvx.base.user.application.port.`in`.UserDto
+import ventures.dvx.base.user.application.port.`in`.UserRegisteredEvent
 import ventures.dvx.common.types.ValidationException
 import ventures.dvx.common.types.toErrStrings
 import ventures.dvx.common.validation.Msisdn
@@ -37,7 +36,7 @@ internal class RegisterUserController {
   @PostMapping("/user/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
     : ResponseEntity<RegisterUserOutputDto> =
-    WorkflowDispatcher.dispatch<RegisterUserEvent>(registerUser.toCommand())
+    WorkflowDispatcher.dispatch<UserRegisteredEvent>(registerUser.toCommand())
       .fold(
         { ResponseEntity.ok(it.toOutputDto()) },
         {
@@ -66,8 +65,6 @@ internal class RegisterUserController {
   fun Throwable.toOutputDto(): RegisterUserOutputDto =
     RegisterUserErrorsDto(listOf("Server Error: ${this.message}"))
 
-  fun RegisterUserEvent.toOutputDto(): RegisterUserOutputDto = when (this) {
-    is ValidUserRegistration -> RegisteredUserDto(this.user)
-  }
+  fun UserRegisteredEvent.toOutputDto(): RegisterUserOutputDto = RegisteredUserDto(this.userDto)
 }
 

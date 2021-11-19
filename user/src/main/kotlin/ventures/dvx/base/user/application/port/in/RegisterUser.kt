@@ -15,11 +15,11 @@ data class RegisterUserCommand(
 ) : Command
 
 // Output
-sealed class RegisterUserEvent : Event {
-  data class ValidUserRegistration(
-    val user: UserDto
-  ) : RegisterUserEvent(), Event
-}
+
+data class UserRegisteredEvent(
+  override val userDto: UserDto,
+  val password: String
+) : Event(), UserEvent
 
 // Errors
 sealed class RegisterUserError : RuntimeException() {
@@ -28,4 +28,4 @@ sealed class RegisterUserError : RuntimeException() {
 }
 
 // Workflow
-abstract class RegisterUserWorkflow : BaseSafeWorkflow<RegisterUserCommand, RegisterUserEvent>()
+abstract class RegisterUserWorkflow : BaseSafeWorkflow<RegisterUserCommand, UserRegisteredEvent>()

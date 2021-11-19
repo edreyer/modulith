@@ -8,6 +8,7 @@ internal object V1UserPaths {
   const val USER_BY_ID = "$USERS/{userId}"
   const val USER_BY_EMAIL = "$USERS/email/{email}"
   const val USER_BY_MSISDN = "$USERS/msisdn/{msisdn}"
-
+  const val ENABLE_USER = "$USER_BY_ID/enable"
+  const val DISABLE_USER = "$USER_BY_ID/disable"
 }
 

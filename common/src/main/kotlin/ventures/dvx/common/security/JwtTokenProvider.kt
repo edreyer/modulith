@@ -12,7 +12,8 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.User
 import ventures.dvx.common.logging.LoggerDelegate
-import java.util.*
+import java.util.Base64
+import java.util.Date
 import javax.annotation.PostConstruct
 import javax.crypto.SecretKey
 

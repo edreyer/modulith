@@ -3,7 +3,7 @@ package ventures.dvx.base.user.application.context
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
 import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailQuery
-import ventures.dvx.base.user.application.port.`in`.SystemFindUserEvent
+import ventures.dvx.base.user.application.port.`in`.SystemUserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserDetailsDto
 import ventures.dvx.bridgekeeper.Party
 import ventures.dvx.bridgekeeper.RoleHandle
@@ -30,10 +30,11 @@ internal class UserContext(
     )
 
   suspend fun getCurrentParty(): Party = ec.getCurrentUser().toParty()
+
   suspend fun getCurrentUser(): UserDetailsDto {
     val currentUser = ec.getCurrentUser().username
     return runAsSuperUser {
-      WorkflowDispatcher.dispatch<SystemFindUserEvent>(SystemFindUserByEmailQuery(currentUser))
+      WorkflowDispatcher.dispatch<SystemUserFoundEvent>(SystemFindUserByEmailQuery(currentUser))
         .fold(
           { it.userDetailsDto },
           { ex ->

@@ -8,7 +8,7 @@ import ventures.dvx.base.user.application.context.UserContext
 import ventures.dvx.base.user.application.port.`in`.RoleDto
 import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailQuery
 import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailWorkflow
-import ventures.dvx.base.user.application.port.`in`.SystemFindUserEvent
+import ventures.dvx.base.user.application.port.`in`.SystemUserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserDetailsDto
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
@@ -33,9 +33,9 @@ internal class SystemFindUserByEmailWorkflowImpl(
 
   override suspend fun userMatchingFn(request: SystemFindUserByEmailQuery): Boolean = false
 
-  override suspend fun execute(request: SystemFindUserByEmailQuery): SystemFindUserEvent =
+  override suspend fun execute(request: SystemFindUserByEmailQuery): SystemUserFoundEvent =
     findUserPort.findUserByEmail(request.email)
-      ?.let { SystemFindUserEvent(it.toUserForSystemDto()) }
+      ?.let { SystemUserFoundEvent(it.toUserForSystemDto()) }
       ?: throw UserNotFoundError(request.email)
 
   private fun User.toUserForSystemDto(): UserDetailsDto {

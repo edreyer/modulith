@@ -6,7 +6,7 @@ import ventures.dvx.base.user.application.config.UserBridgekeeperConfig
 import ventures.dvx.base.user.application.context.UserContext
 import ventures.dvx.base.user.application.port.`in`.FindUserByIdQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserByIdWorkflow
-import ventures.dvx.base.user.application.port.`in`.FindUserEvent
+import ventures.dvx.base.user.application.port.`in`.UserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
 import ventures.dvx.base.user.application.workflows.mapper.toUserDto
@@ -29,9 +29,9 @@ internal class FindUserByIdWorkflowImpl(
   override suspend fun userMatchingFn(request: FindUserByIdQuery): Boolean =
     request.userId == uc.getCurrentUser().id
 
-  override suspend fun execute(request: FindUserByIdQuery): FindUserEvent =
+  override suspend fun execute(request: FindUserByIdQuery): UserFoundEvent =
     findUserPort.findUserById(request.userId)
-      ?.let { FindUserEvent(it.toUserDto()) }
+      ?.let { UserFoundEvent(it.toUserDto()) }
       ?: throw UserNotFoundError(request.userId)
 
 }

@@ -1,5 +1,6 @@
 package ventures.dvx.base.user.domain
 
+import arrow.core.Validated.Companion.validNel
 import arrow.core.ValidatedNel
 import arrow.core.zip
 import org.valiktor.functions.matches
@@ -48,15 +49,15 @@ internal sealed class User: UserFields {
 
 internal data class UnregisteredUser(
   private val data: UserData,
-  val role: NonEmptyString
+  val role: Role
 ) : UserFields by data {
   companion object {
-    fun of(msisdn: String, email: String, encryptedPassword: String, role: String):
+    fun of(msisdn: String, email: String, encryptedPassword: String, role: Role):
       ValidatedNel<ValidationError, UnregisteredUser> =
       Msisdn.of(msisdn).zip(
         EmailAddress.of(email),
         NonEmptyString.of(encryptedPassword),
-        NonEmptyString.of(role)
+        validNel(role),
       ) { m, e, p, r -> UnregisteredUser(UserData(m, e, p), r) }
   }
 }
@@ -87,18 +88,29 @@ internal data class AdminUser(
   }
 }
 
+internal enum class Role {
+  ROLE_USER,
+  ROLE_ADMIN
+}
+
 internal data class DisabledUser(
   override val id: UserId,
   private val data: UserData,
-  val role: NonEmptyString
+  val role: Role
   ) : User(), UserFields by data {
   companion object {
-    fun of(id: String, msisdn: String, email: String, encryptedPassword: String, role: String):
+    fun of(id: String, msisdn: String, email: String, encryptedPassword: String, role: Role):
       ValidatedNel<ValidationError, DisabledUser> =
       validateAndCreate(id, msisdn, email, encryptedPassword, role) {
           i, u, e, p, r -> DisabledUser(i, UserData(u, e, p), r)
       }
   }
+
+  fun enable(): User = when (role) {
+    Role.ROLE_ADMIN -> AdminUser(id, data)
+    Role.ROLE_USER -> ActiveUser(id, data)
+  }
+
 }
 
 // DRYs up object creation
@@ -107,14 +119,14 @@ private fun <T> validateAndCreate(
   msisdn: String,
   email: String,
   encryptedPassword: String,
-  role: String,
-  createFn: (id: UserId, m: Msisdn, em: EmailAddress, pa: NonEmptyString, ro: NonEmptyString) -> T) :
+  role: Role,
+  createFn: (id: UserId, m: Msisdn, em: EmailAddress, pa: NonEmptyString, ro: Role) -> T) :
   ValidatedNel<ValidationError, T> =
   UserId.of(id).zip(
     Msisdn.of(msisdn),
     EmailAddress.of(email),
     NonEmptyString.of(encryptedPassword),
-    NonEmptyString.of(role),
+    validNel(role),
     createFn
   )
 
