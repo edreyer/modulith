@@ -24,17 +24,14 @@ internal class DisableUserWorkflowImpl(
 ) : DisableUserWorkflow() {
 
   @PostConstruct
-  fun registerWithDispatcher() {
-    WorkflowDispatcher.registerCommandHandler(this)
-  }
+  fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
   override suspend fun userMatchingFn(request: DisableUserCommand) =
     uc.getCurrentUser().id == request.userId
 
-
   override suspend fun execute(request: DisableUserCommand): UserDisabledEvent =
     findUserPort.findUserById(request.userId)
-      ?. let {eventPublisher.publish(UserDisabledEvent(it.toUserDto())) }
+      ?.let { eventPublisher.publish(UserDisabledEvent(it.toUserDto())) }
       ?: throw UserNotFoundError("User not found with ID ${request.userId}")
 
 }

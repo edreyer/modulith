@@ -54,12 +54,12 @@ internal class UserEntity(
     }
   }
 
-  fun handle(event: UserEnabledEvent): UserEntity {
+  private fun handle(event: UserEnabledEvent): UserEntity {
     this.active = true
     return this
   }
 
-  fun handle(event: UserDisabledEvent): UserEntity {
+  private fun handle(event: UserDisabledEvent): UserEntity {
     this.active = false
     return this
   }
