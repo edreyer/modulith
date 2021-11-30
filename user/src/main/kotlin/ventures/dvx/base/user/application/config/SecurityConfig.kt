@@ -27,7 +27,7 @@ import ventures.dvx.common.workflow.WorkflowDispatcher
  */
 @Configuration
 @EnableWebFluxSecurity
-internal class SecurityConfig {
+internal open class SecurityConfig {
 
   val log by LoggerDelegate()
 

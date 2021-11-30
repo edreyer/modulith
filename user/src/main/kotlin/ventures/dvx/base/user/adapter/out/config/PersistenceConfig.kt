@@ -10,10 +10,10 @@ import ventures.dvx.base.user.adapter.out.persistence.UserRepository
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories("ventures.dvx.base.user")
-internal class PersistenceConfig {
+internal  class PersistenceConfig {
 
   @Bean
-  fun userPersistenceAdapter(userRepository: UserRepository) : UserPersistenceAdapter =
+   fun userPersistenceAdapter(userRepository: UserRepository) : UserPersistenceAdapter =
     UserPersistenceAdapter(userRepository)
 
 }

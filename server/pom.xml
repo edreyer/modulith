@@ -12,8 +12,6 @@
     <artifactId>server</artifactId>
 
     <properties>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
         <rest-assured.version>4.2.1</rest-assured.version>
     </properties>
 

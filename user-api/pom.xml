@@ -6,16 +6,10 @@
         <artifactId>dvx-base</artifactId>
         <groupId>ventures.dvx</groupId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>user</artifactId>
-
-    <properties>
-        <maven.compiler.source>16</maven.compiler.source>
-        <maven.compiler.target>16</maven.compiler.target>
-    </properties>
+    <artifactId>user-api</artifactId>
 
     <dependencies>
         <dependency>
@@ -26,15 +20,6 @@
             <groupId>ventures.dvx</groupId>
             <artifactId>common</artifactId>
         </dependency>
-        <dependency>
-            <groupId>ventures.dvx</groupId>
-            <artifactId>user-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>ventures.dvx</groupId>
-            <artifactId>common</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
 </project>
