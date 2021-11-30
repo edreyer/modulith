@@ -11,10 +11,8 @@ class DvxApplication
 
 fun main(args: Array<String>) {
   SpringApplicationBuilder()
-    .parent(DvxApplication::class.java, ServerConfig::class.java)
-      .web(WebApplicationType.REACTIVE)
-    .child(UserModuleConfig::class.java)
-      .web(WebApplicationType.REACTIVE)
+    .parent(DvxApplication::class.java, ServerConfig::class.java).web(WebApplicationType.REACTIVE)
+      .child(UserModuleConfig::class.java).web(WebApplicationType.REACTIVE)
     .run(*args);
 }
 
