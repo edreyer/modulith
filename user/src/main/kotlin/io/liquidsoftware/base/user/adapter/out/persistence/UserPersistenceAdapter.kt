@@ -40,7 +40,7 @@ internal class UserPersistenceAdapter(
   }
 
   private suspend fun saveNewUser(user: UserEntity): User = withContext(Dispatchers.IO) {
-    userRepository.save(user).toUser()
+    userRepository.saveAndFlush(user).toUser()
   }
 
   @EventListener(UserRegisteredEvent::class)
@@ -56,7 +56,7 @@ internal class UserPersistenceAdapter(
   fun handle(event: UserEvent) {
     userRepository.findByUserId(event.userDto.id)
       ?.handle(event)
-      ?.let { userRepository.save(it) }
+      ?.let { userRepository.saveAndFlush(it) }
   }
 
   private fun UserEntity.toUser() : User {

@@ -43,7 +43,7 @@ class ExecutionContext {
         else -> throw IllegalStateException("Unexpected Authentication type")
       }}
       .awaitSingle()
-    return user;
+    return user
   }
 
 }

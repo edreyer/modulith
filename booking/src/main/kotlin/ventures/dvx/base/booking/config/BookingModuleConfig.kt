@@ -1,4 +1,4 @@
-package io.liquidsoftware.base.user.config
+package ventures.dvx.base.booking.config
 
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
@@ -6,21 +6,22 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import io.liquidsoftware.common.config.CommonConfig
-import io.liquidsoftware.common.logging.LoggerDelegate
+import ventures.dvx.common.config.CommonConfig
+import ventures.dvx.common.logging.LoggerDelegate
 
 @Configuration
 @EnableAutoConfiguration
 @EnableConfigurationProperties
-@ComponentScan(basePackages = ["io.liquidsoftware.base.user"])
-@ConfigurationPropertiesScan(basePackages = ["io.liquidsoftware.base.user"])
+@ComponentScan(basePackages = ["ventures.dvx.base.booking"])
+@ConfigurationPropertiesScan(basePackages = ["ventures.dvx.base.booking"])
 @Import(
   CommonConfig::class
 )
-class UserModuleConfig {
+class BookingModuleConfig {
   val logger by LoggerDelegate()
 
   init {
-    logger.info("Starting User Module")
+    logger.info("Starting Booking Module")
   }
+
 }
