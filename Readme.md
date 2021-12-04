@@ -18,11 +18,11 @@ for a new application
 
 Typical Spring Boot applications use a layered architecture that looks something like this:
 
-Spring Boot |
------------ |
-Web |
-Domain |
-Persistence |
+| Spring Boot |
+|-------------|
+| Web         |
+| Domain      |
+| Persistence |
 
 Nothing is inherently wrong with this, but a layered architecture has too many 
 open flanks that allow bad habits to creep in and make the software increasingly 
@@ -67,10 +67,10 @@ user: Name of your bounded context (in this case, "user")
       web: Typically Spring Controllers 
     out: Output adapters are "driven" by the system
       persistence: Typically DB Entity classes and DAOs (e.g. Spring Repositories)
-  application: Comprised of Ports and Use Cases, these define the interface to our app.
+  application: Comprised of Ports and Workflows, these define the interface to our app.
     workflows: Workflows with defined input/output types
     port: Allows communication between the app core and the adapters
-      in: Use Case interfaces that define API and types for "driving" operations
+      in: Defines Commands/Events for "driving" operations
       out: Typically interfaces called by the core for "driven" operations
 ```
 
@@ -102,7 +102,7 @@ with some notable changes, outlined here
     This architecture takes a page out of the functional programming playbook. 
     In FP, typically a function takes an input, and returns the same output for any given input. 
     Functions never throw exceptions, but rather return a type that captures either the desired
-    value OR the Error (e.g. with an `arrow.core.Either`). 
+    value OR the Error (e.g. with an `kotlin.Result`). 
     In this architecture, an attempt is made to embody this practice at all layers of the application.
     More on this later.
    
@@ -120,9 +120,96 @@ with some notable changes, outlined here
     of the hexagonal architecture through the use of ArchUnit testing. Specifically, it ensures
     that classes cannot import classes from other packages that it **should NOT** have access to.
     
-## Algebraic Data Types in `dvx-base`
+## Algebraic Data Types (ADTs) in `dvx-base`
 
-TODO
+It's always preferable to have compile time issues rather than runtime errors. With the use
+of Algebraic Data Types (ADTs) we can do just that. The effect is to move your business invariants
+from run-time to compile-time checks. Consider the following.
+
+```java
+// Java
+class LibraryBook {
+    String title;
+    CheckoutStatus status; // Available, CheckedOut, Overdue
+    Date dueDate;
+}
+
+class BookService {
+    public LibraryBook checkoutBook(LibraryBook book) {
+        if (CheckoutStatus.Available != book.getStatus()) {
+            throw Exception();
+        }
+        book.setStatus(CheckoutStatus.CheckedOut);
+        // ...
+    }
+}
+```
+
+Versus
+
+```kotlin
+sealed class LibraryBook {
+  class AvailableBook(val title: String) : LibraryBook()
+  class CheckedOutBook(val title: String, dueDate: Date) : LibraryBook()
+}
+
+class BookService {
+  fun checkoutBook(book: AvailableBook): CheckedOutBook {
+    return CheckedOutBook(book.title, getCheckoutDate())
+  }
+}
+```
+
+In the first example, it's possible you can try to checkout a book in the wrong status.
+You can't checkout a book if it's already checkedout.
+Furthermore, we could have logic bugs where the returned instance is actually incorrect.
+
+In the second example, that error simply can't happen. By moving the status into the type system,
+we can construct APIs that ensure we get books in the correct statuses.
+Not only that, but we ensure the return type is also exactly correct.
+
+### Only Relevant Data
+In the first example, the `dueDate` property has no meaning if a book is available
+and should probably be `null`. Anytime `null` is a possibility, you leave yourself open to 
+`NullPointerException`.
+
+In the 2nd example, each type of `LibraryBook` only contains the state relevant for that state.
+No null fields at all. No non-relevant fields ever.
+
+### Always Consistent
+
+In `dvx-base`, domain objects enforce their internal consistency. That is, if you have an instance of a domain type
+it is guaranteed it is in a valid state. Here's an example for a simple type:
+
+```kotlin
+class NonEmptyString private constructor(override val value: String)
+  : SimpleType<String>() {
+  companion object {
+    fun of(value: String): ValidatedNel<ValidationError, NonEmptyString> = ensure {
+      validate(NonEmptyString(value)) {
+        validate(NonEmptyString::value).isNotEmpty()
+      }
+    }
+  }
+}
+```
+
+This domain type is a String that guarantees it is non-null and non-empty. No more 
+```java
+if (StringUtils.isBlank(string)) {...}
+```
+
+You can use this type to build more complex types. As with the other domain ADTs, 
+you use the factory method `of()` to create an instance from primitive values.
+If the validation succeeds, you have your instance, otherwise you get a list 
+of all validation errors. `NonEmptyString` has a single validation, but more complex
+types will have multiple validations. The error case will return all validation errors to you, 
+not just the first.
+
+There are other types like this one, and you can create your own. Again, these concepts
+are a practical implementation of the *prefer compile time to runtime errors*.
+
+### 
 
 ## CQRS 
 
