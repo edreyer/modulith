@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>user</artifactId>
+    <artifactId>booking</artifactId>
 
     <dependencies>
         <dependency>
@@ -18,7 +18,7 @@
         </dependency>
         <dependency>
             <groupId>liquidsoftware.io</groupId>
-            <artifactId>user-api</artifactId>
+            <artifactId>booking-api</artifactId>
         </dependency>
 
         <dependency>

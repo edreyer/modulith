@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories("io.liquidsoftware.base.user")
-internal  class PersistenceConfig {
+internal  class UserPersistenceConfig {
 
   @Bean
    fun userPersistenceAdapter(

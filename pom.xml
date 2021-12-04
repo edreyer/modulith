@@ -32,6 +32,8 @@
         <module>server</module>
         <module>user</module>
         <module>user-api</module>
+        <module>booking</module>
+        <module>booking-api</module>
     </modules>
 
     <dependencies>
@@ -154,6 +156,16 @@
             <dependency>
                 <groupId>liquidsoftware.io</groupId>
                 <artifactId>user</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>liquidsoftware.io</groupId>
+                <artifactId>booking-api</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>liquidsoftware.io</groupId>
+                <artifactId>booking</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>

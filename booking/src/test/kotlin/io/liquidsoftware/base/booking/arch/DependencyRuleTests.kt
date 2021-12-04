@@ -1,17 +1,16 @@
-package io.liquidsoftware.user.arch
+package io.liquidsoftware.base.booking.arch
 
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
-import org.junit.jupiter.api.Test
 import io.liquidsoftware.arch.HexagonalArchitecture
-
+import org.junit.jupiter.api.Test
 
 class DependencyRuleTests {
 
-  val module = "user"
+  val module = "booking"
 
   @Test
-  fun validateUserContextArchitecture() {
+  fun validateBookingContextArchitecture() {
     HexagonalArchitecture.boundedContext("io.liquidsoftware.base.$module")
 
       .withDomainLayer("domain")
