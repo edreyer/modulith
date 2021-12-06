@@ -3,7 +3,6 @@ spring:
   config:
     import:
       - classpath:common-dev.yml
-      - classpath:user.yml
 
   jpa:
     show-sql: true
