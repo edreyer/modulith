@@ -10,9 +10,16 @@ import ventures.dvx.base.user.config.UserModuleConfig
 class DvxApplication
 
 fun main(args: Array<String>) {
-  SpringApplicationBuilder()
-    .parent(DvxApplication::class.java, ServerConfig::class.java).web(WebApplicationType.REACTIVE)
-      .child(UserModuleConfig::class.java).web(WebApplicationType.REACTIVE)
-    .run(*args);
+  val parent = SpringApplicationBuilder()
+    .parent(DvxApplication::class.java, ServerConfig::class.java)
+    .web(WebApplicationType.REACTIVE)
+
+  parent.run(*args)
+
+  parent
+    .child(UserModuleConfig::class.java)
+    .properties("spring.config.name=user")
+    .web(WebApplicationType.NONE)
+    .run(*args)
 }
 

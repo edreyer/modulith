@@ -1,7 +1,9 @@
-package ventures.dvx.base.user.config
+package ventures.dvx.base.user.application.config
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import ventures.dvx.base.user.application.config.UserBridgekeeperConfig.UserResourceTypes.ADMIN
+import ventures.dvx.base.user.application.config.UserBridgekeeperConfig.UserResourceTypes.MY_USER
 import ventures.dvx.base.user.application.port.`in`.DisableUserCommand
 import ventures.dvx.base.user.application.port.`in`.EnableUserCommand
 import ventures.dvx.base.user.application.port.`in`.FindUserByEmailQuery
@@ -9,8 +11,6 @@ import ventures.dvx.base.user.application.port.`in`.FindUserByIdQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserByMsisdnQuery
 import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
 import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailQuery
-import ventures.dvx.base.user.config.UserBridgekeeperConfig.UserResourceTypes.ADMIN
-import ventures.dvx.base.user.config.UserBridgekeeperConfig.UserResourceTypes.MY_USER
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.bridgekeeper.ROLE_SYSTEM_USER
 import ventures.dvx.bridgekeeper.ResourceType
