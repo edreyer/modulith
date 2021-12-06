@@ -2,9 +2,9 @@ package ventures.dvx.base.user.application.context
 
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Component
+import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailQuery
+import ventures.dvx.base.user.application.port.`in`.SystemUserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserDetailsDto
-import ventures.dvx.base.user.application.workflows.SystemFindUserByEmailQuery
-import ventures.dvx.base.user.application.workflows.SystemUserFoundEvent
 import ventures.dvx.bridgekeeper.Party
 import ventures.dvx.bridgekeeper.RoleHandle
 import ventures.dvx.bridgekeeper.UserParty

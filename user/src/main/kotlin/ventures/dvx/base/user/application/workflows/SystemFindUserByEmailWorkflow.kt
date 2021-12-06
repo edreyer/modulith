@@ -3,24 +3,21 @@ package ventures.dvx.base.user.application.workflows
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
-import ventures.dvx.base.user.application.config.UserBridgekeeperConfig
 import ventures.dvx.base.user.application.context.UserContext
 import ventures.dvx.base.user.application.port.`in`.RoleDto
+import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailQuery
+import ventures.dvx.base.user.application.port.`in`.SystemUserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserDetailsDto
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
+import ventures.dvx.base.user.config.UserBridgekeeperConfig
 import ventures.dvx.base.user.domain.AdminUser
 import ventures.dvx.base.user.domain.DisabledUser
 import ventures.dvx.base.user.domain.User
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.common.workflow.BaseSafeSecureWorkflow
-import ventures.dvx.common.workflow.Event
-import ventures.dvx.common.workflow.Query
 import ventures.dvx.common.workflow.WorkflowDispatcher
 import javax.annotation.PostConstruct
-
-internal data class SystemFindUserByEmailQuery(val email: String) : Query
-internal data class SystemUserFoundEvent(val userDetailsDto: UserDetailsDto) : Event()
 
 @Component
 internal class SystemFindUserByEmailWorkflow(

@@ -1,8 +1,8 @@
 package ventures.dvx.base.user.application.workflows
 
-import ventures.dvx.base.user.application.config.UserBridgekeeperConfig.UserResourceTypes
-import ventures.dvx.base.user.application.config.UserBridgekeeperConfig.UserRoles
 import ventures.dvx.base.user.application.context.UserContext
+import ventures.dvx.base.user.config.UserBridgekeeperConfig.UserResourceTypes
+import ventures.dvx.base.user.config.UserBridgekeeperConfig.UserRoles
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.bridgekeeper.ROLE_SYSTEM_USER
 import ventures.dvx.bridgekeeper.ResourceType
