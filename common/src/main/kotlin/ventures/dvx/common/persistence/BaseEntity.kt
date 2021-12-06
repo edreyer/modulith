@@ -3,7 +3,7 @@ package ventures.dvx.common.persistence
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import org.springframework.data.domain.Persistable
-import java.time.Instant
+import java.time.LocalDateTime
 import javax.persistence.Id
 import javax.persistence.MappedSuperclass
 import javax.persistence.PreRemove
@@ -23,16 +23,16 @@ abstract class BaseEntity(
   private var version: Long? = null
 
   @field:CreationTimestamp
-  var createdAt: Instant? = null
+  var createdAt: LocalDateTime? = null
 
   @field:UpdateTimestamp
-  var updatedAt: Instant? = null
+  var updatedAt: LocalDateTime? = null
 
-  var deletedAt: Instant? = null
+  var deletedAt: LocalDateTime? = null
 
   @PreRemove
   fun onPreRemove() {
-    deletedAt = Instant.now()
+    deletedAt = LocalDateTime.now()
   }
 
   override fun getId(): String {

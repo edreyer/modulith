@@ -26,6 +26,8 @@ spring:
   jpa:
     properties:
       hibernate:
+        jdbc:
+          time_zone: UTC # see: https://vladmihalcea.com/date-timestamp-jpa-hibernate/
         dialect: org.hibernate.dialect.PostgreSQLDialect
         ddl-auto: validate
       hibernate.format_sql: false
