@@ -28,6 +28,8 @@ import javax.persistence.Table
 @Filter(name = "deletedProductFilter", condition = "deleted_at is not null")
 internal class UserEntity(
 
+  userId: String = NamespaceIdGenerator.nextId(UserNamespace.NAMESPACE),
+
   var msisdn: String,
 
   var email: String,
@@ -44,7 +46,7 @@ internal class UserEntity(
 
   var active: Boolean = true
 
-) : BaseEntity(NamespaceIdGenerator.nextId(UserNamespace.NAMESPACE)) {
+) : BaseEntity(userId, UserNamespace.NAMESPACE) {
 
   fun handle(event: UserEvent): UserEntity {
     return when(event) {

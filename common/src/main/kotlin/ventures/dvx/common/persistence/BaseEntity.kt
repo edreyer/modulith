@@ -16,8 +16,15 @@ import javax.persistence.Version
  */
 @MappedSuperclass
 abstract class BaseEntity(
-  @Id private var id: String
+  @Id private var id: String,
+  @Transient private var namespace: String
 ) : Persistable<String> {
+
+  init {
+    if (!id.startsWith(namespace)) {
+      throw IllegalStateException("$id must start with $namespace")
+    }
+  }
 
   @Version
   private var version: Long? = null
@@ -37,10 +44,6 @@ abstract class BaseEntity(
 
   override fun getId(): String {
     return id
-  }
-
-  fun setId(id: String) {
-    this.id = id
   }
 
   override fun isNew(): Boolean {
