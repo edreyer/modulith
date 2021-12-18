@@ -21,6 +21,8 @@ data class ValidationException(val errors: Nel<ValidationError>) : RuntimeExcept
   val errorString = errors.toErrString()
 }
 
+typealias ValidationErrorNel<T> = ValidatedNel<ValidationError, T>
+
 // Helpful extension functions
 
 fun NonEmptyList<ValidationError>.toErrStrings() =
@@ -29,7 +31,7 @@ fun NonEmptyList<ValidationError>.toErrString() =
   this.map { it.error }.joinToString { "$it, " }
 
 // Returns the Validated value OR throws
-fun <T:SimpleType<*>> ValidatedNel<ValidationError, T>.getOrThrow(): T = this.fold(
+fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrThrow(): T = this.fold(
   { throw ValidationException(it) },
   { it }
 )
@@ -49,7 +51,7 @@ abstract class SimpleType<T> {
 class NonEmptyString private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    fun of(value: String): ValidatedNel<ValidationError, NonEmptyString> = ensure {
+    fun of(value: String): ValidationErrorNel<NonEmptyString> = ensure {
       validate(NonEmptyString(value)) {
         validate(NonEmptyString::value).isNotEmpty()
       }
@@ -59,7 +61,7 @@ class NonEmptyString private constructor(override val value: String)
 
 class EmailAddress private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    fun of(value: String): ValidatedNel<ValidationError, EmailAddress> = ensure {
+    fun of(value: String): ValidationErrorNel<EmailAddress> = ensure {
       validate(EmailAddress(value)) {
         validate(EmailAddress::value).isNotEmpty()
         validate(EmailAddress::value).isEmail()
@@ -70,7 +72,7 @@ class EmailAddress private constructor(override val value: String): SimpleType<S
 
 class PostalCode private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    fun of(value: String): ValidatedNel<ValidationError, PostalCode> = ensure {
+    fun of(value: String): ValidationErrorNel<PostalCode> = ensure {
       validate(PostalCode(value)) {
         validate(PostalCode::value).matches("""\d{5}""".toRegex())
       }
@@ -80,7 +82,7 @@ class PostalCode private constructor(override val value: String): SimpleType<Str
 
 class Msisdn private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    fun of(value: String): ValidatedNel<ValidationError, Msisdn> = ensure {
+    fun of(value: String): ValidationErrorNel< Msisdn> = ensure {
       val msisdn = validate(Msisdn(value)) {
         validate(Msisdn::value).isValid { MsisdnParser.isValid(it) }
       }
@@ -89,7 +91,7 @@ class Msisdn private constructor(override val value: String): SimpleType<String>
   }
 }
 
-inline fun <reified T> ensure(ensureFn: () -> T): ValidatedNel<ValidationError, T> = try {
+inline fun <reified T> ensure(ensureFn: () -> T): ValidationErrorNel<T> = try {
   ensureFn().validNel()
 } catch (ex: ConstraintViolationException) {
   ex

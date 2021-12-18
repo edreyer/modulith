@@ -6,6 +6,6 @@ interface EventPublisher {
 
   fun <T: Event> publish(event: T): T
 
-  fun <T: Event> publish(events: List<T>) = events.map { publish(it) }
+  fun <T: Event> publish(events: List<T>): List<T> = events.map { publish(it) }
 
 }
