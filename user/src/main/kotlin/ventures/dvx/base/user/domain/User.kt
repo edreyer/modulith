@@ -1,13 +1,12 @@
 package ventures.dvx.base.user.domain
 
 import arrow.core.Validated.Companion.validNel
-import arrow.core.ValidatedNel
 import arrow.core.zip
 import ventures.dvx.base.user.UserId
 import ventures.dvx.common.types.EmailAddress
 import ventures.dvx.common.types.Msisdn
 import ventures.dvx.common.types.NonEmptyString
-import ventures.dvx.common.types.ValidationError
+import ventures.dvx.common.types.ValidationErrorNel
 
 /**
  * Delegate UserData class to cut down on copy-pasta in each ADT instance of User
@@ -40,7 +39,7 @@ internal data class UnregisteredUser(
 ) : UserFields by data {
   companion object {
     fun of(msisdn: String, email: String, encryptedPassword: String, role: Role):
-      ValidatedNel<ValidationError, UnregisteredUser> =
+      ValidationErrorNel<UnregisteredUser> =
       Msisdn.of(msisdn).zip(
         EmailAddress.of(email),
         NonEmptyString.of(encryptedPassword),
@@ -55,7 +54,7 @@ internal data class ActiveUser(
 ) : User(), UserFields by data {
   companion object {
     fun of(id: String, msisdn: String, email: String, encryptedPassword: String):
-      ValidatedNel<ValidationError, ActiveUser> =
+      ValidationErrorNel<ActiveUser> =
       validateAndCreate(id, msisdn, email, encryptedPassword) {
         i, u, e, p -> ActiveUser(i, UserData(u, e, p))
       }
@@ -68,7 +67,7 @@ internal data class AdminUser(
 ) : User(), UserFields by data {
   companion object {
     fun of(id: String, msisdn: String, email: String, encryptedPassword: String):
-      ValidatedNel<ValidationError, AdminUser> =
+      ValidationErrorNel<AdminUser> =
       validateAndCreate(id, msisdn, email, encryptedPassword) {
           i, u, e, p -> AdminUser(i, UserData(u, e, p))
       }
@@ -82,7 +81,7 @@ internal data class DisabledUser(
   ) : User(), UserFields by data {
   companion object {
     fun of(id: String, msisdn: String, email: String, encryptedPassword: String, role: Role):
-      ValidatedNel<ValidationError, DisabledUser> =
+      ValidationErrorNel<DisabledUser> =
       validateAndCreate(id, msisdn, email, encryptedPassword, role) {
           i, u, e, p, r -> DisabledUser(i, UserData(u, e, p), r)
       }
@@ -98,7 +97,7 @@ private fun <T> validateAndCreate(
   encryptedPassword: String,
   role: Role,
   createFn: (id: UserId, m: Msisdn, em: EmailAddress, pa: NonEmptyString, ro: Role) -> T) :
-  ValidatedNel<ValidationError, T> =
+  ValidationErrorNel<T> =
   UserId.of(id).zip(
     Msisdn.of(msisdn),
     EmailAddress.of(email),
@@ -113,7 +112,7 @@ private fun <T> validateAndCreate(
   email: String,
   encryptedPassword: String,
   createFn: (id: UserId, m: Msisdn, em: EmailAddress, pa: NonEmptyString) -> T) :
-  ValidatedNel<ValidationError, T> =
+  ValidationErrorNel<T> =
   UserId.of(id).zip(
     Msisdn.of(msisdn),
     EmailAddress.of(email),

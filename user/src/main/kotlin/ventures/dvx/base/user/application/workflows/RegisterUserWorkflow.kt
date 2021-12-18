@@ -35,7 +35,7 @@ internal class RegisterUserWorkflow(
     )
   }
 
-  private fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =
+  private suspend fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =
     findUserPort.findUserByEmail(cmd.email)
       ?.let { Result.failure(UserExistsError("User ${cmd.msisdn} exists")) }
       ?: UnregisteredUser.of(

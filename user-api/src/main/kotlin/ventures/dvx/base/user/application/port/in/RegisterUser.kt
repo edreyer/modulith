@@ -13,7 +13,7 @@ data class RegisterUserCommand(
   val role: String
 ) : Command
 
-// Output
+// Event
 
 data class UserRegisteredEvent(
   override val userDto: UserDto,

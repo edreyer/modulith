@@ -3,7 +3,7 @@ package ventures.dvx.base.user.application.port.out
 import ventures.dvx.base.user.domain.User
 
 internal interface FindUserPort {
-  fun findUserById(userId: String): User?
-  fun findUserByEmail(email: String): User?
-  fun findUserByMsisdn(msisdn: String): User?
+  suspend fun findUserById(userId: String): User?
+  suspend fun findUserByEmail(email: String): User?
+  suspend fun findUserByMsisdn(msisdn: String): User?
 }

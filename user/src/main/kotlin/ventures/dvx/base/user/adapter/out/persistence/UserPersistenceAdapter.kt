@@ -2,6 +2,10 @@ package ventures.dvx.base.user.adapter.out.persistence
 
 import arrow.core.Nel
 import arrow.core.identity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.springframework.context.event.EventListener
 import ventures.dvx.base.user.application.port.`in`.RoleDto
 import ventures.dvx.base.user.application.port.`in`.UserEvent
@@ -22,21 +26,29 @@ internal class UserPersistenceAdapter(
 
   private val logger by LoggerDelegate()
 
-  override fun findUserById(userId: String): User? =
+  override suspend fun findUserById(userId: String): User? = withContext(Dispatchers.IO) {
     userRepository.findByUserId(userId)?.toUser()
+  }
 
-  override fun findUserByMsisdn(msisdn: String) : User? =
+  override suspend fun findUserByMsisdn(msisdn: String) : User? = withContext(Dispatchers.IO) {
     userRepository.findByMsisdn(msisdn)?.toUser()
+  }
 
-  override fun findUserByEmail(email: String) : User? =
+  override suspend fun findUserByEmail(email: String) : User? = withContext(Dispatchers.IO) {
     userRepository.findByEmail(email)?.toUser()
+  }
 
-  private fun saveNewUser(user: UserEntity): User =
+  private suspend fun saveNewUser(user: UserEntity): User = withContext(Dispatchers.IO) {
     userRepository.save(user).toUser()
+  }
 
   @EventListener(UserRegisteredEvent::class)
   fun handle(event: UserRegisteredEvent) {
-    saveNewUser(event.toEntity())
+    runBlocking {
+      launch {
+        saveNewUser(event.toEntity())
+      }
+    }
   }
 
   @EventListener(UserEvent::class)
