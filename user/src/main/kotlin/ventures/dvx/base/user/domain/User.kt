@@ -3,29 +3,11 @@ package ventures.dvx.base.user.domain
 import arrow.core.Validated.Companion.validNel
 import arrow.core.ValidatedNel
 import arrow.core.zip
-import org.valiktor.functions.matches
-import org.valiktor.validate
+import ventures.dvx.base.user.UserId
 import ventures.dvx.common.types.EmailAddress
 import ventures.dvx.common.types.Msisdn
 import ventures.dvx.common.types.NonEmptyString
-import ventures.dvx.common.types.SimpleType
 import ventures.dvx.common.types.ValidationError
-import ventures.dvx.common.types.ensure
-
-object UserNamespace {
-  const val NAMESPACE = "u_"
-}
-
-class UserId private constructor(override val value: String)
-  : SimpleType<String>() {
-  companion object {
-    fun of(value: String): ValidatedNel<ValidationError, UserId> = ensure {
-      validate(UserId(value)) {
-        validate(UserId::value).matches("${UserNamespace.NAMESPACE}.*".toRegex())
-      }
-    }
-  }
-}
 
 /**
  * Delegate UserData class to cut down on copy-pasta in each ADT instance of User
