@@ -1,25 +1,24 @@
-package ventures.dvx.base.user.application.workflows
+package ventures.dvx.base.user.config.bridgekeeper
 
-import ventures.dvx.base.user.application.config.UserBridgekeeperConfig.UserResourceTypes
-import ventures.dvx.base.user.application.config.UserBridgekeeperConfig.UserRoles
-import ventures.dvx.base.user.application.context.UserContext
+import ventures.dvx.base.user.config.bridgekeeper.UserBridgekeeper.getCurrentParty
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.bridgekeeper.ROLE_SYSTEM_USER
 import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.bridgekeeper.ResourceTypes
 import ventures.dvx.common.ext.className
+import ventures.dvx.common.security.ExecutionContext
 import ventures.dvx.common.security.UnauthorizedAccessException
 import ventures.dvx.common.workflow.Request
 import ventures.dvx.common.workflow.Secured
 
-internal interface UserSecured<R: Request> : Secured<R> {
+interface UserSecured<R: Request> : Secured<R> {
 
   val bk: BridgeKeeper
-  val uc: UserContext
+  val ec: ExecutionContext
 
   override suspend fun assertCanPerform(request: R) {
     bk.assertCanPerform(
-      uc.getCurrentParty(),
+      ec.getCurrentParty(),
       establishResourceType(request),
       request.className()
     ).orElseThrow { UnauthorizedAccessException() }
@@ -28,7 +27,7 @@ internal interface UserSecured<R: Request> : Secured<R> {
   suspend fun userMatchingFn(request: R): Boolean
 
   suspend fun establishResourceType(request: R): ResourceType =
-    with(uc.getCurrentParty().roles) {
+    with(ec.getCurrentParty().roles) {
       when {
         contains(ROLE_SYSTEM_USER) -> ResourceTypes.SYSTEM
         contains(UserRoles.ROLE_ADMIN_USER) -> UserResourceTypes.ADMIN

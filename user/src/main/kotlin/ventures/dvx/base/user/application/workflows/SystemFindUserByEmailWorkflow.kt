@@ -11,6 +11,7 @@ import ventures.dvx.base.user.application.port.`in`.SystemUserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserDetailsDto
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
+import ventures.dvx.base.user.config.bridgekeeper.UserSecured
 import ventures.dvx.base.user.domain.AdminUser
 import ventures.dvx.base.user.domain.DisabledUser
 import ventures.dvx.base.user.domain.User
@@ -22,15 +23,15 @@ import javax.annotation.PostConstruct
 @Component
 internal class SystemFindUserByEmailWorkflow(
   private val findUserPort: FindUserPort,
-  override val uc: UserContext,
+  uc: UserContext,
   @Qualifier(UserBridgekeeperConfig.USER_BRIDGE_KEEPER) override val bk: BridgeKeeper
 ) : BaseSafeSecureWorkflow<SystemFindUserByEmailQuery, SystemUserFoundEvent>(),
   UserSecured<SystemFindUserByEmailQuery> {
 
+  override val ec = uc.ec
+
   @PostConstruct
-  fun registerWithDispatcher() {
-    WorkflowDispatcher.registerQueryHandler(this)
-  }
+  fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
   override suspend fun userMatchingFn(request: SystemFindUserByEmailQuery): Boolean = false
 

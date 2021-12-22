@@ -9,6 +9,7 @@ import ventures.dvx.base.user.application.port.`in`.UserDisabledEvent
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
 import ventures.dvx.base.user.application.workflows.mapper.toUserDto
+import ventures.dvx.base.user.config.bridgekeeper.UserSecured
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.common.events.EventPublisher
 import ventures.dvx.common.workflow.BaseSafeSecureWorkflow
@@ -19,10 +20,12 @@ import javax.annotation.PostConstruct
 internal class DisableUserWorkflow(
   private val findUserPort: FindUserPort,
   private val eventPublisher: EventPublisher,
-  override val uc: UserContext,
+  private val uc: UserContext,
   @Qualifier(UserBridgekeeperConfig.USER_BRIDGE_KEEPER) override val bk: BridgeKeeper
 ) : BaseSafeSecureWorkflow<DisableUserCommand, UserDisabledEvent>(),
   UserSecured<DisableUserCommand> {
+
+  override val ec = uc.ec
 
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)

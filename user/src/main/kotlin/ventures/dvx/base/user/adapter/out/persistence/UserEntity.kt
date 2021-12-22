@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.Filter
 import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.Where
+import ventures.dvx.base.user.UserNamespace
 import ventures.dvx.base.user.application.port.`in`.UserDisabledEvent
 import ventures.dvx.base.user.application.port.`in`.UserEnabledEvent
 import ventures.dvx.base.user.application.port.`in`.UserEvent
 import ventures.dvx.base.user.domain.Role
-import ventures.dvx.base.user.domain.UserNamespace
 import ventures.dvx.common.persistence.BaseEntity
 import ventures.dvx.common.persistence.NamespaceIdGenerator
 import javax.persistence.CollectionTable
