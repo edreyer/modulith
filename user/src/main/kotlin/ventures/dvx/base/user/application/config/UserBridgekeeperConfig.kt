@@ -9,14 +9,12 @@ import ventures.dvx.base.user.application.port.`in`.FindUserByIdQuery
 import ventures.dvx.base.user.application.port.`in`.FindUserByMsisdnQuery
 import ventures.dvx.base.user.application.port.`in`.RegisterUserCommand
 import ventures.dvx.base.user.application.port.`in`.SystemFindUserByEmailQuery
-import ventures.dvx.base.user.config.bridgekeeper.UserResourceTypes.ADMIN
-import ventures.dvx.base.user.config.bridgekeeper.UserResourceTypes.MY_USER
-import ventures.dvx.base.user.config.bridgekeeper.UserRoles
+import ventures.dvx.base.user.bridgekeeper.UserResourceTypes.ADMIN
+import ventures.dvx.base.user.bridgekeeper.UserResourceTypes.MY_USER
+import ventures.dvx.base.user.bridgekeeper.UserRoles
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.bridgekeeper.ROLE_SYSTEM_USER
-import ventures.dvx.bridgekeeper.ResourceType
 import ventures.dvx.bridgekeeper.ResourceTypes
-import ventures.dvx.bridgekeeper.RoleHandle
 import ventures.dvx.bridgekeeper.Visibility
 import ventures.dvx.bridgekeeper.fns.className
 import ventures.dvx.bridgekeeper.rolesPermissionRegistry

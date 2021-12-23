@@ -1,4 +1,4 @@
-package ventures.dvx.base.user.config.bridgekeeper
+package ventures.dvx.base.user.bridgekeeper
 
 import org.springframework.security.core.userdetails.UserDetails
 import ventures.dvx.bridgekeeper.Party

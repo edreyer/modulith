@@ -11,7 +11,7 @@ import ventures.dvx.base.user.application.port.`in`.SystemUserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserDetailsDto
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
-import ventures.dvx.base.user.config.bridgekeeper.UserSecured
+import ventures.dvx.base.user.bridgekeeper.UserSecured
 import ventures.dvx.base.user.domain.AdminUser
 import ventures.dvx.base.user.domain.DisabledUser
 import ventures.dvx.base.user.domain.User

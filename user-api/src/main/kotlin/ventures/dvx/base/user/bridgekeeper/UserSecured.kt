@@ -1,6 +1,6 @@
-package ventures.dvx.base.user.config.bridgekeeper
+package ventures.dvx.base.user.bridgekeeper
 
-import ventures.dvx.base.user.config.bridgekeeper.UserBridgekeeper.getCurrentParty
+import ventures.dvx.base.user.bridgekeeper.UserBridgekeeper.getCurrentParty
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.bridgekeeper.ROLE_SYSTEM_USER
 import ventures.dvx.bridgekeeper.ResourceType

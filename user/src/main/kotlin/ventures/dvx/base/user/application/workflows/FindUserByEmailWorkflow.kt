@@ -9,7 +9,7 @@ import ventures.dvx.base.user.application.port.`in`.UserFoundEvent
 import ventures.dvx.base.user.application.port.`in`.UserNotFoundError
 import ventures.dvx.base.user.application.port.out.FindUserPort
 import ventures.dvx.base.user.application.workflows.mapper.toUserDto
-import ventures.dvx.base.user.config.bridgekeeper.UserSecured
+import ventures.dvx.base.user.bridgekeeper.UserSecured
 import ventures.dvx.bridgekeeper.BridgeKeeper
 import ventures.dvx.common.workflow.BaseSafeSecureWorkflow
 import ventures.dvx.common.workflow.WorkflowDispatcher
