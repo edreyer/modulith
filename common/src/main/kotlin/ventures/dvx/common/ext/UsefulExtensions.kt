@@ -14,4 +14,5 @@ inline fun <reified T> ValidationErrorNel<T>.toResult(): Result<T> = when (this)
   is Validated.Invalid -> Result.failure(ValidationException(this.value))
 }
 
+fun Throwable.hasResponseStatus(): Boolean = this.javaClass.isAnnotationPresent(ResponseStatus::class.java)
 fun RuntimeException.hasResponseStatus(): Boolean = this.javaClass.isAnnotationPresent(ResponseStatus::class.java)
