@@ -25,9 +25,9 @@ typealias ValidationErrorNel<T> = ValidatedNel<ValidationError, T>
 
 // Helpful extension functions
 
-fun NonEmptyList<ValidationError>.toErrStrings() =
+fun Nel<ValidationError>.toErrStrings() =
   this.map { it.error }.toList()
-fun NonEmptyList<ValidationError>.toErrString() =
+fun Nel<ValidationError>.toErrString() =
   this.map { it.error }.joinToString { "$it, " }
 
 // Returns the Validated value OR throws
