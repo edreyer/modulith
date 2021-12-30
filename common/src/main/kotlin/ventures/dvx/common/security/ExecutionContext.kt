@@ -30,7 +30,7 @@ fun <T> Flux<T>.runAsSuperUser(): Flux<T> =
   this.contextWrite(ReactiveSecurityContextHolder.withAuthentication(getSystemAuthentication()))
 
 @Component
-class ExecutionContext() {
+class ExecutionContext {
   val log by LoggerDelegate()
 
   suspend fun getCurrentUser(): UserDetails {

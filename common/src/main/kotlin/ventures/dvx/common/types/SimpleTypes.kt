@@ -5,6 +5,8 @@ import arrow.core.NonEmptyList
 import arrow.core.ValidatedNel
 import arrow.core.invalid
 import arrow.core.validNel
+import org.springframework.http.HttpStatus
+import org.springframework.web.bind.annotation.ResponseStatus
 import org.valiktor.ConstraintViolationException
 import org.valiktor.functions.isEmail
 import org.valiktor.functions.isNotEmpty
@@ -17,6 +19,7 @@ import ventures.dvx.common.validation.MsisdnParser
 @JvmInline
 value class ValidationError(val error: String)
 
+@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class ValidationException(val errors: Nel<ValidationError>) : RuntimeException() {
   val errorString = errors.toErrString()
 }
@@ -28,7 +31,7 @@ typealias ValidationErrorNel<T> = ValidatedNel<ValidationError, T>
 fun Nel<ValidationError>.toErrStrings() =
   this.map { it.error }.toList()
 fun Nel<ValidationError>.toErrString() =
-  this.map { it.error }.joinToString { "$it, " }
+  this.map { it.error }.joinToString { "$it\n" }
 
 // Returns the Validated value OR throws
 fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrThrow(): T = this.fold(

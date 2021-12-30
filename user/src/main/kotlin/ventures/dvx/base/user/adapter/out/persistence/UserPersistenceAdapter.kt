@@ -19,6 +19,7 @@ import ventures.dvx.base.user.domain.User
 import ventures.dvx.common.logging.LoggerDelegate
 import ventures.dvx.common.types.ValidationError
 import ventures.dvx.common.types.ValidationException
+import ventures.dvx.common.types.toErrString
 
 internal class UserPersistenceAdapter(
   private val userRepository: UserRepository
@@ -60,7 +61,7 @@ internal class UserPersistenceAdapter(
 
   private fun UserEntity.toUser() : User {
     val errorHandler = { errors: Nel<ValidationError> ->
-      val err = errors.map { it.toString() }.joinToString { "\n" }
+      val err = errors.toErrString()
       logger.error(err)
       throw ValidationException(errors)
     }
