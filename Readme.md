@@ -1,6 +1,6 @@
 # DVx Base
 
-A foundational project for any DVx technology-basex venture
+A foundational project for any DVx technology-based venture
 
 ## What is it?
 
