@@ -1,6 +1,6 @@
-# DVx Base
+# Microlith
 
-A foundational project for any DVx technology-based venture
+A foundational project for any technology venture
 
 ## What is it?
 
@@ -8,9 +8,6 @@ A kotlin-based Spring Boot application using Reactive webflux APIs.
 The project uses a hexagonal architecture, along with 
 [DDD](https://en.wikipedia.org/wiki/Domain-driven_design) 
 principals to create a clean design that helps enforce good programming practice.
-
-It is intended that any new DVx venture fork this GitHub repo and use this as the foundation
-for a new application
 
 ## Why?
 
@@ -72,7 +69,7 @@ to very broad services that serve multiple use cases.
     * Working on different use cases will cause the same service to be edited in parallel which leads to merge 
 conflicts and potentially regressions.
 
-## The Dvx Base Architecture
+## The Microlith Architecture
 
 The architecture of this project, although still a Spring Boot application, takes a different approach.
 None of the individual ideas implemented in this project are new, but the way in which these ideas are combined into
@@ -87,7 +84,7 @@ architecture. Here is a high level overview of each of the major the design elem
 2. [DDD](https://en.wikipedia.org/wiki/Domain-driven_design)  - Domain Driven Design
    - Not limited to just a set of human procesess for requirements discovery, the output of those
    processes translates directly into the design of the domain of the system
-   - In `dvx-base`, each [Bounded Context](https://martinfowler.com/bliki/BoundedContext.html) is isolated at compile 
+   - In `microlith`, each [Bounded Context](https://martinfowler.com/bliki/BoundedContext.html) is isolated at compile 
    time by packing them in maven artifacts.
    - In addition to this, each Bounded Context is isolated at runtime as well. Each runs in its own Spring Application
    Context.
@@ -141,7 +138,7 @@ architecture. Here is a high level overview of each of the major the design elem
 * Lots more about hexagonal architecture: https://blog.octo.com/en/hexagonal-architecture-three-principles-and-an-implementation-example/
 
 
-### `dvx-base` bounded context layout
+### `microlith` bounded context layout
 
 ```yml
 user: Name of your bounded context (in this case, "user")
@@ -204,7 +201,7 @@ with some notable changes, outlined here
     of the hexagonal architecture through the use of ArchUnit testing. Specifically, it ensures
     that classes cannot import classes from other packages that it **should NOT** have access to.
     
-## Algebraic Data Types (ADTs) in `dvx-base`
+## Algebraic Data Types (ADTs) in `microlith`
 
 It's always preferable to have compile time issues rather than runtime errors. With the use
 of Algebraic Data Types (ADTs) we can do just that. The effect is to move your business invariants
@@ -262,7 +259,7 @@ No null fields at all. No non-relevant fields ever.
 
 ### Always Consistent
 
-In `dvx-base`, domain objects enforce their internal consistency. That is, if you have an instance of a domain type
+In `microlith`, domain objects enforce their internal consistency. That is, if you have an instance of a domain type
 it is guaranteed it is in a valid state. Here's an example for a simple type:
 
 ```kotlin

@@ -10,7 +10,7 @@ spring:
       - classpath:common.yml
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/dvx_app
+    url: jdbc:postgresql://localhost:5432/microlith
     driver-class-name: org.postgresql.Driver
     username: ${USER}
     password:
