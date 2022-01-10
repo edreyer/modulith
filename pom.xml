@@ -12,11 +12,11 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>ventures.dvx</groupId>
-    <artifactId>dvx-base</artifactId>
+    <groupId>io.liquidsoftware</groupId>
+    <artifactId>microlith</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>dvx-base</name>
-    <description>DVx Hexagonal Architecture Base Project with Kotlin/Arrow</description>
+    <name>microlith</name>
+    <description>Hexagonal Architecture Base Project with Kotlin/Arrow</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -136,22 +136,22 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>ventures.dvx</groupId>
+                <groupId>io.liquidsoftware</groupId>
                 <artifactId>common</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>ventures.dvx</groupId>
+                <groupId>io.liquidsoftware</groupId>
                 <artifactId>bridgekeeper</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>ventures.dvx</groupId>
+                <groupId>io.liquidsoftware</groupId>
                 <artifactId>user-api</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>ventures.dvx</groupId>
+                <groupId>io.liquidsoftware</groupId>
                 <artifactId>user</artifactId>
                 <version>1.0-SNAPSHOT</version>
             </dependency>
@@ -184,7 +184,7 @@
             </dependency>
 
             <dependency>
-                <groupId>ventures.dvx</groupId>
+                <groupId>io.liquidsoftware</groupId>
                 <artifactId>common</artifactId>
                 <version>1.0-SNAPSHOT</version>
                 <type>test-jar</type>

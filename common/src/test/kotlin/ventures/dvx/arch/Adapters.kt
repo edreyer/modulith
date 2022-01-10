@@ -1,4 +1,4 @@
-package ventures.dvx.arch
+package io.liquidsoftware.arch
 
 import com.tngtech.archunit.core.domain.JavaClasses
 

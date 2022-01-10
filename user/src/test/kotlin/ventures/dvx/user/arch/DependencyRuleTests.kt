@@ -1,16 +1,16 @@
-package ventures.dvx.user.arch
+package io.liquidsoftware.user.arch
 
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import org.junit.jupiter.api.Test
-import ventures.dvx.arch.HexagonalArchitecture
+import io.liquidsoftware.arch.HexagonalArchitecture
 
 
 class DependencyRuleTests {
 
   @Test
   fun validateUserContextArchitecture() {
-    HexagonalArchitecture.boundedContext("ventures.dvx.base.user")
+    HexagonalArchitecture.boundedContext("io.liquidsoftware.base.user")
 
       .withDomainLayer("domain")
 
@@ -27,7 +27,7 @@ class DependencyRuleTests {
       .withConfiguration("config")
       .check(
         ClassFileImporter()
-          .importPackages("ventures.dvx.base.user..")
+          .importPackages("io.liquidsoftware.base.user..")
       )
   }
 
@@ -35,24 +35,24 @@ class DependencyRuleTests {
   fun testDomainPackageDependencies() {
     noClasses()
       .that()
-      .resideInAPackage("ventures.dvx.base.user.domain..")
+      .resideInAPackage("io.liquidsoftware.base.user.domain..")
       .should()
       .dependOnClassesThat()
-      .resideInAnyPackage("ventures.dvx.base.user.application..")
+      .resideInAnyPackage("io.liquidsoftware.base.user.application..")
       .check(
         ClassFileImporter()
-          .importPackages("ventures.dvx.base.user..")
+          .importPackages("io.liquidsoftware.base.user..")
       )
 
     noClasses()
       .that()
-      .resideInAPackage("ventures.dvx.base.user.domain..")
+      .resideInAPackage("io.liquidsoftware.base.user.domain..")
       .should()
       .dependOnClassesThat()
-      .resideInAnyPackage("ventures.dvx.base.user.adapter..")
+      .resideInAnyPackage("io.liquidsoftware.base.user.adapter..")
       .check(
         ClassFileImporter()
-          .importPackages("ventures.dvx.base.user..")
+          .importPackages("io.liquidsoftware.base.user..")
       )
 
   }
@@ -61,13 +61,13 @@ class DependencyRuleTests {
   fun testWorkflowPackageDependencies() {
     noClasses()
       .that()
-      .resideInAPackage("ventures.dvx.base.user.application.workflows..")
+      .resideInAPackage("io.liquidsoftware.base.user.application.workflows..")
       .should()
       .dependOnClassesThat()
-      .resideInAnyPackage("ventures.dvx.base.user.adapter..")
+      .resideInAnyPackage("io.liquidsoftware.base.user.adapter..")
       .check(
         ClassFileImporter()
-          .importPackages("ventures.dvx.base.user..")
+          .importPackages("io.liquidsoftware.base.user..")
       )
   }
 
