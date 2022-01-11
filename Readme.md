@@ -13,7 +13,7 @@ principals to create a clean design that helps enforce good programming practice
 
 Writing high quality server-side software applications that stand the test of time
 is a hard problem. Over time, applications become increasingly complex and suffer from a variety of 
-problems including, some of which are outlined below.
+problems, some of which are outlined below.
 
 As illustrated in Figure 1, there are a bevy of concerns, across multiple dimensions that 
 software engineers must be mindful of at all times. 
