@@ -9,6 +9,32 @@ The project uses a hexagonal architecture, along with
 [DDD](https://en.wikipedia.org/wiki/Domain-driven_design) 
 principals to create a clean design that helps enforce good programming practice.
 
+Microlith is essentially a microservice architecture designed and intended to be deployed as a monolith. 
+There is an operational complexity that comes with a microservices architecture. One can argue that
+microservices are a solution to a people problem, rather than something that arose due to an inherent
+technical problem. Put simply, there is a point at which the number of people working in a monolith
+becomes unwieldy.
+
+**This project is intended for smaller teams that don't want to take on the operational complexities
+that come with microservices, but do want to benefit from the microservice advantages.**
+
+One of the primary benefits of microservices is that
+it forces an organization to think deeply about the business domain, and how to split it. In the parlance
+of DDD, each microservice typically contains a single Bounded Context which addresses a specific 
+area of concern for the business. 
+
+Microservices contain various mechanisms to communicate with each other. In order to allow for this, 
+patterns have emerged. In essence, each microservice
+defines a contract for how other services can speak to it.
+
+In Microlith, we've created an architecture that simulates the communication by contract that separates, 
+but relates each separate microservice (or Bounded Context). Every Bounded Context is packaged in its own
+maven artifact. This gives us compile time isolation, but we can go further. At runtime, each Bounded Context
+runs in its own Spring Application Context. 
+
+What this does is to give us an application architecture that attempts to combine the best of both
+monolithic and microservice architectures.
+
 ## Why?
 
 Writing high quality server-side software applications that stand the test of time
@@ -25,7 +51,7 @@ least guide the software engineer to produce high quality software.
 ![Hexagonal Architecture](./docs/software%20product%20quality.png)
 (Figure 1)
 
-## Problems with traditional layered architectures
+## Some Problems With Traditional Layered Architectures
 
 Traditionally, Spring Boot applications use a layered architecture that looks something like this:
 
@@ -81,6 +107,10 @@ architecture. Here is a high level overview of each of the major the design elem
 1. [Kotlin](https://kotlinlang.org/docs/home.html)
    - The use of kotlin was a strategic choice. This language provides a number of capabilities not available to Java
    without which this architecture would not be possible.
+   - Specifically, the features of kotlin that are heavily leveraged:
+     - Coroutines
+     - Support for algebraic data types and exhaustive pattern matching
+     - Functional Programming support
 2. [DDD](https://en.wikipedia.org/wiki/Domain-driven_design)  - Domain Driven Design
    - Not limited to just a set of human procesess for requirements discovery, the output of those
    processes translates directly into the design of the domain of the system
@@ -94,19 +124,19 @@ architecture. Here is a high level overview of each of the major the design elem
    we can optimize for each independently.
    - This mechanism also provides the mechanism for how a workflow in one Bounded Context can communicate with 
    another Bounded Context.
-5. [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
+4. [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)
    - Also knows as a Ports and Adapters architecture
    - An alternative to the 3-layer pancake architecture, this inverts the dependencies so that the domain of the
    application sits at the center, and depends on nothing. 
    - More on this below.
-6. [Algebraic Data Types (ADTs)](https://itnext.io/an-introduction-to-algebraic-data-types-9429e49eac27)
+5. [Algebraic Data Types (ADTs)](https://itnext.io/an-introduction-to-algebraic-data-types-9429e49eac27)
     - An alternative to the traditional use of Object Oriented (OO) techniques to model a domain.
     - The gist is that these allow you to move business invariants from runtime checks to the type system, the effect
     of which is to move runtime errors to compile time errors. A huge win.
     - They also inherently provide state machines for each domain in your system
     - These are enabled by kotlin natively, along with exhaustive pattern matching and destructuring
     - These objects are immutable, which lend themselves to
-7. [Functional Programming (FP)](https://alvinalexander.com/scala/fp-book/benefits-of-functional-programming/)
+6. [Functional Programming (FP)](https://alvinalexander.com/scala/fp-book/benefits-of-functional-programming/)
     - Follow the link for a brief outline of the benefits
     - This project introduces the concept of a `Workflow`. This is a generalized form of what you might call a 
    "Use Case". There is a 1:1 relationship between each API (e.g. Controller method) and a `Workflow`.
@@ -114,7 +144,7 @@ architecture. Here is a high level overview of each of the major the design elem
     - `Workflow` never throws exceptions. Instead, the result of the workflow execution is contained in a discriminated
    union type containing either the desired `Event` output, or an `Error` type.
     - FP concepts extend beyond just the `Workflow` concept, and are embodied throughout.
-8. [Asynchronous / Non-Blocking](https://blog.allegro.tech/2020/02/webflux-and-coroutines.html)
+7. [Asynchronous / Non-Blocking](https://blog.allegro.tech/2020/02/webflux-and-coroutines.html)
     - This project makes use of Spring Webflux, elegantly combined with 
    [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-guide.html).
     - A given server can handle a much higher request volume because requests aren't bound to threads, as they are in
@@ -123,7 +153,7 @@ architecture. Here is a high level overview of each of the major the design elem
    to each database call are all performed using non-blocking operations.
     - Coroutines are a mechanism that makes parallel programming easy, even fun. In Java, you are forced to use
    primitives (e.g. Thread) that are exceedingly hard to get correct. 
-9. [Event Driven](https://en.wikipedia.org/wiki/Event-driven_architecture)
+8. [Event Driven](https://en.wikipedia.org/wiki/Event-driven_architecture)
    - Direct relation to DDD, which defines a system by its Events.
    - Events generated by each workflow, are published using Spring's event system.
    - As an example, domain objects are packaged in events, and sent to the event system. Event listeners in the 
@@ -177,17 +207,8 @@ with some notable changes, outlined here
    
     Out of the box, a `User` bounded context is created for you that includes basic registration 
     and login capability. This module also forms a pattern for any new bounded context.
-   
-2. **Never throw exceptions in Business Logic**
-
-    This architecture takes a page out of the functional programming playbook. 
-    In FP, typically a function takes an input, and returns the same output for any given input. 
-    Functions never throw exceptions, but rather return a type that captures either the desired
-    value OR the Error (e.g. with an `kotlin.Result`). 
-    In this architecture, an attempt is made to embody this practice at all layers of the application.
-    More on this later.
-   
-3. **The Domain should be built using Algebraic Data Types**
+    
+1. **The Domain should be built using Algebraic Data Types**
 
     More on this below, but for now read these very carefully:
 
@@ -195,13 +216,13 @@ with some notable changes, outlined here
     2. See: https://www.47deg.com/blog/functional-domain-modeling-part-2/
     3. See: https://medium.com/rocket-fuel/kotlin-by-class-delegation-favor-composition-over-inheritance-a1b97fecd839
     
-4. **Enforce Architecture with ArchUnit**
+1. **Enforce Architecture with ArchUnit**
 
     This project enforces that the structure of each bounded context strictly enforces the purity
     of the hexagonal architecture through the use of ArchUnit testing. Specifically, it ensures
     that classes cannot import classes from other packages that it **should NOT** have access to.
     
-## Algebraic Data Types (ADTs) in `microlith`
+## Algebraic Data Types (ADTs) in Microlith
 
 It's always preferable to have compile time issues rather than runtime errors. With the use
 of Algebraic Data Types (ADTs) we can do just that. The effect is to move your business invariants
@@ -290,3 +311,9 @@ not just the first.
 There are other types like this one, and you can create your own. Again, these concepts
 are a practical implementation of the *prefer compile time to runtime errors*.
 
+# TODO
+
+## Bridgekeeper ACL system
+## CQRS
+### Commands, Queries, Events
+## Workflows
