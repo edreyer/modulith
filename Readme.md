@@ -132,7 +132,7 @@ architecture. Here is a high level overview of each of the major the design elem
    
 ### Hexagonal Architecture to the rescue
 
-![Hexagonal Architecture](./docs/hexagonal-architecture.png)
+![Hexagonal Architecture](./docs/Hexagonal Architecture.svg)
 
 * This project was inspired by: https://reflectoring.io/spring-hexagonal/
 * Lots more about hexagonal architecture: https://blog.octo.com/en/hexagonal-architecture-three-principles-and-an-implementation-example/
