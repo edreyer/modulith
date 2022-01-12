@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>microlith</artifactId>
-        <groupId>io.liquidsoftware</groupId>
+        <groupId>liquidsoftware.io</groupId>
         <version>1.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,19 +13,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>io.liquidsoftware</groupId>
+            <groupId>liquidsoftware.io</groupId>
             <artifactId>bridgekeeper</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.liquidsoftware</groupId>
+            <groupId>liquidsoftware.io</groupId>
             <artifactId>common</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.liquidsoftware</groupId>
+            <groupId>liquidsoftware.io</groupId>
             <artifactId>user-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.liquidsoftware</groupId>
+            <groupId>liquidsoftware.io</groupId>
             <artifactId>common</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
