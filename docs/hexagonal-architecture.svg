@@ -1,0 +1,216 @@
+<svg width="1920" height="1400" viewBox="0 0 1920 1400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <path id="Rounded-Rectangle" fill="#2a2a2a" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 61 30 C 38.908798 30 21 47.908813 21 70 L 21 1342 C 21 1364.091187 38.908798 1382 61 1382 L 1851 1382 C 1873.091187 1382 1891 1364.091187 1891 1342 L 1891 70 C 1891 47.908813 1873.091187 30 1851 30 Z"/>
+    <g id="New-Group">
+        <radialGradient id="radialGradient1" cx="943.922438" cy="703" r="624.922438" fx="943.922438" fy="703" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="1" stop-color="#8cb5dd" stop-opacity="1"/>
+        </radialGradient>
+        <filter id="filter1" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="25"/>
+            <feOffset dx="-0" dy="25" result="offsetblur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.5"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <path id="Path-copy" fill="url(#radialGradient1)" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter1)" d="M 1568.844849 703 L 1256.383667 1244 L 631.461243 1244 L 319 703 L 631.461243 162 L 1256.383667 162 L 1568.844849 703 Z"/>
+        <text id="Hexagon" xml:space="preserve" x="944" y="216" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000">Hexagon</text>
+    </g>
+    <g id="g1">
+        <radialGradient id="radialGradient2" cx="943.808864" cy="703" r="452.808864" fx="943.808864" fy="703" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="1" stop-color="#a5c896" stop-opacity="1"/>
+        </radialGradient>
+        <filter id="filter2" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="25"/>
+            <feOffset dx="-0" dy="25" result="offsetblur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.5"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <path id="Path" fill="url(#radialGradient2)" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter2)" d="M 1396.617676 703 L 1170.213257 1095 L 717.404419 1095 L 491 703 L 717.404419 311 L 1170.213257 311 L 1396.617676 703 Z"/>
+        <text id="Your-Abstraction-Layer" xml:space="preserve"><tspan x="944" y="352" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Your</tspan><tspan x="944" y="388" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Abstraction Layer</tspan></text>
+    </g>
+    <g id="g2">
+        <g id="g3">
+            <radialGradient id="radialGradient3" cx="604.482759" cy="507.5" r="86.482759" fx="604.482759" fy="507.5" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#a8ee8a" stop-opacity="1"/>
+                <stop offset="1" stop-color="#80b56a" stop-opacity="1"/>
+            </radialGradient>
+            <filter id="filter3" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="15"/>
+                <feOffset dx="-0" dy="10" result="offsetblur"/>
+                <feFlood flood-color="#000000" flood-opacity="0.5"/>
+                <feComposite in2="offsetblur" operator="in"/>
+                <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            <path id="Ellipse" fill="url(#radialGradient3)" fill-rule="evenodd" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter3)" d="M 690.965515 507.5 C 690.965515 461.936523 652.24585 425 604.482727 425 C 556.719666 425 518 461.936523 518 507.5 C 518 553.063477 556.719666 590 604.482727 590 C 652.24585 590 690.965515 553.063477 690.965515 507.5 Z"/>
+            <text id="HTTP-Server-Port" xml:space="preserve"><tspan x="604" y="481" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">HTTP</tspan><tspan x="604" y="517" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Server</tspan><tspan x="604" y="553" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Port</tspan></text>
+        </g>
+        <path id="Line" fill="#fbe5cd" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 552 441 L 491 367"/>
+        <path id="path1" fill="#fbe5cd" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 355 297 L 260 213"/>
+        <g id="g4">
+            <linearGradient id="linearGradient1" x1="491" y1="367" x2="491" y2="228" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#9281bc" stop-opacity="1"/>
+                <stop offset="1" stop-color="#d9d2ea" stop-opacity="1"/>
+            </linearGradient>
+            <path id="path2" fill="url(#linearGradient1)" fill-rule="evenodd" stroke="#000000" stroke-width="1.816326" stroke-linecap="round" stroke-linejoin="round" d="M 376.118011 228 C 364.454956 228 355 239.192993 355 253 L 355 342 C 355 355.807007 364.454956 367 376.118011 367 L 605.881958 367 C 617.545044 367 627 355.807007 627 342 L 627 253 C 627 239.192993 617.545044 228 605.881958 228 Z"/>
+            <text id="Jetty-Adapter" xml:space="preserve"><tspan x="491" y="289" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Jetty</tspan><tspan x="491" y="325" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Adapter</tspan></text>
+        </g>
+        <g id="g5">
+            <path id="path3" fill="#fbe5cd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 284.025818 167.230835 L 225.269348 269 L 107.756454 269 L 49 167.230835 L 107.756454 65.46167 L 225.269348 65.46167 L 284.025818 167.230835 Z"/>
+            <text id="Other-Service" xml:space="preserve"><tspan x="167" y="159" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Other</tspan><tspan x="167" y="195" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Service</tspan></text>
+        </g>
+    </g>
+    <g id="g6">
+        <g id="g7">
+            <radialGradient id="radialGradient4" cx="1285.482759" cy="898.5" r="86.482759" fx="1285.482759" fy="898.5" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#a8ee8a" stop-opacity="1"/>
+                <stop offset="1" stop-color="#80b56a" stop-opacity="1"/>
+            </radialGradient>
+            <filter id="filter4" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="15"/>
+                <feOffset dx="-0" dy="10" result="offsetblur"/>
+                <feFlood flood-color="#000000" flood-opacity="0.5"/>
+                <feComposite in2="offsetblur" operator="in"/>
+                <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            <path id="path4" fill="url(#radialGradient4)" fill-rule="evenodd" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter4)" d="M 1371.965454 898.5 C 1371.965454 852.936523 1333.24585 816 1285.482788 816 C 1237.719604 816 1199 852.936523 1199 898.5 C 1199 944.063477 1237.719604 981 1285.482788 981 C 1333.24585 981 1371.965454 944.063477 1371.965454 898.5 Z"/>
+            <text id="HTTP-Client-Port" xml:space="preserve"><tspan x="1285" y="872" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">HTTP</tspan><tspan x="1285" y="908" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Client</tspan><tspan x="1285" y="944" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Port</tspan></text>
+        </g>
+        <g id="New-Group-copy">
+            <path id="path5" fill="#fbe5cd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 1870.025757 1244.230835 L 1811.269409 1346 L 1693.75647 1346 L 1635 1244.230835 L 1693.75647 1142.46167 L 1811.269409 1142.46167 L 1870.025757 1244.230835 Z"/>
+            <text id="text1" xml:space="preserve"><tspan x="1753" y="1236" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Other</tspan><tspan x="1753" y="1272" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Service</tspan></text>
+        </g>
+        <path id="path6" fill="#fbe5cd" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 1330 970 L 1397 1054"/>
+        <path id="path7" fill="#fbe5cd" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 1545 1121 L 1663 1190"/>
+        <g id="g8">
+            <linearGradient id="linearGradient2" x1="1409" y1="1193" x2="1409" y2="1054" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#9281bc" stop-opacity="1"/>
+                <stop offset="1" stop-color="#d9d2ea" stop-opacity="1"/>
+            </linearGradient>
+            <path id="path8" fill="url(#linearGradient2)" fill-rule="evenodd" stroke="#000000" stroke-width="1.816326" stroke-linecap="round" stroke-linejoin="round" d="M 1294.118042 1054 C 1282.454956 1054 1273 1065.192993 1273 1079 L 1273 1168 C 1273 1181.807007 1282.454956 1193 1294.118042 1193 L 1523.881958 1193 C 1535.545044 1193 1545 1181.807007 1545 1168 L 1545 1079 C 1545 1065.192993 1535.545044 1054 1523.881958 1054 Z"/>
+            <text id="Feign-Adapter" xml:space="preserve"><tspan x="1409" y="1115" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Feign</tspan><tspan x="1409" y="1151" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Adapter</tspan></text>
+        </g>
+    </g>
+    <g id="g9">
+        <g id="g10">
+            <radialGradient id="radialGradient5" cx="604.482759" cy="879.5" r="86.482759" fx="604.482759" fy="879.5" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#a8ee8a" stop-opacity="1"/>
+                <stop offset="1" stop-color="#80b56a" stop-opacity="1"/>
+            </radialGradient>
+            <filter id="filter5" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="15"/>
+                <feOffset dx="-0" dy="10" result="offsetblur"/>
+                <feFlood flood-color="#000000" flood-opacity="0.5"/>
+                <feComposite in2="offsetblur" operator="in"/>
+                <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            <path id="path9" fill="url(#radialGradient5)" fill-rule="evenodd" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter5)" d="M 690.965515 879.5 C 690.965515 833.936523 652.24585 797 604.482727 797 C 556.719666 797 518 833.936523 518 879.5 C 518 925.063477 556.719666 962 604.482727 962 C 652.24585 962 690.965515 925.063477 690.965515 879.5 Z"/>
+            <text id="Messaging-Port" xml:space="preserve"><tspan x="604" y="872" text-anchor="middle" font-family="Verdana" font-size="24" font-weight="700" fill="#000000" xml:space="preserve">Messaging</tspan><tspan x="604" y="901" text-anchor="middle" font-family="Verdana" font-size="24" fill="#000000" xml:space="preserve">Port</tspan></text>
+        </g>
+        <g id="g11">
+            <path id="path10" fill="#fbe5cd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 284.025818 1244.230835 L 225.269348 1346 L 107.756454 1346 L 49 1244.230835 L 107.756454 1142.46167 L 225.269348 1142.46167 L 284.025818 1244.230835 Z"/>
+            <text id="Messaging-Service" xml:space="preserve"><tspan x="167" y="1236" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Messaging</tspan><tspan x="167" y="1272" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Service</tspan></text>
+        </g>
+        <path id="path11" fill="#fbe5cd" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 560 952 L 491 1054"/>
+        <path id="path12" fill="#fbe5cd" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 355 1123 L 255.000259 1193.000366"/>
+        <g id="g12">
+            <linearGradient id="linearGradient3" x1="491" y1="1193" x2="491" y2="1054" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#9281bc" stop-opacity="1"/>
+                <stop offset="1" stop-color="#d9d2ea" stop-opacity="1"/>
+            </linearGradient>
+            <path id="path13" fill="url(#linearGradient3)" fill-rule="evenodd" stroke="#000000" stroke-width="1.816326" stroke-linecap="round" stroke-linejoin="round" d="M 376.118011 1054 C 364.454956 1054 355 1065.192993 355 1079 L 355 1168 C 355 1181.807007 364.454956 1193 376.118011 1193 L 605.881958 1193 C 617.545044 1193 627 1181.807007 627 1168 L 627 1079 C 627 1065.192993 617.545044 1054 605.881958 1054 Z"/>
+            <text id="Kafka-Adapter" xml:space="preserve"><tspan x="491" y="1115" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Kafka</tspan><tspan x="491" y="1151" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Adapter</tspan></text>
+        </g>
+    </g>
+    <g id="g13">
+        <g id="g14">
+            <radialGradient id="radialGradient6" cx="1285.482759" cy="507.5" r="86.482759" fx="1285.482759" fy="507.5" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#a8ee8a" stop-opacity="1"/>
+                <stop offset="1" stop-color="#80b56a" stop-opacity="1"/>
+            </radialGradient>
+            <filter id="filter6" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+                <feGaussianBlur stdDeviation="15"/>
+                <feOffset dx="-0" dy="10" result="offsetblur"/>
+                <feFlood flood-color="#000000" flood-opacity="0.5"/>
+                <feComposite in2="offsetblur" operator="in"/>
+                <feMerge>
+                    <feMergeNode/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+            <path id="path14" fill="url(#radialGradient6)" fill-rule="evenodd" stroke="#000000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter6)" d="M 1371.965454 507.5 C 1371.965454 461.936523 1333.24585 425 1285.482788 425 C 1237.719604 425 1199 461.936523 1199 507.5 C 1199 553.063477 1237.719604 590 1285.482788 590 C 1333.24585 590 1371.965454 553.063477 1371.965454 507.5 Z"/>
+            <text id="Store-Port" xml:space="preserve"><tspan x="1285" y="499" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Store</tspan><tspan x="1285" y="535" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Port</tspan></text>
+        </g>
+        <path id="path15" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 1339 442 L 1409 367"/>
+        <path id="path16" fill="none" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" d="M 1545 297 L 1636 241"/>
+        <g id="g15">
+            <linearGradient id="linearGradient4" x1="1409" y1="367" x2="1409" y2="228" gradientUnits="userSpaceOnUse">
+                <stop offset="0" stop-color="#9281bc" stop-opacity="1"/>
+                <stop offset="1" stop-color="#d9d2ea" stop-opacity="1"/>
+            </linearGradient>
+            <path id="path17" fill="url(#linearGradient4)" fill-rule="evenodd" stroke="#000000" stroke-width="1.816326" stroke-linecap="round" stroke-linejoin="round" d="M 1294.118042 228 C 1282.454956 228 1273 239.192993 1273 253 L 1273 342 C 1273 355.807007 1282.454956 367 1294.118042 367 L 1523.881958 367 C 1535.545044 367 1545 355.807007 1545 342 L 1545 253 C 1545 239.192993 1535.545044 228 1523.881958 228 Z"/>
+            <text id="Database-Adapter" xml:space="preserve"><tspan x="1409" y="289" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Database</tspan><tspan x="1409" y="325" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Adapter</tspan></text>
+        </g>
+        <g id="g16">
+            <g id="g17">
+                <path id="Ellipse-copy" fill="#689cff" fill-rule="evenodd" stroke="#000000" stroke-width="2.377551" stroke-linecap="round" stroke-linejoin="round" d="M 1869 233.441284 C 1869 214.073364 1816.841187 198.372437 1752.5 198.372437 C 1688.158813 198.372437 1636 214.073364 1636 233.441284 C 1636 252.809326 1688.158813 268.510254 1752.5 268.510254 C 1816.841187 268.510254 1869 252.809326 1869 233.441284 Z"/>
+                <path id="path18" fill="#689cff" fill-rule="evenodd" stroke="#000000" stroke-width="2.377551" stroke-linecap="round" stroke-linejoin="round" d="M 1637.188721 89.005127 C 1636.532227 89.005127 1636 89.537354 1636 90.193848 L 1636 231.658203 C 1636 232.314697 1636.532227 232.846924 1637.188721 232.846924 L 1867.811279 232.846924 C 1868.467773 232.846924 1869 232.314697 1869 231.658203 L 1869 90.193848 C 1869 89.537354 1868.467773 89.005127 1867.811279 89.005127 Z"/>
+                <path id="path19" fill="#7fa9f8" fill-rule="evenodd" stroke="#000000" stroke-width="2.377551" stroke-linecap="round" stroke-linejoin="round" d="M 1867.811279 89.599487 C 1867.811279 70.231445 1815.986694 54.53064 1752.057983 54.53064 C 1688.129272 54.53064 1636.30481 70.231445 1636.30481 89.599487 C 1636.30481 108.967529 1688.129272 124.668335 1752.057983 124.668335 C 1815.986694 124.668335 1867.811279 108.967529 1867.811279 89.599487 Z"/>
+                <path id="path20" fill="#689cff" fill-rule="evenodd" stroke="none" d="M 1638.377563 228.091797 C 1637.721069 228.091797 1637.188721 228.624023 1637.188721 229.28064 L 1637.188721 234.035767 C 1637.188721 234.692261 1637.721069 235.224487 1638.377563 235.224487 L 1866.622437 235.224487 C 1867.278931 235.224487 1867.811279 234.692261 1867.811279 234.035767 L 1867.811279 229.28064 C 1867.811279 228.624023 1867.278931 228.091797 1866.622437 228.091797 Z"/>
+            </g>
+            <text id="PostgreSQL" xml:space="preserve" x="1753" y="194" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000">PostgreSQL</text>
+        </g>
+    </g>
+    <g id="g18">
+        <radialGradient id="radialGradient7" cx="943.479873" cy="703.5" r="298.479873" fx="943.479873" fy="703.5" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="1" stop-color="#f3bb83" stop-opacity="1"/>
+        </radialGradient>
+        <filter id="filter7" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="25"/>
+            <feOffset dx="-0" dy="25" result="offsetblur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.5"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <path id="path21" fill="url(#radialGradient7)" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter7)" d="M 1241.959717 703.5 L 1092.719849 962 L 794.239929 962 L 645 703.5 L 794.239929 445 L 1092.719849 445 L 1241.959717 703.5 Z"/>
+        <text id="Your-Application-Logic" xml:space="preserve"><tspan x="944" y="503" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Your</tspan><tspan x="944" y="539" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Application Logic</tspan></text>
+    </g>
+    <g id="g19">
+        <radialGradient id="radialGradient8" cx="945.116204" cy="702.890979" r="113.016097" fx="945.116204" fy="702.890979" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="1" stop-color="#fbdd85" stop-opacity="1"/>
+        </radialGradient>
+        <filter id="filter8" x="0" y="0" width="1920" height="1400" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+            <feGaussianBlur stdDeviation="5"/>
+            <feOffset dx="-0" dy="7" result="offsetblur"/>
+            <feFlood flood-color="#000000" flood-opacity="0.269498"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+        <path id="path22" fill="url(#radialGradient8)" fill-rule="evenodd" stroke="#000000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#filter8)" d="M 1057 703 C 1057 640.591797 1006.408203 590 944 590 C 881.591797 590 831 640.591797 831 703 C 831 765.408203 881.591797 816 944 816 C 1006.408203 816 1057 765.408203 1057 703 Z"/>
+        <text id="Your-Domain-Logic" xml:space="preserve"><tspan x="944" y="677" text-anchor="middle" font-family="Verdana" font-size="30" fill="#000000" xml:space="preserve">Your</tspan><tspan x="944" y="713" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Domain</tspan><tspan x="944" y="749" text-anchor="middle" font-family="Verdana" font-size="30" font-weight="700" fill="#000000" xml:space="preserve">Logic</tspan></text>
+    </g>
+</svg>
