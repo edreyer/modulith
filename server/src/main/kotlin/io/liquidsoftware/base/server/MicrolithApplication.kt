@@ -5,7 +5,7 @@ import io.liquidsoftware.base.user.config.UserModuleConfig
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.builder.SpringApplicationBuilder
-import ventures.dvx.base.booking.config.BookingModuleConfig
+import io.liquidsoftware.base.booking.config.BookingModuleConfig
 
 @SpringBootApplication(scanBasePackages = ["io.liquidsoftware.base.server"])
 class MicrolithApplication
@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
     .child(UserModuleConfig::class.java)
       .properties("spring.config.name=user")
       .web(WebApplicationType.NONE)
-    .sibling(BookingModuleConfig::class.java)
+    .sibling(io.liquidsoftware.base.booking.config.BookingModuleConfig::class.java)
       .properties("spring.config.name=booking")
       .web(WebApplicationType.NONE)
     .run(*args)

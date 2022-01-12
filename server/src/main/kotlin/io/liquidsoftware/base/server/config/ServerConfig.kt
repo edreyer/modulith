@@ -5,13 +5,13 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
 import io.liquidsoftware.base.user.adapter.`in`.web.UserWebConfig
 import io.liquidsoftware.common.config.CommonConfig
-import ventures.dvx.base.booking.adapter.`in`.web.BookingWebConfig
+import io.liquidsoftware.base.booking.adapter.`in`.web.BookingWebConfig
 
 @Configuration
 @EntityScan("io.liquidsoftware.base") // seems to be required at this level
 @Import(
   CommonConfig::class,
   UserWebConfig::class,
-  BookingWebConfig::class
+  io.liquidsoftware.base.booking.adapter.`in`.web.BookingWebConfig::class
 )
 class ServerConfig
