@@ -1,26 +1,26 @@
 package io.liquidsoftware.base.user.application.workflows
 
 import arrow.core.computations.ResultEffect.bind
-import org.springframework.security.crypto.password.PasswordEncoder
-import org.springframework.stereotype.Component
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserError.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
+import io.liquidsoftware.base.user.application.port.out.UserEventPort
 import io.liquidsoftware.base.user.application.workflows.mapper.toUserDto
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
-import io.liquidsoftware.common.events.EventPublisher
 import io.liquidsoftware.common.ext.toResult
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @Component
 internal class RegisterUserWorkflow(
   private val passwordEncoder: PasswordEncoder,
   private val findUserPort: FindUserPort,
-  private val eventPublisher: EventPublisher
+  private val userRegisteredPort: UserEventPort
 ) : BaseSafeWorkflow<RegisterUserCommand, UserRegisteredEvent>() {
 
   @PostConstruct
@@ -30,7 +30,7 @@ internal class RegisterUserWorkflow(
 
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {
     val user = validateNewUser(request).bind()
-    return eventPublisher.publish(
+    return userRegisteredPort.handle(
       UserRegisteredEvent(user.toUserDto(), user.encryptedPassword.value)
     )
   }

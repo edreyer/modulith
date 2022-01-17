@@ -2,15 +2,11 @@ package io.liquidsoftware.base.user.adapter.out.persistence
 
 import arrow.core.Nel
 import arrow.core.identity
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import org.springframework.context.event.EventListener
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
+import io.liquidsoftware.base.user.application.port.out.UserEventPort
 import io.liquidsoftware.base.user.domain.ActiveUser
 import io.liquidsoftware.base.user.domain.AdminUser
 import io.liquidsoftware.base.user.domain.DisabledUser
@@ -20,10 +16,12 @@ import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationException
 import io.liquidsoftware.common.types.toErrString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 internal class UserPersistenceAdapter(
   private val userRepository: UserRepository
-) : FindUserPort {
+) : FindUserPort, UserEventPort {
 
   private val logger by LoggerDelegate()
 
@@ -43,20 +41,16 @@ internal class UserPersistenceAdapter(
     userRepository.save(user).toUser()
   }
 
-  @EventListener(UserRegisteredEvent::class)
-  fun handle(event: UserRegisteredEvent) {
-    runBlocking {
-      launch {
-        saveNewUser(event.toEntity())
-      }
-    }
+  override suspend fun handle(event: UserRegisteredEvent): UserRegisteredEvent = withContext(Dispatchers.IO) {
+    saveNewUser(event.toEntity())
+    event
   }
 
-  @EventListener(UserEvent::class)
-  fun handle(event: UserEvent) {
+  override suspend fun <T : UserEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     userRepository.findByUserId(event.userDto.id)
       ?.handle(event)
       ?.let { userRepository.save(it) }
+    event
   }
 
   private fun UserEntity.toUser() : User {

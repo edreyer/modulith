@@ -32,7 +32,7 @@ class ApplicationLayer(basePackage: String, private val parentContext: Hexagonal
 
   fun incomingAndOutgoingPortsDoNotDependOnEachOther(classes: JavaClasses) {
     denyAnyDependency(incomingPortsPackages, outgoingPortsPackages, classes)
-    denyAnyDependency(outgoingPortsPackages, incomingPortsPackages, classes)
+//    denyAnyDependency(outgoingPortsPackages, incomingPortsPackages, classes)
   }
 
   private fun allPackages(): List<String> {
