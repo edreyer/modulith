@@ -1,9 +1,6 @@
 package io.liquidsoftware.base.user.adapter.out.persistence
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import org.hibernate.annotations.Filter
-import org.hibernate.annotations.FilterDef
-import org.hibernate.annotations.Where
 import io.liquidsoftware.base.user.UserNamespace
 import io.liquidsoftware.base.user.application.port.`in`.UserDisabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserEnabledEvent
@@ -11,6 +8,9 @@ import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.persistence.BaseEntity
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
+import org.hibernate.annotations.Filter
+import org.hibernate.annotations.FilterDef
+import org.hibernate.annotations.Where
 import javax.persistence.CollectionTable
 import javax.persistence.Column
 import javax.persistence.ElementCollection
@@ -48,7 +48,7 @@ internal class UserEntity(
 
 ) : BaseEntity(userId, UserNamespace.NAMESPACE) {
 
-  fun handle(event: UserEvent): UserEntity {
+  suspend fun handle(event: UserEvent): UserEntity {
     return when(event) {
       is UserEnabledEvent -> handle(event)
       is UserDisabledEvent -> handle(event)
@@ -56,12 +56,12 @@ internal class UserEntity(
     }
   }
 
-  private fun handle(event: UserEnabledEvent): UserEntity {
+  private suspend fun handle(event: UserEnabledEvent): UserEntity {
     this.active = true
     return this
   }
 
-  private fun handle(event: UserDisabledEvent): UserEntity {
+  private suspend fun handle(event: UserDisabledEvent): UserEntity {
     this.active = false
     return this
   }
