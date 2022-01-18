@@ -3,10 +3,15 @@ package io.liquidsoftware.base.server
 import io.liquidsoftware.base.server.config.ServerConfig
 import io.liquidsoftware.base.user.config.UserModuleConfig
 import org.springframework.boot.WebApplicationType
+import org.springframework.boot.actuate.autoconfigure.endpoint.jmx.JmxEndpointAutoConfiguration
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.autoconfigure.jmx.JmxAutoConfiguration
 import org.springframework.boot.builder.SpringApplicationBuilder
 
-@SpringBootApplication(scanBasePackages = ["io.liquidsoftware.base.server"])
+@SpringBootApplication(
+  scanBasePackages = ["io.liquidsoftware.base.server"],
+  exclude = [JmxAutoConfiguration::class, JmxEndpointAutoConfiguration::class]
+)
 class MicrolithApplication
 
 fun main(args: Array<String>) {
