@@ -46,7 +46,7 @@ class ExecutionContext {
         else -> throw IllegalStateException("Unexpected Authentication type")
       }}
       .awaitSingle()
-    return user;
+    return user
   }
 
   suspend fun getUserAccessKeys(): List<String> {
@@ -56,7 +56,7 @@ class ExecutionContext {
         is UsernamePasswordAuthenticationToken -> {
           val userId = (it.principal as UserDetailsWithId).id
           log.debug("The current principal: ${it.principal}")
-          it.authorities.map { auth -> auth.authority } + userId
+          listOf(userId) + it.authorities.map { auth -> auth.authority }
         }
         else -> listOf(ANONYMOUS_USER_ID)
       }}

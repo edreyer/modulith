@@ -21,7 +21,7 @@ interface UserSecured<R: Request> : Secured<R> {
       ec.getCurrentParty(),
       establishResourceType(request),
       request.className()
-    ).orElseThrow { UnauthorizedAccessException() }
+    ).orElseThrow { UnauthorizedAccessException("Unauthorized") }
   }
 
   suspend fun userMatchingFn(request: R): Boolean
