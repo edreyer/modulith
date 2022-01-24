@@ -1,13 +1,13 @@
 package io.liquidsoftware.base.user.application.context
 
-import org.springframework.stereotype.Component
-import io.liquidsoftware.base.user.application.port.`in`.SystemFindUserByEmailQuery
-import io.liquidsoftware.base.user.application.port.`in`.SystemUserFoundEvent
-import io.liquidsoftware.base.user.application.port.`in`.UserDetailsDto
+import io.liquidsoftware.base.user.application.port.`in`.FindUserByIdQuery
+import io.liquidsoftware.base.user.application.port.`in`.UserDto
+import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import org.springframework.stereotype.Component
 
 @Component
 internal class UserContext(
@@ -16,12 +16,12 @@ internal class UserContext(
 
   val log by LoggerDelegate()
 
-  suspend fun getCurrentUser(): UserDetailsDto {
-    val currentUser = ec.getCurrentUser().username
+  suspend fun getCurrentUser(): UserDto {
+    val userId = ec.getCurrentUser().id
     return runAsSuperUser {
-      WorkflowDispatcher.dispatch<SystemUserFoundEvent>(SystemFindUserByEmailQuery(currentUser))
+      WorkflowDispatcher.dispatch<UserFoundEvent>(FindUserByIdQuery(userId))
         .fold(
-          { it.userDetailsDto },
+          { it.userDto },
           { ex ->
             log.error("Failed to get current user", ex)
             throw ex

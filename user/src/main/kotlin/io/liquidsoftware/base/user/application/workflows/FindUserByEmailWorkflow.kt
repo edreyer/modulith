@@ -1,7 +1,5 @@
 package io.liquidsoftware.base.user.application.workflows
 
-import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.stereotype.Component
 import io.liquidsoftware.base.user.application.config.UserBridgekeeperConfig.Companion.USER_BRIDGE_KEEPER
 import io.liquidsoftware.base.user.application.context.UserContext
 import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
@@ -13,6 +11,8 @@ import io.liquidsoftware.base.user.bridgekeeper.UserSecured
 import io.liquidsoftware.bridgekeeper.BridgeKeeper
 import io.liquidsoftware.common.workflow.BaseSafeSecureWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @Component

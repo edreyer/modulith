@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.user.application.port.`in`
 
+import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.workflow.Event
 import io.liquidsoftware.common.workflow.Query
 
@@ -13,7 +14,7 @@ data class SystemFindUserByEmailQuery(val email: String) : Query
 // Outputs
 data class UserFoundEvent(val userDto: UserDto) : Event()
 
-data class SystemUserFoundEvent(val userDetailsDto: UserDetailsDto) : Event()
+data class SystemUserFoundEvent(val userDetailsDto: UserDetailsWithId) : Event()
 
 
 // Error
