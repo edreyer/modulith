@@ -35,20 +35,20 @@ class AclChecker(
     AclRole.MANAGER to setOf(Permission.READ, Permission.WRITE, Permission.MANAGE)
   )
 
-  suspend fun checkPermission(abac: Acl, permission: Permission) {
-    if (!hasPermission(abac, ec.getUserAccessKeys(), permission)) {
+  suspend fun checkPermission(acl: Acl, permission: Permission) {
+    if (!hasPermission(acl, ec.getUserAccessKeys(), permission)) {
       throw UnauthorizedAccessException(
-        "No access to: ${abac.resourceId} Permission: $permission"
+        "No access to: ${acl.resourceId} Permission: $permission"
       )
     }
   }
 
-  suspend fun hasPermission(abac: Acl, access: List<String>, permission: Permission): Boolean {
-    return if (access.contains("ROLE_ADMIN")) {
+  suspend fun hasPermission(acl: Acl, access: List<String>, permission: Permission): Boolean {
+    return if (access.contains("ROLE_ADMIN") || access.contains("ROLE_SYSTEM")) {
       true
     } else {
-      val role = abac.userRoleMap[access[0]]
-        ?: abac.userRoleMap[ExecutionContext.ANONYMOUS_USER_ID]
+      val role = acl.userRoleMap[access[0]]
+        ?: acl.userRoleMap[ExecutionContext.ANONYMOUS_USER_ID]
       val hasPermission: Boolean = role.let {
         rolePermissions[it]?.contains(permission) ?: false
       }

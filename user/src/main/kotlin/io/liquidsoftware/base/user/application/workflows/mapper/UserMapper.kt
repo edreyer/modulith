@@ -8,18 +8,27 @@ import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
 import io.liquidsoftware.base.user.domain.User
 
+internal fun Role.toRoleDto(): RoleDto = RoleDto.valueOf(this.name)
+
 internal fun User.toUserDto(): UserDto {
   val roles = when (this) {
     is AdminUser -> listOf(RoleDto.ROLE_ADMIN)
     else -> listOf(RoleDto.ROLE_USER)
   }
   return when (this) {
+    is UnregisteredUser -> UserDto(
+      id = this.id.value,
+      email = this.email.value,
+      msisdn = this.msisdn.value,
+      active = true,
+      roles = listOf(this.role.toRoleDto())
+    )
     is DisabledUser -> UserDto(
       id = this.id.value,
       email = this.email.value,
       msisdn = this.msisdn.value,
       active = false,
-      roles = roles
+      roles = listOf(this.role.toRoleDto())
     )
     else -> UserDto(
       id = this.id.value,
@@ -30,14 +39,3 @@ internal fun User.toUserDto(): UserDto {
     )
   }
 }
-
-internal fun UnregisteredUser.toUserDto() =
-  UserDto(
-    id = "",
-    email = this.email.value,
-    msisdn = this.msisdn.value,
-    active = true,
-    roles = listOf(role.toRoleDto())
-  )
-
-internal fun Role.toRoleDto() = RoleDto.valueOf(name)

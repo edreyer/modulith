@@ -13,6 +13,10 @@ import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.User
 import io.liquidsoftware.common.logging.LoggerDelegate
+import io.liquidsoftware.common.security.acl.Acl
+import io.liquidsoftware.common.security.acl.AclChecker
+import io.liquidsoftware.common.security.acl.AclRole
+import io.liquidsoftware.common.security.acl.Permission
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationException
 import io.liquidsoftware.common.types.toErrString
@@ -20,24 +24,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 internal class UserPersistenceAdapter(
-  private val userRepository: UserRepository
+  private val userRepository: UserRepository,
+  private val ac: AclChecker
 ) : FindUserPort, UserEventPort {
 
   private val logger by LoggerDelegate()
 
   override suspend fun findUserById(userId: String): User? = withContext(Dispatchers.IO) {
-    userRepository.findByUserId(userId)?.toUser()
+    userRepository.findByUserId(userId)
+      ?.toUser()
+      ?.also { ac.checkPermission(it.acl(), Permission.READ)}
   }
 
   override suspend fun findUserByMsisdn(msisdn: String) : User? = withContext(Dispatchers.IO) {
-    userRepository.findByMsisdn(msisdn)?.toUser()
+    userRepository.findByMsisdn(msisdn)
+      ?.toUser()
+      ?.also { ac.checkPermission(it.acl(), Permission.READ)}
   }
 
   override suspend fun findUserByEmail(email: String) : User? = withContext(Dispatchers.IO) {
-    userRepository.findByEmail(email)?.toUser()
+    userRepository.findByEmail(email)
+      ?.toUser()
+      ?.also { ac.checkPermission(it.acl(), Permission.READ)}
   }
 
   private suspend fun saveNewUser(user: UserEntity): User = withContext(Dispatchers.IO) {
+    ac.checkPermission(user.toUser().acl(), Permission.MANAGE)
     userRepository.save(user).toUser()
   }
 
@@ -48,6 +60,7 @@ internal class UserPersistenceAdapter(
 
   override suspend fun <T : UserEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     userRepository.findByUserId(event.userDto.id)
+      ?.also { ac.checkPermission(Acl.of(it.id, it.id, AclRole.WRITER), Permission.WRITE) }
       ?.handle(event)
       ?.let { userRepository.save(it) }
     event
@@ -78,6 +91,7 @@ internal class UserPersistenceAdapter(
 
   private fun UserRegisteredEvent.toEntity() : UserEntity {
     return UserEntity(
+      userId = this.userDto.id,
       msisdn = this.userDto.msisdn,
       email = this.userDto.email,
       password = this.password,

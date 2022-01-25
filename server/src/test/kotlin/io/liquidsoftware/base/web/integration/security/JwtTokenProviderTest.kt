@@ -1,5 +1,11 @@
 package io.liquidsoftware.base.web.integration.security
 
+import assertk.assertThat
+import assertk.assertions.contains
+import assertk.assertions.isEmpty
+import assertk.assertions.isEqualTo
+import assertk.assertions.isFalse
+import assertk.assertions.isTrue
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -7,6 +13,7 @@ import io.jsonwebtoken.security.Keys
 import io.liquidsoftware.common.security.JwtProperties
 import io.liquidsoftware.common.security.JwtTokenProvider
 import io.liquidsoftware.common.security.UserDetailsWithId
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -40,8 +47,8 @@ internal class JwtTokenProviderTest {
     log.debug("generated jwt token::$token")
     val auth = jwtTokenProvider.getAuthentication(token)
     val principal = auth.principal as UserDetailsWithId
-    org.assertj.core.api.Assertions.assertThat(principal.id).isEqualTo(TEST_USER_ID)
-    org.assertj.core.api.Assertions.assertThat(
+    assertThat(principal.id).isEqualTo(TEST_USER_ID)
+    assertThat(
       principal.authorities.stream()
         .map { obj: GrantedAuthority -> obj.authority }
         .collect(Collectors.toList())
@@ -54,8 +61,8 @@ internal class JwtTokenProviderTest {
     log.debug("generated jwt token::$token")
     val auth = jwtTokenProvider.getAuthentication(token)
     val principal = auth.principal as UserDetailsWithId
-    org.assertj.core.api.Assertions.assertThat(principal.id).isEqualTo(TEST_USER_ID)
-    org.assertj.core.api.Assertions.assertThat(principal.authorities).isEmpty()
+    assertThat(principal.id).isEqualTo(TEST_USER_ID)
+    assertThat(principal.authorities).isEmpty()
   }
 
   @Test
@@ -66,7 +73,7 @@ internal class JwtTokenProviderTest {
         token
       )
     }
-    org.assertj.core.api.Assertions.assertThatThrownBy {
+    assertThatThrownBy {
       jwtTokenProvider.getAuthentication(
         token
       )
@@ -78,7 +85,7 @@ internal class JwtTokenProviderTest {
   @Test
   fun testValidateTokenException_failed() {
     val token = "anunknowtokencannotbeparsedbyjwtprovider"
-    org.assertj.core.api.Assertions.assertThat(jwtTokenProvider.validateToken(token)).isFalse
+    assertThat(jwtTokenProvider.validateToken(token)).isFalse()
   }
 
   @Test
@@ -94,13 +101,13 @@ internal class JwtTokenProviderTest {
       .setExpiration(validity)
       .signWith(secretKey, SignatureAlgorithm.HS256)
       .compact()
-    org.assertj.core.api.Assertions.assertThat(jwtTokenProvider.validateToken(expiredToken)).isFalse
+    assertThat(jwtTokenProvider.validateToken(expiredToken)).isFalse()
   }
 
   @Test
   fun testValidateTokenException() {
     val token = generateToken(TEST_USER_ID, TEST_ROLE_NAME)
-    org.assertj.core.api.Assertions.assertThat(jwtTokenProvider.validateToken(token)).isTrue
+    assertThat(jwtTokenProvider.validateToken(token)).isTrue()
   }
 
   private fun generateToken(userId: String, vararg roles: String): String {

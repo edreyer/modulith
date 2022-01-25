@@ -1,8 +1,9 @@
 package io.liquidsoftware.base.web.integration.security
 
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import io.liquidsoftware.base.server.MicrolithApplication
 import io.liquidsoftware.common.security.JwtProperties
-import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -21,8 +22,8 @@ class JwtPropertiesTest {
 
     @Test
     fun testProperties() {
-      Assertions.assertThat(properties.secretKey).isEqualTo("rzxlszyykpbgqcflzxsqcysyhljt")
-      Assertions.assertThat(properties.validityInMs).isEqualTo(3600000L)
+      assertThat(properties.secretKey).isEqualTo("rzxlszyykpbgqcflzxsqcysyhljt")
+      assertThat(properties.validityInMs).isEqualTo(3600000L)
     }
   }
 
@@ -37,8 +38,8 @@ class JwtPropertiesTest {
     private lateinit var properties: JwtProperties
     @Test
     fun testProperties() {
-      Assertions.assertThat(properties.secretKey).isEqualTo("testrzxlszyykpbgqcflzxsqcysyhljt")
-      Assertions.assertThat(properties.validityInMs).isEqualTo(100)
+      assertThat(properties.secretKey).isEqualTo("testrzxlszyykpbgqcflzxsqcysyhljt")
+      assertThat(properties.validityInMs).isEqualTo(100)
     }
   }
 }
