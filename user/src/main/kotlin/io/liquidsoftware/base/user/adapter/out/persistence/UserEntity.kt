@@ -7,6 +7,8 @@ import io.liquidsoftware.base.user.application.port.`in`.UserEnabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.persistence.BaseEntity
+import io.liquidsoftware.common.security.acl.Acl
+import io.liquidsoftware.common.security.acl.AclRole
 import org.hibernate.annotations.Filter
 import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.Where
@@ -46,6 +48,8 @@ internal class UserEntity(
   var active: Boolean = true
 
 ) : BaseEntity(userId, UserNamespace.NAMESPACE) {
+
+  fun acl() = Acl.of(id, id, AclRole.MANAGER)
 
   suspend fun handle(event: UserEvent): UserEntity {
     return when(event) {

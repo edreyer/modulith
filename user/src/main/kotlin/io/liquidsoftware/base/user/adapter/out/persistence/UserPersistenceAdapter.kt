@@ -13,9 +13,7 @@ import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.User
 import io.liquidsoftware.common.logging.LoggerDelegate
-import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
-import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.Permission
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationException
@@ -60,7 +58,7 @@ internal class UserPersistenceAdapter(
 
   override suspend fun <T : UserEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     userRepository.findByUserId(event.userDto.id)
-      ?.also { ac.checkPermission(Acl.of(it.id, it.id, AclRole.WRITER), Permission.WRITE) }
+      ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
       ?.handle(event)
       ?.let { userRepository.save(it) }
     event
