@@ -1,7 +1,7 @@
 package io.liquidsoftware.common.security
 
-import io.liquidsoftware.bridgekeeper.ROLE_SYSTEM_USER
 import io.liquidsoftware.common.logging.LoggerDelegate
+import io.liquidsoftware.common.security.acl.AclChecker.Companion.ROLE_SYSTEM
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.mono
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono
 
 private fun getSystemAuthentication(): UsernamePasswordAuthenticationToken {
   val userDetails = UserDetailsWithId("SYSTEM",
-    User("SYSTEM", "", listOf(SimpleGrantedAuthority(ROLE_SYSTEM_USER.name))))
+    User("SYSTEM", "", listOf(SimpleGrantedAuthority(ROLE_SYSTEM))))
   return UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
 }
 

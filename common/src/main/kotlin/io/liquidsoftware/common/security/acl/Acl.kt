@@ -29,11 +29,17 @@ data class Acl(
 class AclChecker(
   val ec: ExecutionContext,
 ) {
+
   private val rolePermissions: Map<AclRole, Set<Permission>> = mapOf(
     AclRole.READER to setOf(Permission.READ),
     AclRole.WRITER to setOf(Permission.READ, Permission.WRITE),
     AclRole.MANAGER to setOf(Permission.READ, Permission.WRITE, Permission.MANAGE)
   )
+
+  companion object {
+    const val ROLE_SYSTEM = "ROLE_SYSTEM"
+    const val ROLE_ADMIN = "ROLE_ADMIN"
+  }
 
   suspend fun checkPermission(acl: Acl, permission: Permission) {
     if (!hasPermission(acl, ec.getUserAccessKeys(), permission)) {
@@ -44,7 +50,7 @@ class AclChecker(
   }
 
   suspend fun hasPermission(acl: Acl, access: List<String>, permission: Permission): Boolean {
-    return if (access.contains("ROLE_ADMIN") || access.contains("ROLE_SYSTEM")) {
+    return if (access.contains(ROLE_ADMIN) || access.contains(ROLE_SYSTEM)) {
       true
     } else {
       val role = acl.userRoleMap[access[0]]
