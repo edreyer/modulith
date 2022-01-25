@@ -313,7 +313,7 @@ are a practical implementation of the *prefer compile time to runtime errors*.
 
 # TODO
 
-## Bridgekeeper ACL system
+## ACL system
 ## CQRS
 ### Commands, Queries, Events
 ## Workflows
