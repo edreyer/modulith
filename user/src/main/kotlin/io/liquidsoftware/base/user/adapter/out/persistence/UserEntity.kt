@@ -7,7 +7,6 @@ import io.liquidsoftware.base.user.application.port.`in`.UserEnabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.persistence.BaseEntity
-import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import org.hibernate.annotations.Filter
 import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.Where
@@ -28,7 +27,7 @@ import javax.persistence.Table
 @Filter(name = "deletedProductFilter", condition = "deleted_at is not null")
 internal class UserEntity(
 
-  userId: String = NamespaceIdGenerator.nextId(UserNamespace.NAMESPACE),
+  userId: String,
 
   var msisdn: String,
 

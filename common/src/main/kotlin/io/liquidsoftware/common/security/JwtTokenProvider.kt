@@ -6,12 +6,12 @@ import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import io.jsonwebtoken.security.Keys
+import io.liquidsoftware.common.logging.LoggerDelegate
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.User
-import io.liquidsoftware.common.logging.LoggerDelegate
 import java.util.Base64
 import java.util.Date
 import javax.annotation.PostConstruct
@@ -51,19 +51,19 @@ open class JwtTokenProvider(
   }
 
   fun createToken(authentication: Authentication): String {
-    val username: String = authentication.name
+    val userDto = authentication.principal as UserDetailsWithId
     val authorities: Collection<GrantedAuthority> = authentication.authorities
-    val claims: Claims = Jwts.claims().setSubject(username)
+    val claims: Claims = Jwts.claims().setSubject(userDto.id)
     claims[AUTHORITIES_KEY] = authorities.joinToString(",") {
         obj: GrantedAuthority -> obj.authority
     }
     val now = Date()
     val validity = Date(now.time + jwtProperties.validityInMs)
-    return Jwts.builder() //
-      .setClaims(claims) //
-      .setIssuedAt(now) //
-      .setExpiration(validity) //
-      .signWith(secretKey, SignatureAlgorithm.HS256) //
+    return Jwts.builder()
+      .setClaims(claims)
+      .setIssuedAt(now)
+      .setExpiration(validity)
+      .signWith(secretKey, SignatureAlgorithm.HS256)
       .compact()
   }
 
@@ -76,7 +76,7 @@ open class JwtTokenProvider(
     val authorities: Collection<GrantedAuthority> = AuthorityUtils.commaSeparatedStringToAuthorityList(
       claims[AUTHORITIES_KEY].toString()
     )
-    val principal = User(claims.subject, "", authorities)
+    val principal = UserDetailsWithId(claims.subject, User(claims.subject, "", authorities))
     return UsernamePasswordAuthenticationToken(principal, token, authorities)
   }
 

@@ -10,6 +10,7 @@ import io.liquidsoftware.base.user.application.workflows.mapper.toUserDto
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
 import io.liquidsoftware.common.ext.toResult
+import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -30,9 +31,11 @@ internal class RegisterUserWorkflow(
 
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {
     val user = validateNewUser(request).bind()
-    return userRegisteredPort.handle(
-      UserRegisteredEvent(user.toUserDto(), user.encryptedPassword.value)
-    )
+    return runAsSuperUser {
+      userRegisteredPort.handle(
+        UserRegisteredEvent(user.toUserDto(), user.encryptedPassword.value)
+      )
+    }
   }
 
   private suspend fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =

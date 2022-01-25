@@ -1,13 +1,14 @@
 package io.liquidsoftware.base.web.integration.user
 
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
+import assertk.assertThat
+import assertk.assertions.isNotEmpty
 import io.liquidsoftware.base.test.BaseWebTest
 import io.liquidsoftware.base.user.adapter.`in`.web.LoginError
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.UserLoginInputDto
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
 class AuthenticationTest : BaseWebTest() {
 
@@ -31,7 +32,7 @@ class AuthenticationTest : BaseWebTest() {
   @Test
   fun `successful login`() {
     registerUser(testData)
-    assertThat(loginUser(inputDto).accessToken).isNotBlank
+    assertThat(loginUser(inputDto).accessToken).isNotEmpty()
   }
 
   @Test
@@ -43,7 +44,7 @@ class AuthenticationTest : BaseWebTest() {
       .then()
       .statusCode(400)
       .extract().`as`(LoginError::class.java)
-    assertThat(actual.err).isNotBlank
+    assertThat(actual.err).isNotEmpty()
   }
 
 }

@@ -19,8 +19,8 @@ class UserEnabledTest : BaseWebTest() {
 
   @BeforeAll
   fun beforeAll() {
-    accessToken = authorizeAdminUser().accessToken
     createUser(testEmail, "5125550004")
+    accessToken = authorizeAdminUser().accessToken
   }
 
   @Test

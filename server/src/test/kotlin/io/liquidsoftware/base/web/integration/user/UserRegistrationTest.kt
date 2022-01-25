@@ -1,15 +1,16 @@
 package io.liquidsoftware.base.web.integration.user
 
-import io.restassured.path.json.JsonPath
-import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import io.liquidsoftware.base.test.BaseWebTest
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisteredUserDto
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.common.validation.MsisdnParser
+import io.restassured.path.json.JsonPath
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 
 class UserRegistrationTest : BaseWebTest() {
 
