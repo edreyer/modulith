@@ -51,6 +51,26 @@ least guide the software engineer to produce high quality software.
 ![Hexagonal Architecture](./docs/software%20product%20quality.png)
 (Figure 1)
 
+## Credit Where Credit is due
+This application contains influences from a large variety of sources, but there a few sources that are important to 
+highlight as their influence played a much larger role.
+
+* [Get Your Hands Dirty on Clean Architecture](https://reflectoring.io/book/) - 
+  Each Bounded Context in a microlith application closely follows the packing structured and architectural 
+  constraints outlined in this book.
+* [Domain Modeling Made Functional](https://fsharpforfunandprofit.com/books/) - 
+  Although this book targets F#, the concepts apply to many other modern languages, including Kotlin. 
+  This is by far the best book on functional programming and functional domain modeling that I've come across and I
+  highly recommend it to everyone. 
+* https://github.com/ddd-by-examples/library -
+  This application influenced  two big decisions in this project. The first being that each bounded context is
+  contained in its own Spring context. The second idea is that persistence operations  are modelled as event handlers.
+  More on both of these below.
+* https://blog.octo.com/en/hexagonal-architecture-three-principles-and-an-implementation-example/ - 
+  Lots more about hexagonal architecture 
+
+If I've missed something/someone, contact me. I'm happy to give you credit.
+
 ## Some Problems With Traditional Layered Architectures
 
 Traditionally, Spring Boot applications use a layered architecture that looks something like this:
@@ -163,10 +183,6 @@ architecture. Here is a high level overview of each of the major the design elem
 ### Hexagonal Architecture to the rescue
 
 ![Hexagonal Architecture](./docs/hexagonal-architecture.svg)
-
-* This project was inspired by: https://reflectoring.io/spring-hexagonal/
-* Lots more about hexagonal architecture: https://blog.octo.com/en/hexagonal-architecture-three-principles-and-an-implementation-example/
-
 
 ### `microlith` bounded context layout
 
