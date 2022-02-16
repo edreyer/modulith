@@ -1,0 +1,8 @@
+
+spring:
+  config:
+    import:
+      - classpath:common-dev.yml
+
+  jpa:
+    show-sql: true

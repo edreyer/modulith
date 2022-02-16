@@ -1,0 +1,52 @@
+---
+logging:
+  level:
+    org.springframework: INFO
+
+spring:
+
+  config:
+    import:
+      - classpath:common.yml
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/microlith
+    driver-class-name: org.postgresql.Driver
+    username: ${USER}
+    password:
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+
+  data:
+    jdbc:
+      repositories:
+        enabled: true
+
+  jpa:
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC # see: https://vladmihalcea.com/date-timestamp-jpa-hibernate/
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        ddl-auto: validate
+      hibernate.format_sql: false
+    generate-ddl: false
+    show-sql: false
+
+  flyway:
+    enabled: true
+    user: ${USER}
+    password:
+
+  jackson:
+#    deserialization.UNWRAP_ROOT_VALUE: true
+    serialization:
+#      WRAP_ROOT_VALUE: true
+      WRITE_DATES_AS_TIMESTAMPS: false
+
+security:
+  jwt:
+    token:
+      secretKey: ThisIsSecretForJWTHS512SignatureAlgorithmThatMUSTHave64ByteLength
+      validityInMs: 3600000 # 1 HOUR

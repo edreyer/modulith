@@ -1,0 +1,7 @@
+
+spring:
+  config:
+    import:
+      - classpath:common-staging.yml
+
+
