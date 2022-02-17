@@ -23,7 +23,6 @@ interface Workflow<E : Event>
 interface SafeWorkflow<R: Request, E : Event> : Workflow<E> {
   suspend fun invoke(request: R): Result<E>
 }
-interface SecuredWorkflow<R: Request, E : Event> : Secured<R>
 
 abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
   private val log by LoggerDelegate()
