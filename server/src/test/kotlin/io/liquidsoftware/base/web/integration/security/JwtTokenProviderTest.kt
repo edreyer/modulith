@@ -2,9 +2,12 @@ package io.liquidsoftware.base.web.integration.security
 
 import assertk.assertThat
 import assertk.assertions.contains
+import assertk.assertions.hasMessage
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFailure
 import assertk.assertions.isFalse
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isTrue
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
@@ -13,7 +16,6 @@ import io.jsonwebtoken.security.Keys
 import io.liquidsoftware.common.security.JwtProperties
 import io.liquidsoftware.common.security.JwtTokenProvider
 import io.liquidsoftware.common.security.UserDetailsWithId
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -68,18 +70,12 @@ internal class JwtTokenProviderTest {
   @Test
   fun testParseTokenException() {
     val token = "anunknowtokencannotbeparsedbyjwtprovider"
-    Assertions.assertThrows(JwtException::class.java) {
-      jwtTokenProvider.getAuthentication(
-        token
-      )
+    assertThat {
+      jwtTokenProvider.getAuthentication(token)
     }
-    assertThatThrownBy {
-      jwtTokenProvider.getAuthentication(
-        token
-      )
-    }.isInstanceOf(
-      JwtException::class.java
-    )
+      .isFailure()
+      .isInstanceOf(JwtException::class.java)
+      .hasMessage("JWT strings must contain exactly 2 period characters. Found: 0")
   }
 
   @Test

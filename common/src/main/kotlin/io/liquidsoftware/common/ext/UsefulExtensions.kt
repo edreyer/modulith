@@ -1,9 +1,9 @@
 package io.liquidsoftware.common.ext
 
 import arrow.core.Validated
-import org.springframework.web.bind.annotation.ResponseStatus
 import io.liquidsoftware.common.types.ValidationErrorNel
 import io.liquidsoftware.common.types.ValidationException
+import org.springframework.web.bind.annotation.ResponseStatus
 
 /* Get the name of any class */
 fun Any.className(): String = this::class.qualifiedName ?: this::class.java.name
