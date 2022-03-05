@@ -10,7 +10,7 @@ spring:
       - classpath:common.yml
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/microlith
+    url: jdbc:postgresql://localhost:5432/modulith
     driver-class-name: org.postgresql.Driver
     username: ${USER}
     password:

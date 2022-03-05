@@ -2,7 +2,7 @@ package io.liquidsoftware.base.web.integration.security
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
-import io.liquidsoftware.base.server.MicrolithApplication
+import io.liquidsoftware.base.server.ModulithApplication
 import io.liquidsoftware.common.security.JwtProperties
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Nested
@@ -28,7 +28,7 @@ class JwtPropertiesTest {
   }
 
   @Nested
-  @SpringBootTest(classes = [MicrolithApplication::class])
+  @SpringBootTest(classes = [ModulithApplication::class])
   @TestPropertySource(properties = [
     "security.jwt.token.secretKey=testrzxlszyykpbgqcflzxsqcysyhljt",
     "security.jwt.token.validityInMs=100"

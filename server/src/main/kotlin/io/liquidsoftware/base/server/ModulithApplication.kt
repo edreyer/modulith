@@ -12,11 +12,11 @@ import org.springframework.boot.builder.SpringApplicationBuilder
   scanBasePackages = ["io.liquidsoftware.base.server"],
   exclude = [JmxAutoConfiguration::class, JmxEndpointAutoConfiguration::class]
 )
-class MicrolithApplication
+class ModulithApplication
 
 fun main(args: Array<String>) {
   val parent = SpringApplicationBuilder()
-    .parent(MicrolithApplication::class.java, ServerConfig::class.java)
+    .parent(ModulithApplication::class.java, ServerConfig::class.java)
     .web(WebApplicationType.REACTIVE)
 
   parent.run(*args)

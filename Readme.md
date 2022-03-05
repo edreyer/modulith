@@ -1,4 +1,4 @@
-# Microlith
+# Modulith
 
 A foundational project for any technology venture
 
@@ -9,7 +9,7 @@ The project uses a hexagonal architecture, along with
 [DDD](https://en.wikipedia.org/wiki/Domain-driven_design) 
 principals to create a clean design that helps enforce good programming practice.
 
-Microlith is essentially a microservice architecture designed and intended to be deployed as a monolith. 
+Modulith is essentially a microservice architecture designed and intended to be deployed as a monolith. 
 There is an operational complexity that comes with a microservices architecture. One can argue that
 microservices are a solution to a people problem, rather than something that arose due to an inherent
 technical problem. Put simply, there is a point at which the number of people working in a monolith
@@ -27,7 +27,7 @@ Microservices contain various mechanisms to communicate with each other. In orde
 patterns have emerged. In essence, each microservice
 defines a contract for how other services can speak to it.
 
-In Microlith, we've created an architecture that simulates the communication by contract that separates, 
+In Modulith, we've created an architecture that simulates the communication by contract that separates, 
 but relates each separate microservice (or Bounded Context). Every Bounded Context is packaged in its own
 maven artifact. This gives us compile time isolation, but we can go further. At runtime, each Bounded Context
 runs in its own Spring Application Context. 
@@ -56,7 +56,7 @@ This application contains influences from a large variety of sources, but there 
 highlight as their influence played a much larger role.
 
 * [Get Your Hands Dirty on Clean Architecture](https://reflectoring.io/book/) - 
-  Each Bounded Context in a microlith application closely follows the packing structured and architectural 
+  Each Bounded Context in a modulith application closely follows the packing structured and architectural 
   constraints outlined in this book.
 * [Domain Modeling Made Functional](https://fsharpforfunandprofit.com/books/) - 
   Although this book targets F#, the concepts apply to many other modern languages, including Kotlin. 
@@ -115,7 +115,7 @@ to very broad services that serve multiple use cases.
     * Working on different use cases will cause the same service to be edited in parallel which leads to merge 
 conflicts and potentially regressions.
 
-## The Microlith Architecture
+## The Modulith Architecture
 
 The architecture of this project, although still a Spring Boot application, takes a different approach.
 None of the individual ideas implemented in this project are new, but the way in which these ideas are combined into
@@ -134,7 +134,7 @@ architecture. Here is a high level overview of each of the major the design elem
 2. [DDD](https://en.wikipedia.org/wiki/Domain-driven_design)  - Domain Driven Design
    - Not limited to just a set of human procesess for requirements discovery, the output of those
    processes translates directly into the design of the domain of the system
-   - In `microlith`, each [Bounded Context](https://martinfowler.com/bliki/BoundedContext.html) is isolated at compile 
+   - In `modulith`, each [Bounded Context](https://martinfowler.com/bliki/BoundedContext.html) is isolated at compile 
    time by packing them in maven artifacts.
    - In addition to this, each Bounded Context is isolated at runtime as well. Each runs in its own Spring Application
    Context.
@@ -184,7 +184,7 @@ architecture. Here is a high level overview of each of the major the design elem
 
 ![Hexagonal Architecture](./docs/hexagonal-architecture.svg)
 
-### `microlith` bounded context layout
+### `modulith` bounded context layout
 
 ```yml
 user: Name of your bounded context (in this case, "user")
@@ -238,7 +238,7 @@ with some notable changes, outlined here
     of the hexagonal architecture through the use of ArchUnit testing. Specifically, it ensures
     that classes cannot import classes from other packages that it **should NOT** have access to.
     
-## Algebraic Data Types (ADTs) in Microlith
+## Algebraic Data Types (ADTs) in Modulith
 
 It's always preferable to have compile time issues rather than runtime errors. With the use
 of Algebraic Data Types (ADTs) we can do just that. The effect is to move your business invariants
@@ -296,7 +296,7 @@ No null fields at all. No non-relevant fields ever.
 
 ### Always Consistent
 
-In `microlith`, domain objects enforce their internal consistency. That is, if you have an instance of a domain type
+In `modulith`, domain objects enforce their internal consistency. That is, if you have an instance of a domain type
 it is guaranteed it is in a valid state. Here's an example for a simple type:
 
 ```kotlin

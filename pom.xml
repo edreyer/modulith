@@ -13,9 +13,9 @@
     </parent>
 
     <groupId>liquidsoftware.io</groupId>
-    <artifactId>microlith</artifactId>
+    <artifactId>modulith</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>microlith</name>
+    <name>modulith</name>
     <description>Hexagonal Architecture Base Project with Kotlin/Arrow</description>
 
     <properties>

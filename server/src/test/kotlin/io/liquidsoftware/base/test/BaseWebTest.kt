@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.test
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.liquidsoftware.base.server.MicrolithApplication
+import io.liquidsoftware.base.server.ModulithApplication
 import io.liquidsoftware.base.server.config.ServerConfig
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisteredUserDto
@@ -24,7 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(
   classes = [
-    MicrolithApplication::class,
+    ModulithApplication::class,
     ServerConfig::class,
     UserModuleConfig::class
   ],
