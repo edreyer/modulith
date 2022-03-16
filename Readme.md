@@ -327,9 +327,87 @@ not just the first.
 There are other types like this one, and you can create your own. Again, these concepts
 are a practical implementation of the *prefer compile time to runtime errors*.
 
+## Workflows
+
+As outlined above, one of the inherent problems of the traditional layered architecture is that use
+cases are implicit. If someone were to ask you what use cases your application supports, would you 
+be able to tell them? Where are they? What are they?
+
+One possible answer, and one that isn't necessarily incorrect, is that the use cases are derived from
+the various API endpoints your application supports. Look at all the REST API endopints (or GraphQL, etc), 
+viola, you have your answer.
+
+However, look just beneath the surface of the API and then where's the logic? The logic for each use
+case is typically spread out across a variety of services, and even across layers. To answer the question "_What does 
+API <fill in the blank> do?_", engineers have to go spelunking into the code, opening a variety of services, 
+following call hierarchies, to eventually build a picture to say, "_X, Y, and Z happens_".
+
+`Modulith` solves this by providing a mechanism to make every use case explicit. In so doing, it changes how
+typical Spring services should be constructed.
+
+### The `Workflow` pattern
+
+A workflow is a generalization of a use case. All use cases are workflows, but not all workflows are use cases.
+This generalization was intentional and allows for engineers to construct complex workflows from simpler workflows.
+Or, as an example, to use a workflow when it's a sub-process of a use case.
+
+The base class:
+
+```kotlin
+interface SafeWorkflow<R: Request, E : Event> : Workflow<E> {
+  suspend fun invoke(request: R): Result<E>
+}
+```
+
+Every workflow takes a Request object, typically characterized by either a `Command` or `Query` (see CQRS). 
+Every workflow results in an event object, wrapped by a Result. The `invoke()` method never throws.
+Thanks to `Result`, the return value is a discriminated value of either an error that occurred, or an `Event` type
+that contains information about the result of the workflow.
+
+### How to create a Workflow
+
+We'll focus here on using a Workflow as a Use Case. When building a use case using `Workflow`, you implement
+a single method. We recommend you build from the `BaseSafeWorkflow` class. When using that, you override the `execute()`
+method. 
+
+The guiding principle around implementation is that a Workflow contains the "WHAT"s, not the "HOW"s. What this means
+is that from the Workflow, you invoke all the service methods / sub workflows required to satisy a particular use case.
+The workflow contains only the invocations (the WHAT), but the implementations for those methods (the HOW) exist in 
+Services.
+
+To wit, say you have a use case for user registration. To satisfy that use case the following must occur:
+* Validate the input
+* Save a new User Entity to the DB
+* Send a welcome email to the new user
+
+The Workflow would invoke methods to do the above, but the logic to accomplish these steps exists outside
+the Workflow, typically in Services.
+
+### How to create Services
+
+In contrast to how Spring Services are typically built, under this architecture, methods on a service should
+be small and single purpose without side effects (to the extent that's possible). This takes inspiration from
+functional programming, where in a pure FP application, methods are referentially transparent. That is, given an input
+you will always get the same output, with no side effects.
+
+Inside this architecture, you compose a Workflow by assembling small single purpose Service methods. Because service
+methods are small and single purpose, they are more easily tested, more easily composed. When you have a new use case
+that is similar to an existing workflow, you create a new Workflow instance, but combine the service methods in a 
+slightly different way.
+
+* Keep your service methods small.
+* Keep your service methods of single purpose. It should do one thing.
+* A service method name should say what the method does. It should do nothing else.
+
+This helps solve the problems of ever-growing complexity of services. Service methods tend to get more complex over
+time. Service dependencies (via injection) tend to grow over time. Service methods tend to get more complex over time.
+
+The Workflow pattern gives you a place to assemble Service methods like Lego's to create full a full Use Case, or just
+a sub-process.
+
 # TODO
 
 ## ACL system
 ## CQRS
 ### Commands, Queries, Events
-## Workflows
+## Arch Unit
