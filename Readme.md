@@ -136,7 +136,7 @@ architecture. Here is a high level overview of each of the major the design elem
    time by packing them in maven artifacts.
    - In addition to this, each Bounded Context is isolated at runtime as well. Each runs in its own Spring Application
    Context.
-3. [CQRS](https://martinfowler.com/bliki/CQRS.html) - Command Query Response Segregation
+3. [CQRS](https://martinfowler.com/bliki/CQRS.html) - Command Query Responsibility Segregation
    - Inspired by: https://medium.com/swlh/cqrs-and-application-pipelines-in-kotlin-441d8f7fe427
    - By separating out how Queries (reading data) of the system are performed from the Commands (writing data),
    we can optimize for each independently.
