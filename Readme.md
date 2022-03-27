@@ -66,8 +66,6 @@ highlight as their influence played a much larger role.
   This application influenced  two big decisions in this project. The first being that each bounded context is
   contained in its own Spring context. The second idea is that persistence operations  are modelled as event handlers.
   More on both of these below.
-* https://blog.octo.com/en/hexagonal-architecture-three-principles-and-an-implementation-example/ - 
-  Lots more about hexagonal architecture 
 
 If I've missed something/someone, contact me. I'm happy to give you credit.
 
