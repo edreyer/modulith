@@ -12,7 +12,7 @@
     <artifactId>server</artifactId>
 
     <properties>
-        <rest-assured.version>4.2.1</rest-assured.version>
+        <rest-assured.version>5.0.1</rest-assured.version>
     </properties>
 
     <dependencies>
