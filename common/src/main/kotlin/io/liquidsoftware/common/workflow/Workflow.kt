@@ -1,6 +1,7 @@
 package io.liquidsoftware.common.workflow
 
-import arrow.core.computations.result
+import arrow.core.continuations.effect
+import arrow.core.continuations.toResult
 import io.liquidsoftware.common.ext.className
 import io.liquidsoftware.common.logging.LoggerDelegate
 import reactor.core.publisher.Flux
@@ -27,10 +28,14 @@ interface SafeWorkflow<R: Request, E : Event> : Workflow<E> {
 abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
   private val log by LoggerDelegate()
   final override suspend operator fun invoke(request: R): Result<E> =
-    result {
+    effect<Throwable, E> {
       log.debug("Executing workflow ${this.className()} with request $request")
-      execute(request)
-    }
+      try {
+        execute(request)
+      } catch (t: Throwable) {
+        shift(t)
+      }
+    }.toResult()
   abstract suspend fun execute(request: R): E
 }
 
