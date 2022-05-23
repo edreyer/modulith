@@ -2,7 +2,7 @@ package io.liquidsoftware.base.user.application.workflows
 
 import arrow.core.computations.ResultEffect.bind
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
-import io.liquidsoftware.base.user.application.port.`in`.RegisterUserError.UserExistsError
+import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
