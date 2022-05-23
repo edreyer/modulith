@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
 @Component
-internal class GetAvailabiityWorkflow(
+internal class GetAvailabilityWorkflow(
   private val findApptsPost: FindAppointmentPort,
   private val availabilityService: AvailabilityService
 ) : BaseSafeWorkflow<GetAvailabilityQuery, AvailabilityRetrievedEvent>() {
