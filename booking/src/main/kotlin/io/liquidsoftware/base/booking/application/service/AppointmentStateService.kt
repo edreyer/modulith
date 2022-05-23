@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.booking.application.service
 
-import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentError.CancelAppointmentError
+import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.CancelledAppointment
 import io.liquidsoftware.base.booking.domain.CompleteAppointment

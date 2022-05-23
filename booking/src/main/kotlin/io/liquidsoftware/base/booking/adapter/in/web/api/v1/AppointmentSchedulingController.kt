@@ -2,14 +2,14 @@ package io.liquidsoftware.base.booking.adapter.`in`.web.api.v1
 
 import io.liquidsoftware.base.booking.adapter.`in`.web.V1BookingPaths
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.CancelledAppointmentDto
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.ScheduledAppointmentDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
+import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
+import io.liquidsoftware.base.booking.application.port.`in`.CancelledAppointmentDto
+import io.liquidsoftware.base.booking.application.port.`in`.DraftAppointmentDto
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentError
-import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentError.CancelAppointmentError
+import io.liquidsoftware.base.booking.application.port.`in`.ScheduledAppointmentDto
 import io.liquidsoftware.common.web.ControllerSupport
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import org.springframework.http.ResponseEntity
@@ -30,7 +30,7 @@ data class CancelApptErrorDto(val error: String) : CancelAppointmentOutputDto()
 class AppointmentSchedulingController : ControllerSupport {
 
   @PostMapping(value = [V1BookingPaths.SCHEDULE_APPT])
-  suspend fun schedule(@RequestBody draft: AppointmentDto.DraftAppointmentDto)
+  suspend fun schedule(@RequestBody draft: DraftAppointmentDto)
     : ResponseEntity<ScheduledAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentScheduledEvent>(
       ScheduleAppointmentCommand(draft.userId, draft.startTime, draft.duration)

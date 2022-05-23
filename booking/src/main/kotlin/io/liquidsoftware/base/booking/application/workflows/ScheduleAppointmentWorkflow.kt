@@ -1,12 +1,11 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.computations.ResultEffect.bind
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.AppointmentDtoData
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.ScheduledAppointmentDto
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoData
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentValidationError
+import io.liquidsoftware.base.booking.application.port.`in`.DateTimeUnavailableError
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
-import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentError.AppointmentValidationError
-import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentError.DateTimeUnavailableError
+import io.liquidsoftware.base.booking.application.port.`in`.ScheduledAppointmentDto
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AppointmentStateService
@@ -43,7 +42,7 @@ internal class ScheduleAppointmentWorkflow(
         Result.failure(AppointmentValidationError(it.toErrString()))
       }, {
         Result.success(appointmentEventPort.handle(AppointmentScheduledEvent(it.toDto())))
-      }).bind()
+      }).getOrThrow()
   }
 
   private suspend fun checkTimeAvailable(
@@ -56,7 +55,8 @@ internal class ScheduleAppointmentWorkflow(
   }
 
   suspend fun ScheduledAppointment.toDto(): ScheduledAppointmentDto =
-    ScheduledAppointmentDto(AppointmentDtoData(
+    ScheduledAppointmentDto(
+      AppointmentDtoData(
       this.id.value,
       this.userId.value,
       this.startTime,

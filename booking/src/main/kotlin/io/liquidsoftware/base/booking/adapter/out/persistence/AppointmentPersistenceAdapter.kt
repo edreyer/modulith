@@ -9,11 +9,12 @@ import io.liquidsoftware.base.booking.adapter.out.persistence.AppointmentStatus.
 import io.liquidsoftware.base.booking.adapter.out.persistence.AppointmentStatus.IN_PROGRESS
 import io.liquidsoftware.base.booking.adapter.out.persistence.AppointmentStatus.SCHEDULED
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.CompleteAppointmentDto
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.DraftAppointmentDto
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.InProgressAppointmentDto
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.ScheduledAppointmentDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
+import io.liquidsoftware.base.booking.application.port.`in`.CancelledAppointmentDto
+import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentDto
+import io.liquidsoftware.base.booking.application.port.`in`.DraftAppointmentDto
+import io.liquidsoftware.base.booking.application.port.`in`.InProgressAppointmentDto
+import io.liquidsoftware.base.booking.application.port.`in`.ScheduledAppointmentDto
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.Appointment
@@ -144,7 +145,7 @@ internal class AppointmentPersistenceAdapter(
         dbAppt.completeDate = this.completeDate
         dbAppt
       }
-    is AppointmentDto.CancelledAppointmentDto -> apptRepository.getById(this.id)
+    is CancelledAppointmentDto -> apptRepository.getById(this.id)
       .let { dbAppt ->
         dbAppt.userId = this.userId
         dbAppt.startTime = this.startTime

@@ -1,10 +1,10 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.AppointmentDtoData
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDto.CancelledAppointmentDto
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoData
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
-import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentError
+import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
+import io.liquidsoftware.base.booking.application.port.`in`.CancelledAppointmentDto
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AppointmentStateService
@@ -28,11 +28,12 @@ internal class CancelAppointmentWorkflow(
     return findAppointmentPort.findById(request.appointmentId)
       ?.let { apptStateService.cancel(it) }
       ?.let { appointmentEventPort.handle(AppointmentCancelledEvent(it.toDto()))}
-      ?: throw ScheduleAppointmentError.CancelAppointmentError("Failed to cancel appt ID='${request.appointmentId}'")
+      ?: throw CancelAppointmentError("Failed to cancel appt ID='${request.appointmentId}'")
   }
 
   suspend fun CancelledAppointment.toDto(): CancelledAppointmentDto =
-    CancelledAppointmentDto(AppointmentDtoData(
+    CancelledAppointmentDto(
+      AppointmentDtoData(
       this.id.value,
       this.userId.value,
       this.startTime,
