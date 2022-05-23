@@ -1,18 +1,18 @@
 package io.liquidsoftware.base.user.adapter.`in`.web
 
-import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
-import io.liquidsoftware.base.user.application.port.`in`.RegisterUserError.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
+import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.common.types.ValidationException
 import io.liquidsoftware.common.types.toErrStrings
 import io.liquidsoftware.common.validation.Msisdn
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 import javax.validation.constraints.Email
 import javax.validation.constraints.NotEmpty

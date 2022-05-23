@@ -21,7 +21,8 @@ data class UserRegisteredEvent(
 ) : Event(), UserEvent
 
 // Errors
-sealed class RegisterUserError : RuntimeException() {
-  data class UserExistsError(val error: String) : RegisterUserError()
-  data class UserValidationErrors(val errors: Nel<ValidationError>) : RegisterUserError()
-}
+sealed class RegisterUserError : RuntimeException()
+
+data class UserExistsError(val error: String) : RegisterUserError()
+data class UserValidationErrors(val errors: Nel<ValidationError>) : RegisterUserError()
+
