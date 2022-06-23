@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Import
   CommonConfig::class
 )
 class BookingModuleConfig {
-  val logger by LoggerDelegate()
+  private final val logger by LoggerDelegate()
 
   init {
     logger.info("Starting Booking Module")

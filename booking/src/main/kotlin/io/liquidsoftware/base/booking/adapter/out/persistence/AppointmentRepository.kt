@@ -13,6 +13,6 @@ internal interface AppointmentRepository : JpaRepository<AppointmentEntity, Stri
 
   fun findByUserId(userId: String): List<AppointmentEntity>
 
-  fun findByStartTimeBetween(start: LocalDateTime, end: LocalDateTime): List<AppointmentEntity>
+  fun findByScheduledTimeBetween(start: LocalDateTime, end: LocalDateTime): List<AppointmentEntity>
 
 }

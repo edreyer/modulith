@@ -1,7 +1,8 @@
 package io.liquidsoftware.base.booking.adapter.out.config
 
-import io.liquidsoftware.base.booking.adapter.out.persistence.AppointmentPersistenceAdapter
 import io.liquidsoftware.base.booking.adapter.out.persistence.AppointmentRepository
+import io.liquidsoftware.base.booking.adapter.out.persistence.BookingPersistenceAdapter
+import io.liquidsoftware.base.booking.adapter.out.persistence.WorkOrderRepository
 import io.liquidsoftware.common.security.acl.AclChecker
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,7 +17,11 @@ internal class BookingPersistenceConfig {
   @Bean
    fun appointmentPersistenceAdapter(
     appointmentRepository: AppointmentRepository,
+    workOrderRepository: WorkOrderRepository,
     ac: AclChecker
-  ): AppointmentPersistenceAdapter = AppointmentPersistenceAdapter(appointmentRepository, ac)
+  ): BookingPersistenceAdapter = BookingPersistenceAdapter(
+    appointmentRepository,
+    workOrderRepository,
+    ac)
 
 }

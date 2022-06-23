@@ -10,8 +10,9 @@ import java.time.LocalDateTime
 
 data class ScheduleAppointmentCommand(
   val userId: String,
-  val startTime: LocalDateTime,
-  val duration: Long
+  val scheduledTime: LocalDateTime,
+  val duration: Long,
+  val workOrder: WorkOrderDtoIn
 ) : Command
 
 data class CancelAppointmentCommand(
@@ -20,11 +21,11 @@ data class CancelAppointmentCommand(
 
 // events
 sealed interface AppointmentEvent {
-  val appointmentDto: AppointmentDto
+  val appointmentDto: AppointmentDtoOut
 }
-data class AppointmentScheduledEvent(override val appointmentDto: ScheduledAppointmentDto) : Event(),
+data class AppointmentScheduledEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
   AppointmentEvent
-data class AppointmentCancelledEvent(override val appointmentDto: CancelledAppointmentDto) : Event(),
+data class AppointmentCancelledEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
   AppointmentEvent
 
 // Errors

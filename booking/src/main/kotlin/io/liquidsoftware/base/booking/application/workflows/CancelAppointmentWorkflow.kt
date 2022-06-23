@@ -1,14 +1,12 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoData
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
-import io.liquidsoftware.base.booking.application.port.`in`.CancelledAppointmentDto
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
+import io.liquidsoftware.base.booking.application.port.out.toDto
 import io.liquidsoftware.base.booking.application.service.AppointmentStateService
-import io.liquidsoftware.base.booking.domain.CancelledAppointment
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import org.springframework.stereotype.Component
@@ -31,13 +29,4 @@ internal class CancelAppointmentWorkflow(
       ?: throw CancelAppointmentError("Failed to cancel appt ID='${request.appointmentId}'")
   }
 
-  suspend fun CancelledAppointment.toDto(): CancelledAppointmentDto =
-    CancelledAppointmentDto(
-      AppointmentDtoData(
-      this.id.value,
-      this.userId.value,
-      this.startTime,
-      this.duration.toMinutes()),
-      this.cancelDate
-    )
 }

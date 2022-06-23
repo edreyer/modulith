@@ -3,7 +3,6 @@ package io.liquidsoftware.base.booking.domain
 import arrow.core.Some
 import arrow.core.Validated.Companion.validNel
 import arrow.core.valid
-import arrow.core.validNel
 import arrow.core.zip
 import io.liquidsoftware.base.booking.AppointmentId
 import io.liquidsoftware.base.user.UserId
@@ -21,15 +20,17 @@ import java.time.temporal.ChronoUnit
 internal interface AppointmentFields {
   val id: AppointmentId
   val userId: UserId
-  val startTime: LocalDateTime
+  val workOrder: WorkOrder
+  val scheduledTime: LocalDateTime
   val duration: Duration
 }
 
-data class AppointmentData(
+internal data class AppointmentData(
   override val id: AppointmentId,
   override val userId: UserId,
-  override val startTime: LocalDateTime,
-  override val duration: Duration
+  override val workOrder: WorkOrder,
+  override val scheduledTime: LocalDateTime,
+  override val duration: Duration,
 ) : AppointmentFields
 
 internal sealed class Appointment : AppointmentFields {
@@ -50,31 +51,11 @@ internal sealed class Appointment : AppointmentFields {
   }
 }
 
-internal data class DraftAppointment(
-  private val data: AppointmentData
-) : Appointment(), AppointmentFields by data {
-  companion object {
-    fun of(userId: String, startTime: LocalDateTime, duration: Long):
-      ValidationErrorNel<DraftAppointment> {
-      return AppointmentId.create().validNel().zip (
-        UserId.of(userId),
-        startTimeValidator(startTime),
-        durationValidator(duration)
-      ) { aId, uId, st, d ->
-        DraftAppointment(AppointmentData(aId,
-          uId,
-          st.value,
-          Duration.ofMinutes(d.value)))
-      }
-    }
-  }
-}
-
 internal data class ScheduledAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long):
+    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder):
       ValidationErrorNel<ScheduledAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),
@@ -84,14 +65,11 @@ internal data class ScheduledAppointment(
         ScheduledAppointment(AppointmentData(
           aId,
           uId,
+          workOrder,
           st,
           Duration.ofMinutes(d.value)))
       }
     }
-    fun of(draft: DraftAppointment): ScheduledAppointment =
-      ScheduledAppointment(
-        AppointmentData(draft.id, draft.userId, draft.startTime, draft.duration)
-      )
   }
 }
 
@@ -99,7 +77,7 @@ internal data class InProgressAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long):
+    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder):
       ValidationErrorNel<InProgressAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),
@@ -109,6 +87,7 @@ internal data class InProgressAppointment(
         InProgressAppointment(AppointmentData(
           aId,
           uId,
+          workOrder,
           st.value,
           Duration.ofMinutes(d.value)))
       }
@@ -117,11 +96,11 @@ internal data class InProgressAppointment(
 }
 
 internal data class CompleteAppointment(
-  val completeDate: LocalDateTime,
+  val completeTime: LocalDateTime,
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, completeDate: LocalDateTime):
+    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder, completeDate: LocalDateTime):
       ValidationErrorNel<CompleteAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),
@@ -134,18 +113,18 @@ internal data class CompleteAppointment(
         } ,
       ) { aId, uId, st, d, cd ->
         CompleteAppointment(cd.value,
-          AppointmentData(aId, uId, st.value, Duration.ofMinutes(d.value)))
+          AppointmentData(aId, uId, workOrder, st.value, Duration.ofMinutes(d.value)))
       }
     }
   }
 }
 
 internal data class CancelledAppointment(
-  val cancelDate: LocalDateTime,
+  val cancelTime: LocalDateTime,
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, cancelDate: LocalDateTime):
+    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder, cancelDate: LocalDateTime):
       ValidationErrorNel<CancelledAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),
@@ -154,18 +133,13 @@ internal data class CancelledAppointment(
         validNel(cancelDate),
       ) { aId, uId, st, d, cd ->
         CancelledAppointment(cd,
-          AppointmentData(aId, uId, st, d))
+          AppointmentData(aId, uId, workOrder, st, d))
       }
     }
-    fun of(appt: DraftAppointment): CancelledAppointment =
+    fun of(appt: Appointment): CancelledAppointment =
       CancelledAppointment(
         LocalDateTime.now(),
-        AppointmentData(appt.id, appt.userId, appt.startTime, appt.duration)
-      )
-    fun of(appt: ScheduledAppointment): CancelledAppointment =
-      CancelledAppointment(
-        LocalDateTime.now(),
-        AppointmentData(appt.id, appt.userId, appt.startTime, appt.duration)
+        AppointmentData(appt.id, appt.userId, appt.workOrder, appt.scheduledTime, appt.duration)
       )
   }
 }

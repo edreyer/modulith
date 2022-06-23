@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>user</artifactId>
+    <artifactId>payment-api</artifactId>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -21,16 +21,6 @@
             <groupId>liquidsoftware.io</groupId>
             <artifactId>common</artifactId>
         </dependency>
-        <dependency>
-            <groupId>liquidsoftware.io</groupId>
-            <artifactId>user-api</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>liquidsoftware.io</groupId>
-            <artifactId>common</artifactId>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
+
 </project>
