@@ -83,7 +83,7 @@ internal data class InProgressWorkOrder(
 internal data class CompleteWorkOrder(
   val startTime: LocalDateTime,
   val completeTime: LocalDateTime,
-  val notes: String,
+  val notes: String?,
   private val data: WorkOrderData
 ) : WorkOrder(), WorkOrderFields by data {
   companion object {
@@ -99,7 +99,7 @@ internal data class CompleteWorkOrder(
         CompleteWorkOrder(sd.value, cd.value, n, WorkOrderData(woId, s))
       }
     }
-    fun of(inProgress: InProgressWorkOrder, notes: String = ""): CompleteWorkOrder =
+    fun of(inProgress: InProgressWorkOrder, notes: String?): CompleteWorkOrder =
       CompleteWorkOrder(
         inProgress.startTime,
         LocalDateTime.now(),

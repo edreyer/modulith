@@ -37,7 +37,7 @@ internal sealed class Appointment : AppointmentFields {
   fun acl() = Acl.of(id.value, userId.value, AclRole.MANAGER)
 
   companion object {
-    fun startTimeValidator(startTime: LocalDateTime): ValidationErrorNel<Some<LocalDateTime>> = ensure {
+    fun ScheduledTimeValidator(startTime: LocalDateTime): ValidationErrorNel<Some<LocalDateTime>> = ensure {
       validate(Some(startTime)) {
         validate(Some<LocalDateTime>::value).isValid { it.toLocalDate().isAfter(LocalDate.now()) }
       }
@@ -55,19 +55,16 @@ internal data class ScheduledAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder):
+    fun of(apptId: String, userId: String, scheduledTime: LocalDateTime, duration: Long, workOrder: ReadyWorkOrder):
       ValidationErrorNel<ScheduledAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),
-        startTime.valid(),
+        scheduledTime.valid(),
         durationValidator(duration)
       ) { aId, uId, st, d ->
         ScheduledAppointment(AppointmentData(
-          aId,
-          uId,
-          workOrder,
-          st,
-          Duration.ofMinutes(d.value)))
+          aId, uId, workOrder, st, Duration.ofMinutes(d.value)
+        ))
       }
     }
   }
@@ -77,21 +74,26 @@ internal data class InProgressAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder):
+    fun of(apptId: String, userId: String, scheduledTime: LocalDateTime, duration: Long, workOrder: InProgressWorkOrder):
       ValidationErrorNel<InProgressAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),
-        startTimeValidator(startTime),
+        ScheduledTimeValidator(scheduledTime),
         durationValidator(duration)
       ) { aId, uId, st, d ->
         InProgressAppointment(AppointmentData(
-          aId,
-          uId,
-          workOrder,
-          st.value,
-          Duration.ofMinutes(d.value)))
+          aId, uId, workOrder, st.value, Duration.ofMinutes(d.value)
+        ))
       }
     }
+
+    fun of (scheduledAppointment: ScheduledAppointment) =
+      scheduledAppointment.let {
+        InProgressAppointment(
+          AppointmentData(it.id, it.userId, InProgressWorkOrder.of(it.workOrder as ReadyWorkOrder),
+            it.scheduledTime, it.duration)
+        )
+      }
   }
 }
 
@@ -100,11 +102,11 @@ internal data class CompleteAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder, completeDate: LocalDateTime):
+    fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: CompleteWorkOrder, completeDate: LocalDateTime):
       ValidationErrorNel<CompleteAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),
-        startTimeValidator(startTime),
+        ScheduledTimeValidator(startTime),
         durationValidator(duration),
         ensure {
           validate(Some(completeDate)) {
@@ -116,6 +118,17 @@ internal data class CompleteAppointment(
           AppointmentData(aId, uId, workOrder, st.value, Duration.ofMinutes(d.value)))
       }
     }
+
+    fun of (startedAppointment: InProgressAppointment, notes: String?) =
+      startedAppointment.let {
+        CompleteAppointment(
+          LocalDateTime.now(),
+          AppointmentData(it.id, it.userId,
+            CompleteWorkOrder.of(it.workOrder as InProgressWorkOrder, notes),
+            it.scheduledTime, it.duration)
+        )
+      }
+
   }
 }
 

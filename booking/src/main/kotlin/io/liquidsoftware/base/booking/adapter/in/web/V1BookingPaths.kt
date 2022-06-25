@@ -7,5 +7,7 @@ internal object V1BookingPaths {
   const val AVAILABILITY = "$V1/availability/{date}"
 
   const val SCHEDULE_APPT = "$V1/appointments/schedule"
-  const val CANCEL_APPT = "$V1/appointments/cancel/{appointmentId}"
+  const val IN_PROGRESS_APPT = "$V1/appointments/in_progress"
+  const val COMPLETE_APPT = "$V1/appointments/complete"
+  const val CANCEL_APPT = "$V1/appointments/cancel"
 }

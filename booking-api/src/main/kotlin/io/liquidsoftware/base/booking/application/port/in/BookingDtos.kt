@@ -16,6 +16,15 @@ data class AppointmentDtoIn (
   val workOrder: WorkOrderDtoIn
 )
 
+data class AppointmentIdDtoIn (
+  val id: String,
+)
+
+data class AppointmentCompletedDtoIn (
+  val id: String,
+  val notes: String?
+)
+
 data class AppointmentDtoOut (
   val id: String,
   val userId: String,

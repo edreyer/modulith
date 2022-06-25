@@ -46,6 +46,14 @@ internal class BookingPersistenceAdapter(
         ?.also { ac.checkPermission(it.acl(), Permission.READ)}
     }
 
+  override suspend fun findScheduledById(apptId: String): ScheduledAppointment? =
+    findById(apptId)
+      ?.let { if (it !is ScheduledAppointment) null else it }
+
+  override suspend fun findStartedById(apptId: String): InProgressAppointment? =
+    findById(apptId)
+      ?.let { if (it !is InProgressAppointment) null else it }
+
   override suspend fun findByUserId(userId: String): List<Appointment> =
     withContext(Dispatchers.IO) {
       apptRepository.findByUserId(userId)
@@ -66,11 +74,16 @@ internal class BookingPersistenceAdapter(
 
   override suspend fun <T: AppointmentEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     when (event.appointmentDto.status) {
-      AppointmentStatus.SCHEDULED -> {
+      AppointmentStatus.SCHEDULED,
+      AppointmentStatus.IN_PROGRESS,
+      AppointmentStatus.COMPLETE -> {
         apptRepository.findByAppointmentId(event.appointmentDto.id)
           ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
           ?.handle(event)
-          ?.let { apptRepository.saveAndFlush(it) }
+          ?.let {
+            workOrderRepository.saveAndFlush(it.workOrder)
+            apptRepository.saveAndFlush(it)
+          }
           ?: apptRepository.saveAndFlush(event.appointmentDto.toEntity()) // New Entity
         event
       }
@@ -92,13 +105,16 @@ internal class BookingPersistenceAdapter(
     }
     return when (this.status) {
       AppointmentStatus.SCHEDULED -> ScheduledAppointment.of(
-          this.id, this.userId, this.scheduledTime, this.duration, this.workOrder.toWorkOrder()
+          this.id, this.userId, this.scheduledTime, this.duration,
+          this.workOrder.toWorkOrder() as ReadyWorkOrder
         ).fold(errorHandler, ::identity)
       AppointmentStatus.IN_PROGRESS -> InProgressAppointment.of(
-          this.id, this.userId, this.scheduledTime, this.duration, this.workOrder.toWorkOrder()
+          this.id, this.userId, this.scheduledTime, this.duration,
+          this.workOrder.toWorkOrder() as InProgressWorkOrder
         ).fold(errorHandler, ::identity)
       AppointmentStatus.COMPLETE -> CompleteAppointment.of(
-        this.id, this.userId, this.scheduledTime, this.duration, this.workOrder.toWorkOrder(), this.completeTime!!
+        this.id, this.userId, this.scheduledTime, this.duration,
+        this.workOrder.toWorkOrder() as CompleteWorkOrder, this.completeTime!!
       ).fold(errorHandler, ::identity)
       AppointmentStatus.CANCELLED -> CancelledAppointment.of(
         this.id, this.userId, this.scheduledTime, this.duration, this.workOrder.toWorkOrder(), this.cancelTime!!
