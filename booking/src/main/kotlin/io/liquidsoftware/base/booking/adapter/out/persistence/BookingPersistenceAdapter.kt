@@ -122,7 +122,7 @@ internal class BookingPersistenceAdapter(
     }
   }
 
-  private fun AppointmentDtoOut.toEntity(): AppointmentEntity = this.id.let { id ->
+  private fun AppointmentDtoOut.toEntity(): AppointmentEntity =
     apptRepository.findById(id).orElseGet {
       AppointmentEntity(
         apptId = id,
@@ -135,7 +135,6 @@ internal class BookingPersistenceAdapter(
         cancelTime = this.cancelTime
       )
     }
-  }
 
   private fun WorkOrderEntity.toWorkOrder(): WorkOrder {
     val errorHandler = { errors: Nel<ValidationError> ->

@@ -2,8 +2,6 @@ package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.Nel
 import arrow.core.continuations.either
-import io.liquidsoftware.base.booking.AppointmentId
-import io.liquidsoftware.base.booking.WorkOrderId
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
@@ -41,11 +39,9 @@ internal class ScheduleAppointmentWorkflow(
     checkTimeAvailable(todaysAppts, request.scheduledTime.toLocalTime())
 
     return either<Nel<ValidationError>, Appointment> {
-      val apptId = AppointmentId.create();
-      val workOrderId = WorkOrderId.create();
-      val wo = ReadyWorkOrder.of(workOrderId.value, request.workOrder.service).bind()
+      val wo = ReadyWorkOrder.of(service = request.workOrder.service).bind()
       val appt = ScheduledAppointment
-        .of(apptId.value, request.userId, request.scheduledTime, request.duration, wo)
+        .of(userId = request.userId, scheduledTime = request.scheduledTime, duration = request.duration, workOrder = wo)
         .bind()
       appt
     }

@@ -5,7 +5,9 @@ import arrow.core.Validated.Companion.validNel
 import arrow.core.valid
 import arrow.core.zip
 import io.liquidsoftware.base.booking.AppointmentId
+import io.liquidsoftware.base.booking.BookingNamespaces
 import io.liquidsoftware.base.user.UserId
+import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.types.ValidationErrorNel
@@ -55,7 +57,8 @@ internal data class ScheduledAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    fun of(apptId: String, userId: String, scheduledTime: LocalDateTime, duration: Long, workOrder: ReadyWorkOrder):
+    fun of(apptId: String = NamespaceIdGenerator.nextId(BookingNamespaces.APPOINTMENT_NS),
+           userId: String, scheduledTime: LocalDateTime, duration: Long, workOrder: ReadyWorkOrder):
       ValidationErrorNel<ScheduledAppointment> {
       return AppointmentId.of(apptId).zip(
         UserId.of(userId),

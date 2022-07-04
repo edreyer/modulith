@@ -1,8 +1,8 @@
 package io.liquidsoftware.base.booking.adapter.`in`.web
 
 internal object V1BookingPaths {
-  const val API = "/api"
-  const val V1 = "$API/v1"
+  private const val API = "/api"
+  private const val V1 = "$API/v1"
 
   const val AVAILABILITY = "$V1/availability/{date}"
 

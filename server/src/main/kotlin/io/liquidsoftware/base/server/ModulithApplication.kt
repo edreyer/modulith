@@ -1,6 +1,7 @@
 package io.liquidsoftware.base.server
 
 import io.liquidsoftware.base.booking.config.BookingModuleConfig
+import io.liquidsoftware.base.payment.config.PaymentModuleConfig
 import io.liquidsoftware.base.server.config.ServerConfig
 import io.liquidsoftware.base.user.config.UserModuleConfig
 import org.springframework.boot.WebApplicationType
@@ -28,6 +29,9 @@ fun main(args: Array<String>) {
       .web(WebApplicationType.NONE)
     .sibling(BookingModuleConfig::class.java)
       .properties("spring.config.name=booking")
+      .web(WebApplicationType.NONE)
+    .sibling(PaymentModuleConfig::class.java)
+      .properties("spring.config.name=payment")
       .web(WebApplicationType.NONE)
     .run(*args)
 }

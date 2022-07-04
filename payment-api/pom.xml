@@ -21,6 +21,10 @@
             <groupId>liquidsoftware.io</groupId>
             <artifactId>common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>user-api</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

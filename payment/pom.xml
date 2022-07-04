@@ -16,4 +16,23 @@
         <maven.compiler.target>11</maven.compiler.target>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>payment-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>common</artifactId>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
 </project>
