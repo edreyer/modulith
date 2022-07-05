@@ -12,6 +12,8 @@
     <artifactId>server</artifactId>
 
     <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
         <rest-assured.version>5.0.1</rest-assured.version>
     </properties>
 
@@ -23,6 +25,14 @@
         <dependency>
             <groupId>liquidsoftware.io</groupId>
             <artifactId>user</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>booking</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>payment</artifactId>
         </dependency>
 
         <dependency>

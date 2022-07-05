@@ -48,7 +48,7 @@ internal class UserPersistenceAdapter(
 
   private suspend fun saveNewUser(user: UserEntity): User = withContext(Dispatchers.IO) {
     ac.checkPermission(user.toUser().acl(), Permission.MANAGE)
-    userRepository.save(user).toUser()
+    userRepository.saveAndFlush(user).toUser()
   }
 
   override suspend fun handle(event: UserRegisteredEvent): UserRegisteredEvent = withContext(Dispatchers.IO) {
@@ -60,7 +60,7 @@ internal class UserPersistenceAdapter(
     userRepository.findByUserId(event.userDto.id)
       ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
       ?.handle(event)
-      ?.let { userRepository.save(it) }
+      ?.let { userRepository.saveAndFlush(it) }
     event
   }
 

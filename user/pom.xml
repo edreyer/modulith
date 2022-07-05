@@ -11,6 +11,11 @@
 
     <artifactId>user</artifactId>
 
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>liquidsoftware.io</groupId>
@@ -20,6 +25,7 @@
             <groupId>liquidsoftware.io</groupId>
             <artifactId>user-api</artifactId>
         </dependency>
+
         <dependency>
             <groupId>liquidsoftware.io</groupId>
             <artifactId>common</artifactId>

@@ -8,9 +8,11 @@ import io.liquidsoftware.arch.HexagonalArchitecture
 
 class DependencyRuleTests {
 
+  val module = "user"
+
   @Test
   fun validateUserContextArchitecture() {
-    HexagonalArchitecture.boundedContext("io.liquidsoftware.base.user")
+    HexagonalArchitecture.boundedContext("io.liquidsoftware.base.$module")
 
       .withDomainLayer("domain")
 
@@ -27,7 +29,7 @@ class DependencyRuleTests {
       .withConfiguration("config")
       .check(
         ClassFileImporter()
-          .importPackages("io.liquidsoftware.base.user..")
+          .importPackages("io.liquidsoftware.base.$module..")
       )
   }
 
@@ -35,24 +37,24 @@ class DependencyRuleTests {
   fun testDomainPackageDependencies() {
     noClasses()
       .that()
-      .resideInAPackage("io.liquidsoftware.base.user.domain..")
+      .resideInAPackage("io.liquidsoftware.base.$module.domain..")
       .should()
       .dependOnClassesThat()
-      .resideInAnyPackage("io.liquidsoftware.base.user.application..")
+      .resideInAnyPackage("io.liquidsoftware.base.$module.application..")
       .check(
         ClassFileImporter()
-          .importPackages("io.liquidsoftware.base.user..")
+          .importPackages("io.liquidsoftware.base.$module..")
       )
 
     noClasses()
       .that()
-      .resideInAPackage("io.liquidsoftware.base.user.domain..")
+      .resideInAPackage("io.liquidsoftware.base.$module.domain..")
       .should()
       .dependOnClassesThat()
-      .resideInAnyPackage("io.liquidsoftware.base.user.adapter..")
+      .resideInAnyPackage("io.liquidsoftware.base.$module.adapter..")
       .check(
         ClassFileImporter()
-          .importPackages("io.liquidsoftware.base.user..")
+          .importPackages("io.liquidsoftware.base.$module..")
       )
 
   }
@@ -61,13 +63,13 @@ class DependencyRuleTests {
   fun testWorkflowPackageDependencies() {
     noClasses()
       .that()
-      .resideInAPackage("io.liquidsoftware.base.user.application.workflows..")
+      .resideInAPackage("io.liquidsoftware.base.$module.application.workflows..")
       .should()
       .dependOnClassesThat()
-      .resideInAnyPackage("io.liquidsoftware.base.user.adapter..")
+      .resideInAnyPackage("io.liquidsoftware.base.$module.adapter..")
       .check(
         ClassFileImporter()
-          .importPackages("io.liquidsoftware.base.user..")
+          .importPackages("io.liquidsoftware.base.$module..")
       )
   }
 

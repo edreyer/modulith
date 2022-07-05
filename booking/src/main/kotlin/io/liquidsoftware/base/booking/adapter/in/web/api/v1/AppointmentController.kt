@@ -1,0 +1,124 @@
+package io.liquidsoftware.base.booking.adapter.`in`.web.api.v1
+
+import io.liquidsoftware.base.booking.adapter.`in`.web.V1BookingPaths
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedDtoIn
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoIn
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentError
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentIdDtoIn
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
+import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
+import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
+import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentCommand
+import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
+import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentCommand
+import io.liquidsoftware.common.security.ExecutionContext
+import io.liquidsoftware.common.web.ControllerSupport
+import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RestController
+
+sealed class ScheduledAppointmentOutputDto
+data class ScheduleSuccessDto(val appointment: AppointmentDtoOut) : ScheduledAppointmentOutputDto()
+data class ScheduleErrorDto(val error: String) : ScheduledAppointmentOutputDto()
+
+sealed class StartedAppointmentOutputDto
+data class StartedSuccessDto(val appointment: AppointmentDtoOut) : StartedAppointmentOutputDto()
+data class StartedErrorDto(val error: String) : StartedAppointmentOutputDto()
+
+sealed class CompletedAppointmentOutputDto
+data class CompletedSuccessDto(val appointment: AppointmentDtoOut) : CompletedAppointmentOutputDto()
+data class CompletedErrorDto(val error: String) : CompletedAppointmentOutputDto()
+
+sealed class CancelAppointmentOutputDto
+data class CancelApptSuccessDto(val appt: AppointmentDtoOut) : CancelAppointmentOutputDto()
+data class CancelApptErrorDto(val error: String) : CancelAppointmentOutputDto()
+
+@RestController
+class AppointmentController(
+  private val ex: ExecutionContext
+) : ControllerSupport {
+
+  @PostMapping(value = [V1BookingPaths.SCHEDULE_APPT])
+  suspend fun schedule(@RequestBody appt: AppointmentDtoIn)
+    : ResponseEntity<ScheduledAppointmentOutputDto> {
+    return WorkflowDispatcher.dispatch<AppointmentScheduledEvent>(
+      ScheduleAppointmentCommand(ex.getCurrentUser().id, appt.scheduledTime, appt.duration, appt.workOrder)
+    )
+      .throwIfSpringError()
+      .fold(
+        { ResponseEntity.ok(ScheduleSuccessDto(it.appointmentDto)) },
+        {
+          when (it) {
+            is AppointmentError -> ResponseEntity.badRequest()
+              .body(ScheduleErrorDto("Unexpected Error: ${it.error}"))
+            else -> ResponseEntity.internalServerError()
+              .body(ScheduleErrorDto("Unknown Error: ${it.message}"))
+          }
+        }
+      )
+  }
+
+  @PostMapping(value = [V1BookingPaths.IN_PROGRESS_APPT])
+  suspend fun inProgress(@RequestBody appt: AppointmentIdDtoIn)
+    : ResponseEntity<StartedAppointmentOutputDto> =
+    WorkflowDispatcher.dispatch<AppointmentStartedEvent>(
+      StartAppointmentCommand(appt.id)
+    )
+      .throwIfSpringError()
+      .fold(
+        { ResponseEntity.ok(StartedSuccessDto(it.appointmentDto)) },
+        {
+          when (it) {
+            is AppointmentError -> ResponseEntity.badRequest()
+              .body(StartedErrorDto("Unexpected Error: ${it.error}"))
+            else -> ResponseEntity.internalServerError()
+              .body(StartedErrorDto("Unknown Error: ${it.message}"))
+          }
+        }
+      )
+
+  @PostMapping(value = [V1BookingPaths.COMPLETE_APPT])
+  suspend fun complete(@RequestBody appt: AppointmentCompletedDtoIn)
+    : ResponseEntity<CompletedAppointmentOutputDto> =
+    WorkflowDispatcher.dispatch<AppointmentCompletedEvent>(
+      CompleteAppointmentCommand(appt.id, appt.notes)
+    )
+      .throwIfSpringError()
+      .fold(
+        { ResponseEntity.ok(CompletedSuccessDto(it.appointmentDto)) },
+        {
+          when (it) {
+            is AppointmentError -> ResponseEntity.badRequest()
+              .body(CompletedErrorDto("Unexpected Error: ${it.error}"))
+            else -> ResponseEntity.internalServerError()
+              .body(CompletedErrorDto("Unknown Error: ${it.message}"))
+          }
+        }
+      )
+
+  @PostMapping(value = [V1BookingPaths.CANCEL_APPT])
+  suspend fun cancel(@RequestBody appt: AppointmentDtoIn)
+    : ResponseEntity<CancelAppointmentOutputDto> =
+    WorkflowDispatcher.dispatch<AppointmentCancelledEvent>(
+      CancelAppointmentCommand(appt.id!!, appt.workOrder.notes)
+    )
+      .throwIfSpringError()
+      .fold(
+        { ResponseEntity.ok(CancelApptSuccessDto(it.appointmentDto)) },
+        {
+          when (it) {
+            is CancelAppointmentError -> ResponseEntity.badRequest()
+              .body(CancelApptErrorDto("Unexpected Error: ${it.error}"))
+            else -> ResponseEntity.internalServerError()
+              .body(CancelApptErrorDto("Unknown Error: ${it.message}"))
+          }
+        }
+      )
+
+}

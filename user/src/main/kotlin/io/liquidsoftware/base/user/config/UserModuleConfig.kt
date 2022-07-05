@@ -17,4 +17,10 @@ import org.springframework.context.annotation.Import
 @Import(
   CommonConfig::class
 )
-class UserModuleConfig
+class UserModuleConfig {
+  val logger by LoggerDelegate()
+
+  init {
+    logger.info("Starting User Module")
+  }
+}
