@@ -27,9 +27,9 @@ internal class AddPaymentMethodWorkflow(
   override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent {
     return either<Nel<ValidationError>, PaymentMethod> {
       ActivePaymentMethod.of(
-        userId = request.userId,
-        stripePaymentMethodId = request.stripePaymentMethodId,
-        lastFour = request.lastFour
+        userId = request.paymentMethod.userId,
+        stripePaymentMethodId = request.paymentMethod.stripePaymentMethodId,
+        lastFour = request.paymentMethod.lastFour
       ).bind()
     }
       .fold({

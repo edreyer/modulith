@@ -6,9 +6,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
 data class AddPaymentMethodCommand(
-  val userId: String,
-  val stripePaymentMethodId: String,
-  val lastFour: String
+  val paymentMethod: PaymentMethodDtoIn
 ) : Command
 
 data class MakePayment(

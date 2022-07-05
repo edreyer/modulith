@@ -19,10 +19,7 @@ class PaymentMethodController() : ControllerSupport {
   @PostMapping(value = [V1PaymentPaths.PAYMENT_METHODS])
   suspend fun addPaymentMethod(@RequestBody paymentMethod: PaymentMethodDtoIn) =
     WorkflowDispatcher.dispatch<PaymentMethodAddedEvent>(
-      AddPaymentMethodCommand(
-        userId = paymentMethod.userId,
-        stripePaymentMethodId = paymentMethod.stripePaymentMethodId,
-        lastFour = paymentMethod.lastFour)
+      AddPaymentMethodCommand(paymentMethod)
     )
       .throwIfSpringError()
       .fold(
