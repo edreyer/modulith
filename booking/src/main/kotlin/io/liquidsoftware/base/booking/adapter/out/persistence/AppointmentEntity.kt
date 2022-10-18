@@ -4,6 +4,7 @@ import io.liquidsoftware.base.booking.BookingNamespaces
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
@@ -40,7 +41,9 @@ internal class AppointmentEntity(
 
   @ManyToOne(cascade = [CascadeType.PERSIST])
   @JoinColumn(name = "work_order_id")
-  var workOrder: WorkOrderEntity
+  var workOrder: WorkOrderEntity,
+
+  var paymentId: String? = null
 
 ) : BaseEntity(apptId, BookingNamespaces.APPOINTMENT_NS) {
 
@@ -51,6 +54,7 @@ internal class AppointmentEntity(
       is AppointmentScheduledEvent -> handle(event)
       is AppointmentStartedEvent -> handle(event)
       is AppointmentCompletedEvent -> handle(event)
+      is AppointmentPaidEvent -> handle(event)
       is AppointmentCancelledEvent -> handle(event)
     }
   }
@@ -75,11 +79,22 @@ internal class AppointmentEntity(
   }
 
   private fun handle(event: AppointmentCompletedEvent): AppointmentEntity {
-    status = event.appointmentDto.status
+    status = AppointmentStatus.COMPLETE
     completeTime = event.appointmentDto.completeTime
 
-    workOrder.status = event.appointmentDto.workOrderDto.status
+    workOrder.status = WorkOrderStatus.COMPLETE
     workOrder.completeTime = event.appointmentDto.workOrderDto.completeTime
+    workOrder.notes = event.appointmentDto.workOrderDto.notes
+    return this
+  }
+
+  private fun handle(event: AppointmentPaidEvent): AppointmentEntity {
+    status = event.appointmentDto.status
+    cancelTime = if (cancelTime == null) LocalDateTime.now() else cancelTime
+    paymentId = event.appointmentDto.paymentId
+
+    workOrder.status = WorkOrderStatus.CANCELLED
+    workOrder.cancelTime = if (workOrder.cancelTime == null) LocalDateTime.now() else workOrder.cancelTime
     workOrder.notes = event.appointmentDto.workOrderDto.notes
     return this
   }

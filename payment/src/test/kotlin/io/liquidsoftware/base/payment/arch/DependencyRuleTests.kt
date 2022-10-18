@@ -1,4 +1,4 @@
-package io.liquidsoftware.base.booking.arch
+package io.liquidsoftware.base.payment.arch
 
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 class DependencyRuleTests {
 
-  val module = "booking"
+  val module = "payment"
 
   @Test
   fun validateBookingContextArchitecture() {

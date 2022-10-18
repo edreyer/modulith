@@ -14,6 +14,6 @@ internal class PaymentEntity(
 
   var userId: String,
   var paymentMethodId: String,
-  var amount: Int
+  var amount: Long
 
 ) : BaseEntity(paymentId, PaymentNamespaces.PAYMENT_NS)

@@ -1,6 +1,5 @@
 package io.liquidsoftware.base.booking.adapter.out.persistence
 
-import arrow.core.Nel
 import arrow.core.identity
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
@@ -16,17 +15,17 @@ import io.liquidsoftware.base.booking.domain.CompleteAppointment
 import io.liquidsoftware.base.booking.domain.CompleteWorkOrder
 import io.liquidsoftware.base.booking.domain.InProgressAppointment
 import io.liquidsoftware.base.booking.domain.InProgressWorkOrder
+import io.liquidsoftware.base.booking.domain.PaidAppointment
+import io.liquidsoftware.base.booking.domain.PaidWorkOrder
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
 import io.liquidsoftware.base.booking.domain.WorkOrder
+import io.liquidsoftware.common.errors.ErrorHandling.ERROR_HANDLER
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.Permission
-import io.liquidsoftware.common.types.ValidationError
-import io.liquidsoftware.common.types.ValidationException
-import io.liquidsoftware.common.types.toErrString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -54,6 +53,10 @@ internal class BookingPersistenceAdapter(
     findById(apptId)
       ?.let { if (it !is InProgressAppointment) null else it }
 
+  override suspend fun findCompletedById(apptId: String): CompleteAppointment? =
+    findById(apptId)
+      ?.let { if (it !is CompleteAppointment) null else it }
+
   override suspend fun findByUserId(userId: String): List<Appointment> =
     withContext(Dispatchers.IO) {
       apptRepository.findByUserId(userId)
@@ -76,7 +79,8 @@ internal class BookingPersistenceAdapter(
     when (event.appointmentDto.status) {
       AppointmentStatus.SCHEDULED,
       AppointmentStatus.IN_PROGRESS,
-      AppointmentStatus.COMPLETE -> {
+      AppointmentStatus.COMPLETE,
+      AppointmentStatus.PAID -> {
         apptRepository.findByAppointmentId(event.appointmentDto.id)
           ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
           ?.handle(event)
@@ -88,6 +92,7 @@ internal class BookingPersistenceAdapter(
         event
       }
       else -> {
+        // TODO: Do we need this 'else' branch? Delete if not
         apptRepository.findByAppointmentId(event.appointmentDto.id)
           ?.also { ac.checkPermission(Acl.of(it.id, it.userId, AclRole.WRITER), Permission.WRITE) }
           ?.handle(event)
@@ -98,27 +103,26 @@ internal class BookingPersistenceAdapter(
   }
 
   private fun AppointmentEntity.toAppointment(): Appointment {
-    val errorHandler = { errors: Nel<ValidationError> ->
-      val err = errors.toErrString()
-      logger.error(err)
-      throw ValidationException(errors)
-    }
     return when (this.status) {
       AppointmentStatus.SCHEDULED -> ScheduledAppointment.of(
           this.id, this.userId, this.scheduledTime, this.duration,
           this.workOrder.toWorkOrder() as ReadyWorkOrder
-        ).fold(errorHandler, ::identity)
+        ).fold(ERROR_HANDLER, ::identity)
       AppointmentStatus.IN_PROGRESS -> InProgressAppointment.of(
           this.id, this.userId, this.scheduledTime, this.duration,
           this.workOrder.toWorkOrder() as InProgressWorkOrder
-        ).fold(errorHandler, ::identity)
+        ).fold(ERROR_HANDLER, ::identity)
       AppointmentStatus.COMPLETE -> CompleteAppointment.of(
         this.id, this.userId, this.scheduledTime, this.duration,
         this.workOrder.toWorkOrder() as CompleteWorkOrder, this.completeTime!!
-      ).fold(errorHandler, ::identity)
+      ).fold(ERROR_HANDLER, ::identity)
+      AppointmentStatus.PAID -> PaidAppointment.of(
+        this.id, this.paymentId!!, this.userId, this.scheduledTime, this.duration,
+        this.workOrder.toWorkOrder() as PaidWorkOrder, this.completeTime!!
+      ).fold(ERROR_HANDLER, ::identity)
       AppointmentStatus.CANCELLED -> CancelledAppointment.of(
         this.id, this.userId, this.scheduledTime, this.duration, this.workOrder.toWorkOrder(), this.cancelTime!!
-      ).fold(errorHandler, ::identity)
+      ).fold(ERROR_HANDLER, ::identity)
     }
   }
 
@@ -132,28 +136,27 @@ internal class BookingPersistenceAdapter(
         status = this.status,
         scheduledTime = this.scheduledTime,
         completeTime = this.completeTime,
+        paymentId = this.paymentId,
         cancelTime = this.cancelTime
       )
     }
 
   private fun WorkOrderEntity.toWorkOrder(): WorkOrder {
-    val errorHandler = { errors: Nel<ValidationError> ->
-      val err = errors.toErrString()
-      logger.error(err)
-      throw ValidationException(errors)
-    }
     return when (this.status) {
-      WorkOrderStatus.READY -> ReadyWorkOrder.of(this.id, this.service)
-        .fold(errorHandler, ::identity)
+      WorkOrderStatus.READY -> ReadyWorkOrder.of(this.id, this.service, this.notes)
+        .fold(ERROR_HANDLER, ::identity)
       WorkOrderStatus.IN_PROGRESS -> InProgressWorkOrder.of(
         this.id, this.service, this.startTime!!
-      ).fold(errorHandler, ::identity)
+      ).fold(ERROR_HANDLER, ::identity)
       WorkOrderStatus.COMPLETE -> CompleteWorkOrder.of(
         this.id, this.service, this.startTime!!, this.completeTime!!, this.notes!!
-      ).fold(errorHandler, ::identity)
+      ).fold(ERROR_HANDLER, ::identity)
+      WorkOrderStatus.PAID -> PaidWorkOrder.of(
+        this.id, this.service, this.startTime!!, this.completeTime!!, this.paymentTime!!, this.notes!!
+      ).fold(ERROR_HANDLER, ::identity)
       WorkOrderStatus.CANCELLED -> CancelledWorkOrder.of(
         this.id, this.service, this.cancelTime!!, this.notes!!
-      ).fold(errorHandler, ::identity)
+      ).fold(ERROR_HANDLER, ::identity)
     }
   }
 
@@ -166,6 +169,7 @@ internal class BookingPersistenceAdapter(
         notes = this.notes,
         startTime = this.startTime,
         completeTime = this.completeTime,
+        paymentTime = this.paymentTime,
         cancelTime = this.cancelTime
       )
     }

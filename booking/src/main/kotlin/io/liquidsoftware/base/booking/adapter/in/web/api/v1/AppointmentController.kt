@@ -8,11 +8,14 @@ import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoIn
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentIdDtoIn
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaymentDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentCommand
+import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentCommand
 import io.liquidsoftware.common.security.ExecutionContext
@@ -34,6 +37,10 @@ data class StartedErrorDto(val error: String) : StartedAppointmentOutputDto()
 sealed class CompletedAppointmentOutputDto
 data class CompletedSuccessDto(val appointment: AppointmentDtoOut) : CompletedAppointmentOutputDto()
 data class CompletedErrorDto(val error: String) : CompletedAppointmentOutputDto()
+
+sealed class PaidAppointmentOutputDto
+data class PaymentSuccessDto(val appointment: AppointmentDtoOut) : PaidAppointmentOutputDto()
+data class PaymentErrorDto(val error: String) : PaidAppointmentOutputDto()
 
 sealed class CancelAppointmentOutputDto
 data class CancelApptSuccessDto(val appt: AppointmentDtoOut) : CancelAppointmentOutputDto()
@@ -101,6 +108,26 @@ class AppointmentController(
           }
         }
       )
+
+  @PostMapping(value = [V1BookingPaths.PAY_APPT])
+  suspend fun pay(@RequestBody request: AppointmentPaymentDto)
+    : ResponseEntity<PaidAppointmentOutputDto> =
+    WorkflowDispatcher.dispatch<AppointmentPaidEvent>(
+      PayAppointmentCommand(request.id, request.paymentMethodId)
+    )
+      .throwIfSpringError()
+      .fold(
+        { ResponseEntity.ok(PaymentSuccessDto(it.appointmentDto)) },
+        {
+          when (it) {
+            is AppointmentError -> ResponseEntity.badRequest()
+              .body(PaymentErrorDto("Unexpected Error: ${it.error}"))
+            else -> ResponseEntity.internalServerError()
+              .body(PaymentErrorDto("Unknown Error: ${it.message}"))
+          }
+        }
+      )
+
 
   @PostMapping(value = [V1BookingPaths.CANCEL_APPT])
   suspend fun cancel(@RequestBody appt: AppointmentDtoIn)

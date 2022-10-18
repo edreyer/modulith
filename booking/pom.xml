@@ -25,6 +25,10 @@
             <groupId>liquidsoftware.io</groupId>
             <artifactId>booking-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>payment-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>liquidsoftware.io</groupId>

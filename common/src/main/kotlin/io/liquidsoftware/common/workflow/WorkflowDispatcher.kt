@@ -1,5 +1,9 @@
 package io.liquidsoftware.common.workflow
 
+import arrow.core.Either
+import arrow.core.continuations.either
+import arrow.core.continuations.ensureNotNull
+import io.liquidsoftware.common.ext.toResult
 import io.liquidsoftware.common.logging.LoggerDelegate
 import kotlin.reflect.KClass
 
@@ -16,12 +20,12 @@ object WorkflowDispatcher {
 
   inline fun <reified Q : Query, reified E : Event> registerQueryHandler(handler: SafeWorkflow<Q, E>) {
     @Suppress("UNCHECKED_CAST")
-    queryHandlers[Q::class as KClass<Query>] = handler as SafeWorkflow<Query, *>
+    queryHandlers[Q::class as KClass<Query>] = handler as SafeWorkflow<Query, E>
   }
 
   inline fun <reified C : Command, reified E : Event> registerCommandHandler(handler: SafeWorkflow<C, E>) {
     @Suppress("UNCHECKED_CAST")
-    commandHandlers[C::class as KClass<Command>] = handler as SafeWorkflow<Command, *>
+    commandHandlers[C::class as KClass<Command>] = handler as SafeWorkflow<Command, E>
   }
 
 // Use this to support List of Events
@@ -33,25 +37,29 @@ object WorkflowDispatcher {
 //    commandList.add(handler as SafeWorkflow<Command, *>)
 //  }
 
-  @Suppress("UNCHECKED_CAST")
-  suspend fun <E: Event> dispatch(query: Query): Result<E> =
-    queryHandlers[query::class]?.let {
-      it.invoke(query) as Result<E>
-    }?.onFailure {
-      ex -> log.error("Query Error", ex)
-    } ?: throw IllegalStateException("No handler for query")
+  suspend inline fun <reified E: Event> dispatch(query: Query): Result<E> {
+    val either: Either<Throwable, E> = either {
+      ensureNotNull(queryHandlers[query::class]) {
+        IllegalStateException("No handler for query $query")
+      }
+        .invoke(query) as E
+    }
+    return either.toResult()
+  }
 
   // Use this to support List of Events
 //  @Suppress("UNCHECKED_CAST")
 //  suspend fun <E: Event> dispatch(command: Command): List<Result<E>> =
 //    commandHandlers[command::class]?.map { runAsync(it as SafeWorkflow<Command, E>, command) } ?: emptyList()
 
-  @Suppress("UNCHECKED_CAST")
-  suspend fun <E: Event> dispatch(command: Command): Result<E> =
-    commandHandlers[command::class]?.let {
-      it.invoke(command) as Result<E>
-    }?.onFailure {
-        ex -> log.error("Command Error", ex)
-    } ?: throw IllegalStateException("No handler for query")
+  suspend inline fun <reified E: Event> dispatch(command: Command): Result<E> {
+    val either: Either<Throwable, E> = either {
+      ensureNotNull(commandHandlers[command::class]) {
+        IllegalStateException("No handler for command $command")
+      }
+        .invoke(command) as E
+    }
+    return either.toResult()
+  }
 
 }

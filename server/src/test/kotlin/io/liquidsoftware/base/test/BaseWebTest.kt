@@ -1,6 +1,8 @@
 package io.liquidsoftware.base.test
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.liquidsoftware.base.booking.config.BookingModuleConfig
+import io.liquidsoftware.base.payment.config.PaymentModuleConfig
 import io.liquidsoftware.base.server.ModulithApplication
 import io.liquidsoftware.base.server.config.ServerConfig
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
@@ -13,7 +15,9 @@ import io.liquidsoftware.common.logging.LoggerDelegate
 import io.restassured.RestAssured
 import io.restassured.http.ContentType
 import io.restassured.response.Response
+import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -26,9 +30,12 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
   classes = [
     ModulithApplication::class,
     ServerConfig::class,
-    UserModuleConfig::class
+    UserModuleConfig::class,
+    BookingModuleConfig::class,
+    PaymentModuleConfig::class,
   ],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class BaseWebTest {
 
   val log by LoggerDelegate()
@@ -85,12 +92,19 @@ class BaseWebTest {
   protected fun get(path: String, token: String? = null): Response =
     RestAssured.given().baseUri("http://localhost:${port}").apply {
       token?.let {
-        this.header("Authorization", "Bearer ${token}")
+        this.header("Authorization", "Bearer $token")
       }
     }.get(path)
 
-  protected fun post(path: String, body: Any): Response =
-    RestAssured.given().baseUri("http://localhost:${port}").contentType(ContentType.JSON).body(body).post(path)
+  protected fun post(path: String, body: Any, token: String? = null): Response =
+    RestAssured.given().baseUri("http://localhost:${port}").apply {
+      token?.let {
+        this.header("Authorization", "Bearer $token")
+      }
+    }
+      .contentType(ContentType.JSON)
+      .body(body)
+      .post(path)
 
 
   protected fun asJson(payload: Any) : String = objectMapper.writeValueAsString(payload)

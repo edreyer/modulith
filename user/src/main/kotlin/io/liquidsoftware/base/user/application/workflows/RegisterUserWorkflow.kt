@@ -1,6 +1,5 @@
 package io.liquidsoftware.base.user.application.workflows
 
-import arrow.core.computations.ResultEffect.bind
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
@@ -30,12 +29,15 @@ internal class RegisterUserWorkflow(
   }
 
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {
-    val user = validateNewUser(request).bind()
-    return runAsSuperUser {
+    val user = validateNewUser(request)
+      .fold({ it }, { throw it })
+
+    val result = runAsSuperUser {
       userRegisteredPort.handle(
         UserRegisteredEvent(user.toUserDto(), user.encryptedPassword.value)
       )
     }
+    return result
   }
 
   private suspend fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =

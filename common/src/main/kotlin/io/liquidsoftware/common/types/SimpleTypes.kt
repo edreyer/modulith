@@ -1,26 +1,27 @@
 package io.liquidsoftware.common.types
 
 import arrow.core.Nel
-import arrow.core.NonEmptyList
 import arrow.core.ValidatedNel
 import arrow.core.invalid
+import arrow.core.toNonEmptyListOrNull
 import arrow.core.validNel
+import io.liquidsoftware.common.validation.MsisdnParser
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.valiktor.ConstraintViolationException
 import org.valiktor.functions.isEmail
 import org.valiktor.functions.isNotEmpty
+import org.valiktor.functions.isPositiveOrZero
 import org.valiktor.functions.isValid
 import org.valiktor.functions.matches
 import org.valiktor.i18n.mapToMessage
 import org.valiktor.validate
-import io.liquidsoftware.common.validation.MsisdnParser
 
 @JvmInline
 value class ValidationError(val error: String)
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class ValidationException(val errors: Nel<ValidationError>) : RuntimeException() {
+data class ValidationException(private val errors: Nel<ValidationError>) : RuntimeException() {
   val errorString = errors.toErrString()
 }
 
@@ -57,6 +58,28 @@ class NonEmptyString private constructor(override val value: String)
     fun of(value: String): ValidationErrorNel<NonEmptyString> = ensure {
       validate(NonEmptyString(value)) {
         validate(NonEmptyString::value).isNotEmpty()
+      }
+    }
+  }
+}
+
+class PositiveInt private constructor(override val value: Int)
+  : SimpleType<Int>() {
+  companion object {
+    fun of(value: Int): ValidationErrorNel<PositiveInt> = ensure {
+      validate(PositiveInt(value)) {
+        validate(PositiveInt::value).isPositiveOrZero()
+      }
+    }
+  }
+}
+
+class PositiveLong private constructor(override val value: Long)
+  : SimpleType<Long>() {
+  companion object {
+    fun of(value: Long): ValidationErrorNel<PositiveLong> = ensure {
+      validate(PositiveLong(value)) {
+        validate(PositiveLong::value).isPositiveOrZero()
       }
     }
   }
@@ -102,5 +125,6 @@ inline fun <reified T> ensure(ensureFn: () -> T): ValidationErrorNel<T> = try {
     .mapToMessage()
     .map { "'${it.value}' of ${T::class.simpleName}.${it.property}: ${it.message}" }
     .map { ValidationError(it) }
-    .let { NonEmptyList.fromListUnsafe(it).invalid() }
+    .let { it.toNonEmptyListOrNull()!! }
+    .invalid()
 }

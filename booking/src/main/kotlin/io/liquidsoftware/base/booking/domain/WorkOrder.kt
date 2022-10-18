@@ -37,21 +37,31 @@ WorkOrder : WorkOrderFields {
         validate(Some<LocalDateTime>::value).isValid { it.isAfter(startTime) }
       }
     }
+    fun paymentDateValidator(completeTime:LocalDateTime, paymentTime: LocalDateTime): ValidationErrorNel<Some<LocalDateTime>> = ensure {
+      validate(Some(paymentTime)) {
+        validate(Some<LocalDateTime>::value).isValid { it.isBefore(LocalDateTime.now()) }
+        validate(Some<LocalDateTime>::value).isValid { it.isAfter(completeTime) }
+      }
+    }
+
   }
 }
 
 internal data class ReadyWorkOrder(
+  val notes: String?,
   private val data: WorkOrderData
 ) : WorkOrder(), WorkOrderFields by data {
   companion object {
     fun of(
       workOrderId: String = NamespaceIdGenerator.nextId(BookingNamespaces.WORK_WORDER_NS),
-      service: String):
+      service: String,
+      notes: String? = null):
       ValidationErrorNel<ReadyWorkOrder> {
       return WorkOrderId.of(workOrderId).zip (
-        NonEmptyString.of(service)
-      ) { woId, s ->
-        ReadyWorkOrder(WorkOrderData(woId, s))
+        NonEmptyString.of(service),
+        notes.validNel()
+      ) { woId, s, n ->
+        ReadyWorkOrder(n, WorkOrderData(woId, s))
       }
     }
   }
@@ -66,7 +76,7 @@ internal data class InProgressWorkOrder(
       ValidationErrorNel<InProgressWorkOrder> {
       return WorkOrderId.of(workOrderId).zip (
         startDateValidator(startTime),
-        NonEmptyString.of(service)
+        NonEmptyString.of(service),
       ) { woId, sd, s ->
         InProgressWorkOrder(sd.value, WorkOrderData(woId, s))
       }
@@ -95,8 +105,8 @@ internal data class CompleteWorkOrder(
         startDateValidator(startTime),
         completeDateValidator(startTime, completeTime),
         notes.validNel()
-      ) { woId, s, sd, cd, n ->
-        CompleteWorkOrder(sd.value, cd.value, n, WorkOrderData(woId, s))
+      ) { woId, s, st, ct, n ->
+        CompleteWorkOrder(st.value, ct.value, n, WorkOrderData(woId, s))
       }
     }
     fun of(inProgress: InProgressWorkOrder, notes: String?): CompleteWorkOrder =
@@ -105,6 +115,39 @@ internal data class CompleteWorkOrder(
         LocalDateTime.now(),
         notes,
         WorkOrderData(inProgress.id, inProgress.service)
+      )
+  }
+}
+
+internal data class PaidWorkOrder(
+  private val startTime: LocalDateTime,
+  val completeTime: LocalDateTime,
+  val paymentTime: LocalDateTime,
+  val notes: String?,
+  private val data: WorkOrderData
+) : WorkOrder(), WorkOrderFields by data {
+  companion object {
+    fun of(workOrderId: String, service: String,
+           startTime: LocalDateTime, completeTime: LocalDateTime,
+           paymentTime: LocalDateTime, notes: String? = ""):
+      ValidationErrorNel<PaidWorkOrder> {
+      return WorkOrderId.of(workOrderId).zip (
+        NonEmptyString.of(service),
+        startDateValidator(startTime),
+        completeDateValidator(startTime, completeTime),
+        paymentDateValidator(completeTime, paymentTime),
+        notes.validNel()
+      ) { woId, s, st, et, pt, n ->
+        PaidWorkOrder(st.value, et.value, pt.value, n, WorkOrderData(woId, s))
+      }
+    }
+    fun of(complete: CompleteWorkOrder): PaidWorkOrder =
+      PaidWorkOrder(
+        complete.startTime,
+        complete.completeTime,
+        LocalDateTime.now(),
+        complete.notes,
+        WorkOrderData(complete.id, complete.service)
       )
   }
 }

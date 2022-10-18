@@ -1,5 +1,7 @@
 package io.liquidsoftware.base.user.adapter.`in`.web
 
+import io.liquidsoftware.common.logging.LoggerDelegate
+import io.liquidsoftware.common.security.JwtTokenProvider
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -10,8 +12,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import io.liquidsoftware.common.logging.LoggerDelegate
-import io.liquidsoftware.common.security.JwtTokenProvider
 import javax.validation.Valid
 import javax.validation.constraints.NotEmpty
 
@@ -45,7 +45,7 @@ class AuthController(
         val tokenBody = SuccessfulLogin(it)
         ResponseEntity(tokenBody, headers, HttpStatus.OK)
       }.onErrorResume {
-        logger.debug("Failed to login with: $loginDto")
+        logger.debug("Failed to login with: $loginDto", it)
         Mono.just(ResponseEntity.badRequest().body(
           LoginError("Unknown user: ${loginDto.username}")
         ))

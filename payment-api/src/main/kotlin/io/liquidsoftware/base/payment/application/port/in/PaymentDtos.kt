@@ -16,12 +16,12 @@ data class PaymentMethodDtoOut(
 data class PaymentDtoIn(
   val userId: String,
   val paymentMethodId: String,
-  val amount: Int // value in cents
+  val amount: Long // value in cents
 )
 
 data class PaymentDtoOut(
   val paymentId: String,
-  val userId: String,
   val paymentMethodId: String,
-  val amount: Int
+  val userId: String,
+  val amount: Long
 )

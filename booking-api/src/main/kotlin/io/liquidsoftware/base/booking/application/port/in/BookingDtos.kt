@@ -6,11 +6,12 @@ enum class AppointmentStatus {
   SCHEDULED,
   IN_PROGRESS,
   COMPLETE,
-  CANCELLED
+  CANCELLED,
+  PAID
 }
 
 data class AppointmentDtoIn (
-  val id: String?,
+  val id: String? = null,
   val duration: Long,
   val scheduledTime: LocalDateTime,
   val workOrder: WorkOrderDtoIn
@@ -22,7 +23,12 @@ data class AppointmentIdDtoIn (
 
 data class AppointmentCompletedDtoIn (
   val id: String,
-  val notes: String?
+  val notes: String? = null
+)
+
+data class AppointmentPaymentDto (
+  val id: String,
+  val paymentMethodId: String
 )
 
 data class AppointmentDtoOut (
@@ -34,6 +40,7 @@ data class AppointmentDtoOut (
   val status: AppointmentStatus,
 
   val completeTime: LocalDateTime? = null,
+  val paymentId: String? = null,
   val cancelTime: LocalDateTime? = null,
 )
 
@@ -41,11 +48,12 @@ enum class WorkOrderStatus {
   READY,
   IN_PROGRESS,
   COMPLETE,
+  PAID,
   CANCELLED
 }
 data class WorkOrderDtoIn(
   val service: String,
-  val notes: String?
+  val notes: String? = null
 )
 
 data class WorkOrderDtoOut(
@@ -56,5 +64,6 @@ data class WorkOrderDtoOut(
   val notes: String?,
   val startTime: LocalDateTime?,
   val completeTime: LocalDateTime?,
+  val paymentTime: LocalDateTime?,
   val cancelTime: LocalDateTime?,
 )

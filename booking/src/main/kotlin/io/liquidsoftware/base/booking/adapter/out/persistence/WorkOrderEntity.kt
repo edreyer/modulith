@@ -25,6 +25,7 @@ internal class WorkOrderEntity(
 
   var startTime: LocalDateTime? = null,
   var completeTime: LocalDateTime? = null,
+  var paymentTime: LocalDateTime? = null,
   var cancelTime: LocalDateTime? = null
 
   ) : BaseEntity(workOrderId, BookingNamespaces.WORK_WORDER_NS)

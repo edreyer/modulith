@@ -1,10 +1,5 @@
 package io.liquidsoftware.base.user.adapter.`in`.web.api.v1
 
-import org.springframework.http.ResponseEntity
-import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RestController
 import io.liquidsoftware.base.user.application.port.`in`.DisableUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.EnableUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
@@ -17,6 +12,11 @@ import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.common.workflow.Query
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.RestController
 import javax.validation.Valid
 import javax.validation.constraints.NotBlank
 
@@ -59,7 +59,7 @@ internal class UserV1Controller {
     WorkflowDispatcher.dispatch<UserEnabledEvent>(EnableUserCommand(userId))
       .fold(
         { ResponseEntity.ok("OK")},
-        { ex -> throw ex }
+        { ex -> throw ex },
       )
 
   @PreAuthorize("hasRole('ADMIN')")
@@ -68,7 +68,7 @@ internal class UserV1Controller {
     WorkflowDispatcher.dispatch<UserDisabledEvent>(DisableUserCommand(userId))
       .fold(
         { ResponseEntity.ok("OK")},
-        { ex -> throw ex }
+        { ex -> throw ex },
       )
 
 }

@@ -11,6 +11,8 @@ import io.liquidsoftware.base.booking.domain.CompleteAppointment
 import io.liquidsoftware.base.booking.domain.CompleteWorkOrder
 import io.liquidsoftware.base.booking.domain.InProgressAppointment
 import io.liquidsoftware.base.booking.domain.InProgressWorkOrder
+import io.liquidsoftware.base.booking.domain.PaidAppointment
+import io.liquidsoftware.base.booking.domain.PaidWorkOrder
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
 import io.liquidsoftware.base.booking.domain.WorkOrder
@@ -27,6 +29,7 @@ internal suspend fun Appointment.toDto(): AppointmentDtoOut =
       is InProgressAppointment -> AppointmentStatus.IN_PROGRESS
       is CompleteAppointment -> AppointmentStatus.COMPLETE
       is CancelledAppointment -> AppointmentStatus.CANCELLED
+      is PaidAppointment -> AppointmentStatus.PAID
     },
     completeTime = when (this) {
       is CompleteAppointment -> this.completeTime
@@ -38,7 +41,7 @@ internal suspend fun Appointment.toDto(): AppointmentDtoOut =
     }
   )
 
-internal suspend fun WorkOrder.toDto() =
+internal  fun WorkOrder.toDto() =
   WorkOrderDtoOut(
     id = id.value,
     service = service.value,
@@ -47,8 +50,10 @@ internal suspend fun WorkOrder.toDto() =
       is InProgressWorkOrder -> WorkOrderStatus.IN_PROGRESS
       is CompleteWorkOrder -> WorkOrderStatus.COMPLETE
       is CancelledWorkOrder -> WorkOrderStatus.CANCELLED
+      is PaidWorkOrder -> WorkOrderStatus.PAID
     },
     notes = when (this) {
+      is ReadyWorkOrder -> this.notes
       is CompleteWorkOrder -> this.notes
       is CancelledWorkOrder -> this.notes
       else -> null
@@ -60,6 +65,10 @@ internal suspend fun WorkOrder.toDto() =
     },
     completeTime = when (this) {
       is CompleteWorkOrder -> this.completeTime
+      else -> null
+    },
+    paymentTime = when (this) {
+      is PaidWorkOrder -> this.paymentTime
       else -> null
     },
     cancelTime = when (this) {

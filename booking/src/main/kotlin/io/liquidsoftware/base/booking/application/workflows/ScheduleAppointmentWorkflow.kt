@@ -39,10 +39,16 @@ internal class ScheduleAppointmentWorkflow(
     checkTimeAvailable(todaysAppts, request.scheduledTime.toLocalTime())
 
     return either<Nel<ValidationError>, Appointment> {
-      val wo = ReadyWorkOrder.of(service = request.workOrder.service).bind()
-      val appt = ScheduledAppointment
-        .of(userId = request.userId, scheduledTime = request.scheduledTime, duration = request.duration, workOrder = wo)
-        .bind()
+      val wo = ReadyWorkOrder.of(
+        service = request.workOrder.service,
+        notes = request.workOrder.notes
+      ).bind()
+      val appt = ScheduledAppointment.of(
+        userId = request.userId,
+        scheduledTime = request.scheduledTime,
+        duration = request.duration,
+        workOrder = wo
+      ).bind()
       appt
     }
     .fold({

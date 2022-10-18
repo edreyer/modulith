@@ -29,6 +29,11 @@ data class CancelAppointmentCommand(
   val notes: String?
 ) : Command
 
+data class PayAppointmentCommand(
+  val appointmentId: String,
+  val paymentMethodId: String,
+) : Command
+
 // events
 sealed interface AppointmentEvent {
   val appointmentDto: AppointmentDtoOut
@@ -45,13 +50,21 @@ data class AppointmentCompletedEvent(override val appointmentDto: AppointmentDto
 data class AppointmentCancelledEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
   AppointmentEvent
 
+data class AppointmentPaidEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
+  AppointmentEvent
+
 // Errors
 sealed class AppointmentError : RuntimeException() {
   abstract val error: String
 }
+
 data class DateTimeUnavailableError(override val error: String): AppointmentError()
+
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class AppointmentValidationError(override val error: String) : AppointmentError()
+
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class CancelAppointmentError(override val error: String) : AppointmentError()
 
+@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
+data class AppointmentPaymentError(override val error: String) : AppointmentError()

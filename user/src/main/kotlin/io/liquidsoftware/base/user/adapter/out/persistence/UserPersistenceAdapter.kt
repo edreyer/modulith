@@ -1,6 +1,5 @@
 package io.liquidsoftware.base.user.adapter.out.persistence
 
-import arrow.core.Nel
 import arrow.core.identity
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
@@ -12,12 +11,10 @@ import io.liquidsoftware.base.user.domain.AdminUser
 import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.User
+import io.liquidsoftware.common.errors.ErrorHandling
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.Permission
-import io.liquidsoftware.common.types.ValidationError
-import io.liquidsoftware.common.types.ValidationException
-import io.liquidsoftware.common.types.toErrString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -65,18 +62,13 @@ internal class UserPersistenceAdapter(
   }
 
   private fun UserEntity.toUser() : User {
-    val errorHandler = { errors: Nel<ValidationError> ->
-      val err = errors.toErrString()
-      logger.error(err)
-      throw ValidationException(errors)
-    }
     return when {
       !this.active -> DisabledUser.of(this.id, this.msisdn, this.email, this.password, this.roles.first())
-        .fold(errorHandler, ::identity)
+        .fold(ErrorHandling.ERROR_HANDLER, ::identity)
       Role.ROLE_USER in this.roles -> ActiveUser.of(this.id, this.msisdn, this.email, this.password)
-        .fold(errorHandler, ::identity)
+        .fold(ErrorHandling.ERROR_HANDLER, ::identity)
       Role.ROLE_ADMIN in this.roles -> AdminUser.of(this.id, this.msisdn, this.email, this.password)
-        .fold(errorHandler, ::identity)
+        .fold(ErrorHandling.ERROR_HANDLER, ::identity)
       else -> {
         val err = "Unknown User Type. roles=${this.roles}"
         logger.error(err)

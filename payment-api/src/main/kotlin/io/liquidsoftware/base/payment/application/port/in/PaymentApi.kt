@@ -9,10 +9,10 @@ data class AddPaymentMethodCommand(
   val paymentMethod: PaymentMethodDtoIn
 ) : Command
 
-data class MakePayment(
+data class MakePaymentCommand(
   val userId: String,
   val paymentMethodId: String,
-  val amount: Int
+  val amount: Long
 ) : Command
 
 sealed interface PaymentMethodEvent
@@ -30,6 +30,9 @@ data class PaymentMadeEvent (
 sealed class PaymentError : RuntimeException() {
   abstract val error: String
 }
+
+@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
+data class PaymentMethodNotFoundError(override val error: String): PaymentError()
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class PaymentDeclinedError(override val error: String): PaymentError()

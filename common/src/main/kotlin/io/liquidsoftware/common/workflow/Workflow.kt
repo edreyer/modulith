@@ -1,11 +1,7 @@
 package io.liquidsoftware.common.workflow
 
-import arrow.core.continuations.effect
-import arrow.core.continuations.toResult
 import io.liquidsoftware.common.ext.className
 import io.liquidsoftware.common.logging.LoggerDelegate
-import reactor.core.publisher.Flux
-import reactor.core.publisher.Mono
 import java.time.Instant
 import java.util.UUID
 
@@ -21,36 +17,20 @@ abstract class Event {
 }
 
 interface Workflow<E : Event>
+
 interface SafeWorkflow<R: Request, E : Event> : Workflow<E> {
-  suspend fun invoke(request: R): Result<E>
+  suspend operator fun invoke(request: R): E
 }
 
 abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
   private val log by LoggerDelegate()
-  final override suspend operator fun invoke(request: R): Result<E> =
-    effect<Throwable, E> {
-      log.debug("Executing workflow ${this.className()} with request $request")
-      try {
-        execute(request)
-      } catch (t: Throwable) {
-        shift(t)
-      }
-    }.toResult()
+
+  final override suspend operator fun invoke(request: R): E {
+    log.debug("Executing workflow ${this.className()} with request $request")
+    return execute(request)
+  }
+
   abstract suspend fun execute(request: R): E
-}
-
-interface MonoWorkflow<R: Request, E : Event> : Workflow<E> {
-  suspend operator fun invoke(request: R): Mono<E> {
-    return execute(request)
-  }
-  suspend fun execute(request: R): Mono<E>
-}
-
-interface FluxWorkflow<R: Request, E : Event> : Workflow<E> {
-  suspend operator fun invoke(request: R): Flux<E> {
-    return execute(request)
-  }
-  suspend fun execute(request: R): Flux<E>
 }
 
 
