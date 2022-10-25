@@ -3,13 +3,13 @@ package io.liquidsoftware.base.web.integration.booking
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.CompletedSuccessDto
+import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.PaymentSuccessDto
 import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.ScheduleSuccessDto
 import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.StartedSuccessDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedDtoIn
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoIn
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentIdDtoIn
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaymentDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
 import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderDtoIn
@@ -96,14 +96,14 @@ class AppointmentTest : BaseUserWebTest() {
       .extract().`as`(PaymentMethodDtoOut::class.java)
 
     val apptDto = AppointmentPaymentDto(appt?.id!!, pmOut.paymentMethodId)
-    val outputDto = post("/api/v1/appointments/pay", apptDto, accessToken)
+    val apptDtoOut = post("/api/v1/appointments/pay", apptDto, accessToken)
       .then()
       .statusCode(200)
-      .extract().`as`(AppointmentPaidEvent::class.java)
+      .extract().`as`(PaymentSuccessDto::class.java)
+      .appointment
 
-    appt = outputDto.appointmentDto
-    assertThat(appt?.status).isEqualTo(AppointmentStatus.PAID)
-    assertThat(appt?.workOrderDto?.notes).isEqualTo("Complete!")
+    assertThat(apptDtoOut.status).isEqualTo(AppointmentStatus.PAID)
+    assertThat(apptDtoOut.workOrderDto?.notes).isEqualTo("Complete!")
   }
 
 }
