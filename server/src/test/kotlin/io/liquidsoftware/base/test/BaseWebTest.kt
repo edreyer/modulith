@@ -56,9 +56,11 @@ class BaseWebTest {
     ))
   }
 
-  protected fun authorizeUser(email: String, msisdn: String) : SuccessfulLogin {
+  protected fun authorizeUser(email: String, msisdn: String) : SuccessfulLogin = try {
+    loginUser(UserLoginInputDto(email, "password"))
+  } catch (ex: Throwable) {
     createUser(email, msisdn)
-    return loginUser(UserLoginInputDto(email, "password"))
+    loginUser(UserLoginInputDto(email, "password"))
   }
 
   protected fun authorizeAdminUser() : SuccessfulLogin {

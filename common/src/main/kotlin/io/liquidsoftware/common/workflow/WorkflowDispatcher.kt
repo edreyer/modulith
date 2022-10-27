@@ -37,12 +37,14 @@ object WorkflowDispatcher {
 //    commandList.add(handler as SafeWorkflow<Command, *>)
 //  }
 
-  suspend inline fun <reified E: Event> dispatch(query: Query): Result<E> {
+  suspend fun <E: Event> dispatch(query: Query): Result<E> {
     val either: Either<Throwable, E> = either {
       ensureNotNull(queryHandlers[query::class]) {
         IllegalStateException("No handler for query $query")
+      }.let {
+        try { it.invoke(query) as E }
+        catch (ex: Throwable) { shift(ex) }
       }
-        .invoke(query) as E
     }
     return either.toResult()
   }
@@ -52,12 +54,14 @@ object WorkflowDispatcher {
 //  suspend fun <E: Event> dispatch(command: Command): List<Result<E>> =
 //    commandHandlers[command::class]?.map { runAsync(it as SafeWorkflow<Command, E>, command) } ?: emptyList()
 
-  suspend inline fun <reified E: Event> dispatch(command: Command): Result<E> {
+  suspend fun <E: Event> dispatch(command: Command): Result<E> {
     val either: Either<Throwable, E> = either {
       ensureNotNull(commandHandlers[command::class]) {
         IllegalStateException("No handler for command $command")
+      }.let {
+        try { it.invoke(command) as E }
+        catch (ex: Throwable) { shift(ex) }
       }
-        .invoke(command) as E
     }
     return either.toResult()
   }
