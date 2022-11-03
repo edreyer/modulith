@@ -6,6 +6,7 @@ import arrow.core.Either.Right
 import arrow.core.Validated
 import arrow.core.continuations.Effect
 import arrow.core.continuations.EffectScope
+import arrow.core.getOrHandle
 import io.liquidsoftware.common.types.ValidationErrorNel
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.ValidationErrors
@@ -31,6 +32,11 @@ suspend inline fun <reified T> ValidationErrorNel<T>.getOrShift(): T = when (thi
 context(EffectScope<WorkflowError>)
 suspend inline fun <reified T> Result<T>.getOrShift(): T = this.getOrElse {
   shift(ServerError(it.message ?: ""))
+}
+
+context(EffectScope<WorkflowError>)
+  suspend inline fun <reified T> Either<WorkflowError, T>.getOrShift(): T = this.getOrHandle {
+  shift(ServerError(it.message))
 }
 
 context(EffectScope<WorkflowError>)

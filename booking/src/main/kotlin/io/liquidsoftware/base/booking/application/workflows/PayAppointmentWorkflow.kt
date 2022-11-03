@@ -12,7 +12,6 @@ import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
 import io.liquidsoftware.common.ext.getOrShift
-import io.liquidsoftware.common.ext.toResult
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
@@ -47,11 +46,11 @@ internal class PayAppointmentWorkflow(
       paymentMethodId = request.paymentMethodId,
       amount = completeAppt.totalDue()
     ))
-      .toResult()
       .map { PaidAppointment.of(completeAppt, it.paymentDto.paymentId).getOrShift() }
       .map { appointmentEventPort.handle(AppointmentPaidEvent(it.toDto())) }
-      .onFailure {ex -> log.error("Failed to make payment on appt ${request.appointmentId}", ex) }
+      .tapLeft { ex -> log.error("Failed to make payment on appt ${request.appointmentId}", ex) }
       .getOrShift()
+
   }
 
 }
