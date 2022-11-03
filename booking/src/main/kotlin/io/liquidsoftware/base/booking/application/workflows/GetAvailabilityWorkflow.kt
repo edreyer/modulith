@@ -1,11 +1,13 @@
 package io.liquidsoftware.base.booking.application.workflows
 
+import arrow.core.continuations.EffectScope
 import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityRetrievedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AvailabilityService
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
@@ -20,6 +22,7 @@ internal class GetAvailabilityWorkflow(
     WorkflowDispatcher.registerQueryHandler(this)
   }
 
+  context(EffectScope<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
     val appts = findApptsPost.findAll(request.date)
     val available = availabilityService.getAvailability(appts)

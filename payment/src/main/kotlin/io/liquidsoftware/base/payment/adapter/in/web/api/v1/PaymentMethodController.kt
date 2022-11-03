@@ -23,11 +23,11 @@ class PaymentMethodController() : ControllerSupport {
     )
       .throwIfSpringError()
       .fold(
-        { ResponseEntity.ok(it.paymentMethodDto) },
         {
           ResponseEntity.internalServerError()
             .body(PaymentMethodError("Add Payment Method Error: ${it.message}"))
-        }
+        },
+        { ResponseEntity.ok(it.paymentMethodDto) }
       )
 
 }

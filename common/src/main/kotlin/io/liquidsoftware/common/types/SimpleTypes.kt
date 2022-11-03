@@ -2,6 +2,7 @@ package io.liquidsoftware.common.types
 
 import arrow.core.Nel
 import arrow.core.ValidatedNel
+import arrow.core.continuations.EffectScope
 import arrow.core.invalid
 import arrow.core.toNonEmptyListOrNull
 import arrow.core.validNel
@@ -21,7 +22,7 @@ import org.valiktor.validate
 value class ValidationError(val error: String)
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class ValidationException(private val errors: Nel<ValidationError>) : RuntimeException() {
+data class ValidationException(val errors: Nel<ValidationError>) : RuntimeException() {
   val errorString = errors.toErrString()
 }
 
@@ -35,17 +36,22 @@ fun Nel<ValidationError>.toErrString() =
   this.map { it.error }.joinToString { "$it\n" }
 
 // Returns the Validated value OR throws
-fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrThrow(): T = this.fold(
-  { throw ValidationException(it) },
+context(EffectScope<Throwable>)
+suspend fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrShift(): T = this.fold(
+  { shift(ValidationException(it)) },
   { it }
 )
 
 // Can be used as shortcuts to create simple types from Strings
 // Note that these throw,
-fun String.toNonEmptyString() = NonEmptyString.of(this).getOrThrow()
-fun String.toEmailAddress() = EmailAddress.of(this).getOrThrow()
-fun String.toMsisdn() = Msisdn.of(this).getOrThrow()
-fun String.toPostalCode() = PostalCode.of(this).getOrThrow()
+context(EffectScope<Throwable>)
+suspend fun String.toNonEmptyString() = NonEmptyString.of(this).getOrShift()
+context(EffectScope<Throwable>)
+suspend fun String.toEmailAddress() = EmailAddress.of(this).getOrShift()
+context(EffectScope<Throwable>)
+suspend fun String.toMsisdn() = Msisdn.of(this).getOrShift()
+context(EffectScope<Throwable>)
+suspend fun String.toPostalCode() = PostalCode.of(this).getOrShift()
 
 abstract class SimpleType<T> {
   abstract val value: T

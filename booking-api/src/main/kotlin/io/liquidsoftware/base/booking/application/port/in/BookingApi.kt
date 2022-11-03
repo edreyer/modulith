@@ -2,6 +2,7 @@ package io.liquidsoftware.base.booking.application.port.`in`
 
 import io.liquidsoftware.common.workflow.Command
 import io.liquidsoftware.common.workflow.Event
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 import java.time.LocalDateTime
@@ -54,17 +55,15 @@ data class AppointmentPaidEvent(override val appointmentDto: AppointmentDtoOut) 
   AppointmentEvent
 
 // Errors
-sealed class AppointmentError : RuntimeException() {
-  abstract val error: String
-}
+sealed class AppointmentError(override val message: String) : WorkflowError(message)
 
-data class DateTimeUnavailableError(override val error: String): AppointmentError()
+data class DateTimeUnavailableError(override val message: String): AppointmentError(message)
 
-@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class AppointmentValidationError(override val error: String) : AppointmentError()
+@ResponseStatus(code = HttpStatus.NOT_FOUND)
+data class AppointmentNotFoundError(override val message: String) : AppointmentError(message)
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class CancelAppointmentError(override val error: String) : AppointmentError()
+data class AppointmentValidationError(override val message: String) : AppointmentError(message)
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class AppointmentPaymentError(override val error: String) : AppointmentError()
+data class CancelAppointmentError(override val message: String) : AppointmentError(message)

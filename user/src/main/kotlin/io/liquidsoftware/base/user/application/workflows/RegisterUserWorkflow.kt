@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.user.application.workflows
 
+import arrow.core.continuations.EffectScope
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
@@ -8,10 +9,11 @@ import io.liquidsoftware.base.user.application.port.out.UserEventPort
 import io.liquidsoftware.base.user.application.workflows.mapper.toUserDto
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
-import io.liquidsoftware.common.ext.toResult
 import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
+import io.liquidsoftware.common.workflow.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
@@ -28,9 +30,9 @@ internal class RegisterUserWorkflow(
     WorkflowDispatcher.registerCommandHandler(this)
   }
 
+  context(EffectScope<WorkflowError>)
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {
     val user = validateNewUser(request)
-      .fold({ it }, { throw it })
 
     val result = runAsSuperUser {
       userRegisteredPort.handle(
@@ -40,15 +42,18 @@ internal class RegisterUserWorkflow(
     return result
   }
 
-  private suspend fun validateNewUser(cmd: RegisterUserCommand) : Result<UnregisteredUser> =
+  context(EffectScope<WorkflowError>)
+  private suspend fun validateNewUser(cmd: RegisterUserCommand) : UnregisteredUser =
     findUserPort.findUserByEmail(cmd.email)
-      ?.let { Result.failure(UserExistsError("User ${cmd.msisdn} exists")) }
+      ?.let { shift(UserExistsError("User ${cmd.msisdn} exists")) }
       ?: UnregisteredUser.of(
         msisdn = cmd.msisdn,
         email = cmd.email,
         encryptedPassword = passwordEncoder.encode(cmd.password),
         role = Role.valueOf(cmd.role)
+      ).fold(
+        { shift(ValidationErrors(it)) },
+        { it }
       )
-        .toResult()
 
 }

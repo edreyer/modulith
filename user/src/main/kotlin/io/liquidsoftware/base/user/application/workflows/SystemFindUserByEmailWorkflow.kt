@@ -1,5 +1,7 @@
 package io.liquidsoftware.base.user.application.workflows
 
+import arrow.core.continuations.EffectScope
+import arrow.core.continuations.ensureNotNull
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.SystemFindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.SystemUserFoundEvent
@@ -11,6 +13,7 @@ import io.liquidsoftware.base.user.domain.User
 import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
@@ -23,10 +26,12 @@ internal class SystemFindUserByEmailWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
+  context(EffectScope<WorkflowError>)
   override suspend fun execute(request: SystemFindUserByEmailQuery): SystemUserFoundEvent =
-    findUserPort.findUserByEmail(request.email)
-      ?.let { SystemUserFoundEvent(it.toUserDetails()) }
-      ?: throw UserNotFoundError(request.email)
+    ensureNotNull(findUserPort.findUserByEmail(request.email)) {
+      UserNotFoundError(request.email)
+    }
+      .let { SystemUserFoundEvent(it.toUserDetails()) }
 
   private fun User.toUserDetails(): UserDetailsWithId {
     val roles = when (this) {

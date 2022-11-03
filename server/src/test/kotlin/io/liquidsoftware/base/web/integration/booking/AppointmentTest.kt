@@ -55,7 +55,7 @@ class AppointmentTest : BaseUserWebTest() {
     val apptDto = AppointmentCompletedDtoIn(appt?.id!!)
     post("/api/v1/appointments/complete", apptDto, accessToken)
       .then()
-      .statusCode(412)
+      .statusCode(404)
   }
 
   @Test

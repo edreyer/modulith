@@ -1,5 +1,7 @@
 package io.liquidsoftware.base.booking.application.service
 
+import arrow.core.continuations.EffectScope
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.CancelledAppointment
@@ -12,11 +14,12 @@ import org.springframework.stereotype.Service
 @Service
 internal class AppointmentStateService {
 
+  context(EffectScope<AppointmentError>)
   suspend fun cancel(appt: Appointment): CancelledAppointment = when (appt) {
     is ScheduledAppointment -> CancelledAppointment.of(appt)
     is InProgressAppointment -> CancelledAppointment.of(appt)
-    is CompleteAppointment -> throw CancelAppointmentError("Cannot cancel Appt of type:  ${appt.javaClass.name} ")
-    is PaidAppointment -> throw CancelAppointmentError("Cannot cancel Appt of type:  ${appt.javaClass.name} ")
+    is CompleteAppointment -> shift(CancelAppointmentError("Cannot cancel Appt of type:  ${appt.javaClass.name} "))
+    is PaidAppointment -> shift(CancelAppointmentError("Cannot cancel Appt of type:  ${appt.javaClass.name} "))
     is CancelledAppointment -> appt
   }
 

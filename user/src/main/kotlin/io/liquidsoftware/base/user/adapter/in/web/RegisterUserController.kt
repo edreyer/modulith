@@ -5,9 +5,10 @@ import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
-import io.liquidsoftware.common.types.ValidationException
 import io.liquidsoftware.common.validation.Msisdn
+import io.liquidsoftware.common.workflow.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -36,17 +37,17 @@ internal class RegisterUserController {
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
     : ResponseEntity<RegisterUserOutputDto> {
 
-    val foo = WorkflowDispatcher.dispatch<UserRegisteredEvent>(registerUser.toCommand())
-    return foo.fold(
-      { ResponseEntity.ok(it.toOutputDto()) },
-      {
-        when (it) {
-          is UserExistsError -> ResponseEntity.badRequest().body(it.toOutputDto())
-          is ValidationException -> ResponseEntity.badRequest().body(it.toOutputDto())
-          else -> ResponseEntity.status(500).body(it.toOutputDto())
-        }
-      },
-    )
+    return WorkflowDispatcher.dispatch<UserRegisteredEvent>(registerUser.toCommand())
+      .fold(
+        {
+          when (it) {
+            is UserExistsError -> ResponseEntity.badRequest().body(it.toOutputDto())
+            is ValidationErrors -> ResponseEntity.badRequest().body(it.toOutputDto())
+            else -> ResponseEntity.status(500).body(it.toOutputDto())
+          }
+        },
+        { ResponseEntity.ok(it.toOutputDto()) }
+      )
   }
 
   suspend fun RegisterUserInputDto.toCommand(): RegisterUserCommand =
@@ -58,13 +59,13 @@ internal class RegisterUserController {
     )
 
   fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
-    RegisterUserErrorsDto(this.error)
+    RegisterUserErrorsDto(this.message)
 
-  fun ValidationException.toOutputDto(): RegisterUserOutputDto =
-    RegisterUserErrorsDto(this.errorString)
+  fun ValidationErrors.toOutputDto(): RegisterUserOutputDto =
+    RegisterUserErrorsDto(this.message)
 
-  fun Throwable.toOutputDto(): RegisterUserOutputDto =
-    RegisterUserErrorsDto("Server Error: ${this.message}")
+  fun WorkflowError.toOutputDto(): RegisterUserOutputDto =
+    RegisterUserErrorsDto("Server Error: $this")
 
   fun UserRegisteredEvent.toOutputDto(): RegisterUserOutputDto = RegisteredUserDto(this.userDto)
 }

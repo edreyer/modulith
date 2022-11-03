@@ -1,8 +1,9 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.flatMap
+import arrow.core.continuations.EffectScope
+import arrow.core.continuations.ensureNotNull
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaymentError
 import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
@@ -10,12 +11,14 @@ import io.liquidsoftware.base.booking.application.port.out.toDto
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
+import io.liquidsoftware.common.ext.getOrShift
 import io.liquidsoftware.common.ext.toResult
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowDispatcher.log
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
 
@@ -31,23 +34,24 @@ internal class PayAppointmentWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
+  context(EffectScope<WorkflowError>)
   override suspend fun execute(request: PayAppointmentCommand): AppointmentPaidEvent {
     // 1) Ensure appt is in correct state
-    val completeAppt = findAppointmentPort.findCompletedById(request.appointmentId)
-      ?: throw AppointmentPaymentError("Appointment(${request.appointmentId} must be Completed")
-
+    val completeAppt = ensureNotNull(findAppointmentPort.findCompletedById(request.appointmentId)) {
+      AppointmentNotFoundError("Appointment(${request.appointmentId} must be Completed")
+    }
 
     // 2) attempt a payment on the appt
     return WorkflowDispatcher.dispatch<PaymentMadeEvent>(MakePaymentCommand(
-      ec.getCurrentUser().id,
-      request.paymentMethodId,
-      completeAppt.totalDue()
+      userId = ec.getCurrentUser().id,
+      paymentMethodId = request.paymentMethodId,
+      amount = completeAppt.totalDue()
     ))
-      .flatMap { PaidAppointment.of(completeAppt, it.paymentDto.paymentId).toResult() }
+      .toResult()
+      .map { PaidAppointment.of(completeAppt, it.paymentDto.paymentId).getOrShift() }
       .map { appointmentEventPort.handle(AppointmentPaidEvent(it.toDto())) }
-      .onFailure {
-        log.error("Failed to make payment on appt ${request.appointmentId}", it)
-      }.getOrThrow()
+      .onFailure {ex -> log.error("Failed to make payment on appt ${request.appointmentId}", ex) }
+      .getOrShift()
   }
 
 }

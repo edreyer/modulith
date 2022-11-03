@@ -1,7 +1,8 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.Nel
-import arrow.core.continuations.either
+import arrow.core.continuations.EffectScope
+import arrow.core.continuations.effect
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
@@ -19,8 +20,8 @@ import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.toErrString
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.stereotype.Component
-import java.time.LocalTime
 import javax.annotation.PostConstruct
 
 @Component
@@ -33,38 +34,33 @@ internal class ScheduleAppointmentWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
+  context(EffectScope<WorkflowError>)
   override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent {
     // business invariant we must check
     val todaysAppts = findAppointmentPort.findAll(request.scheduledTime.toLocalDate())
-    checkTimeAvailable(todaysAppts, request.scheduledTime.toLocalTime())
+    val scheduledTime = request.scheduledTime.toLocalTime()
 
-    return either<Nel<ValidationError>, Appointment> {
+    ensure(availabilityService.isTimeAvailable(todaysAppts, scheduledTime)) {
+      DateTimeUnavailableError("'$scheduledTime' is no longer available.")
+    }
+
+    return effect<Nel<ValidationError>, Appointment> {
       val wo = ReadyWorkOrder.of(
         service = request.workOrder.service,
         notes = request.workOrder.notes
-      ).bind()
+      )
       val appt = ScheduledAppointment.of(
         userId = request.userId,
         scheduledTime = request.scheduledTime,
         duration = request.duration,
-        workOrder = wo
-      ).bind()
-      appt
+        workOrder = wo.bind()
+      )
+      appt.bind()
     }
-    .fold({
-      Result.failure(AppointmentValidationError(it.toErrString()))
-    }, {
-      Result.success(appointmentEventPort.handle(AppointmentScheduledEvent(it.toDto())))
-    }).getOrThrow()
-  }
-
-  private suspend fun checkTimeAvailable(
-    todaysAppts: List<Appointment>,
-    startTime: LocalTime,
-  ) {
-    if (!availabilityService.isTimeAvailable(todaysAppts, startTime)) {
-      throw DateTimeUnavailableError("'$startTime' is no longer available.")
-    }
+    .fold(
+      { shift(AppointmentValidationError(it.toErrString())) },
+      { appointmentEventPort.handle(AppointmentScheduledEvent(it.toDto())) }
+    )
   }
 
   suspend fun ScheduledAppointment.toDto(): AppointmentDtoOut =

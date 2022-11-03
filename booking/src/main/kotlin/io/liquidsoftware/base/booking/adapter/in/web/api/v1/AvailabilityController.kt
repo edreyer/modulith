@@ -22,11 +22,10 @@ class AvailabilityController {
   @GetMapping(value = [V1BookingPaths.AVAILABILITY])
   suspend fun availability(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") date: LocalDate)
   : ResponseEntity<AvailabilityDto> {
-    val event: Result<AvailabilityRetrievedEvent> = WorkflowDispatcher.dispatch(GetAvailabilityQuery(date))
-    return event
+    return WorkflowDispatcher.dispatch<AvailabilityRetrievedEvent>(GetAvailabilityQuery(date))
       .fold(
-        { ResponseEntity.ok(AvailabileTimesDto(it.times)) },
-        { ResponseEntity.badRequest().body(AvailabilityErrors("Availability error: ${it.message}")) }
+        { ResponseEntity.badRequest().body(AvailabilityErrors("Availability error: ${it.message}")) },
+        { ResponseEntity.ok(AvailabileTimesDto(it.times)) }
       )
 
   }

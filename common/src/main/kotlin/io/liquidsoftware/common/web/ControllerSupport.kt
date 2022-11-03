@@ -1,15 +1,14 @@
 package io.liquidsoftware.common.web
 
+import arrow.core.Either
 import io.liquidsoftware.common.ext.hasResponseStatus
+import io.liquidsoftware.common.workflow.WorkflowError
 
 interface ControllerSupport {
 
-  fun <T> Result<T>.throwIfSpringError(): Result<T> {
-    if (this.isFailure) {
-      this.onFailure {
-        if (it.hasResponseStatus()) throw it
-      }
-    }
+  suspend fun <T> Either<WorkflowError, T>.throwIfSpringError(): Either<WorkflowError, T> {
+    tapLeft { if (it.hasResponseStatus()) throw it }
     return this
   }
+
 }

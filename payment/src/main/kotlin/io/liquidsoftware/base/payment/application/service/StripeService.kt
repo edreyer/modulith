@@ -1,7 +1,9 @@
 package io.liquidsoftware.base.payment.application.service
 
+import arrow.core.continuations.EffectScope
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDeclinedError
 import io.liquidsoftware.base.payment.domain.PaymentMethod
+import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.stereotype.Service
 
 @Service
@@ -9,10 +11,11 @@ internal class StripeService {
 
   data class SuccessfulPayment(val paymentMethod: PaymentMethod, val amount: Long)
 
-  suspend fun makePayment(paymentMethod: PaymentMethod, amount: Long): Result<SuccessfulPayment> =
+  context(EffectScope<WorkflowError>)
+  suspend fun makePayment(paymentMethod: PaymentMethod, amount: Long): SuccessfulPayment =
     if (amount < 10000) {
-      Result.success(SuccessfulPayment(paymentMethod, amount))
+      SuccessfulPayment(paymentMethod, amount)
     } else {
-      Result.failure(PaymentDeclinedError("Insufficient Funds"))
+      shift(PaymentDeclinedError("Insufficient Funds"))
     }
 }
