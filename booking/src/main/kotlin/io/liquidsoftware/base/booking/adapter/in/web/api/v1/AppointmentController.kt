@@ -59,15 +59,15 @@ class AppointmentController(
     )
       .throwIfSpringError()
       .fold(
-        { ResponseEntity.ok(ScheduleSuccessDto(it.appointmentDto)) },
         {
           when (it) {
             is AppointmentError -> ResponseEntity.badRequest()
-              .body(ScheduleErrorDto("Unexpected Error: ${it.error}"))
+              .body(ScheduleErrorDto("Unexpected Error: ${it.message}"))
             else -> ResponseEntity.internalServerError()
               .body(ScheduleErrorDto("Unknown Error: ${it.message}"))
           }
-        }
+        },
+        { ResponseEntity.ok(ScheduleSuccessDto(it.appointmentDto)) }
       )
   }
 
@@ -79,15 +79,15 @@ class AppointmentController(
     )
       .throwIfSpringError()
       .fold(
-        { ResponseEntity.ok(StartedSuccessDto(it.appointmentDto)) },
         {
           when (it) {
             is AppointmentError -> ResponseEntity.badRequest()
-              .body(StartedErrorDto("Unexpected Error: ${it.error}"))
+              .body(StartedErrorDto("Unexpected Error: ${it.message}"))
             else -> ResponseEntity.internalServerError()
               .body(StartedErrorDto("Unknown Error: ${it.message}"))
           }
-        }
+        },
+        { ResponseEntity.ok(StartedSuccessDto(it.appointmentDto)) }
       )
 
   @PostMapping(value = [V1BookingPaths.COMPLETE_APPT])
@@ -98,15 +98,15 @@ class AppointmentController(
     )
       .throwIfSpringError()
       .fold(
-        { ResponseEntity.ok(CompletedSuccessDto(it.appointmentDto)) },
         {
           when (it) {
             is AppointmentError -> ResponseEntity.badRequest()
-              .body(CompletedErrorDto("Unexpected Error: ${it.error}"))
+              .body(CompletedErrorDto("Unexpected Error: ${it.message}"))
             else -> ResponseEntity.internalServerError()
               .body(CompletedErrorDto("Unknown Error: ${it.message}"))
           }
-        }
+        },
+        { ResponseEntity.ok(CompletedSuccessDto(it.appointmentDto)) }
       )
 
   @PostMapping(value = [V1BookingPaths.PAY_APPT])
@@ -117,15 +117,15 @@ class AppointmentController(
     )
       .throwIfSpringError()
       .fold(
-        { ResponseEntity.ok(PaymentSuccessDto(it.appointmentDto)) },
         {
           when (it) {
             is AppointmentError -> ResponseEntity.badRequest()
-              .body(PaymentErrorDto("Unexpected Error: ${it.error}"))
+              .body(PaymentErrorDto("Unexpected Error: ${it.message}"))
             else -> ResponseEntity.internalServerError()
               .body(PaymentErrorDto("Unknown Error: ${it.message}"))
           }
-        }
+        },
+        { ResponseEntity.ok(PaymentSuccessDto(it.appointmentDto)) }
       )
 
 
@@ -137,15 +137,15 @@ class AppointmentController(
     )
       .throwIfSpringError()
       .fold(
-        { ResponseEntity.ok(CancelApptSuccessDto(it.appointmentDto)) },
         {
           when (it) {
             is CancelAppointmentError -> ResponseEntity.badRequest()
-              .body(CancelApptErrorDto("Unexpected Error: ${it.error}"))
+              .body(CancelApptErrorDto("Unexpected Error: ${it.message}"))
             else -> ResponseEntity.internalServerError()
               .body(CancelApptErrorDto("Unknown Error: ${it.message}"))
           }
-        }
+        },
+        { ResponseEntity.ok(CancelApptSuccessDto(it.appointmentDto)) }
       )
 
 }

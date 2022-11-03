@@ -28,16 +28,15 @@ data class RegisterUserErrorsDto(val errors: List<String>) : FindUserOutputDto()
 internal class UserV1Controller {
 
   private suspend inline fun dispatchQuery(query: Query, msgOnError: String) : ResponseEntity<FindUserOutputDto> {
-    val event: Result<UserFoundEvent> = WorkflowDispatcher.dispatch(query)
-    return event
+    return WorkflowDispatcher.dispatch<UserFoundEvent>(query)
       .fold(
-        { ResponseEntity.ok(FoundUserUserOutputDto(it.userDto)) },
         {
           when (it) {
             is UserNotFoundError -> ResponseEntity.badRequest().body(RegisterUserErrorsDto(listOf(msgOnError)))
             else -> ResponseEntity.badRequest().body(RegisterUserErrorsDto(listOf("User not found: ${it.message}")))
           }
-        }
+        },
+        { ResponseEntity.ok(FoundUserUserOutputDto(it.userDto)) }
       )
   }
 
@@ -58,8 +57,8 @@ internal class UserV1Controller {
   suspend fun enableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
     WorkflowDispatcher.dispatch<UserEnabledEvent>(EnableUserCommand(userId))
       .fold(
+        { err -> ResponseEntity.badRequest().body(err.toString()) },
         { ResponseEntity.ok("OK")},
-        { ex -> throw ex },
       )
 
   @PreAuthorize("hasRole('ADMIN')")
@@ -67,8 +66,8 @@ internal class UserV1Controller {
   suspend fun disableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
     WorkflowDispatcher.dispatch<UserDisabledEvent>(DisableUserCommand(userId))
       .fold(
-        { ResponseEntity.ok("OK")},
-        { ex -> throw ex },
+        { err -> ResponseEntity.badRequest().body(err.toString()) },
+        { ResponseEntity.ok("OK") }
       )
 
 }

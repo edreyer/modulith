@@ -16,6 +16,6 @@ internal class AvailabilityService {
   }
 
   suspend fun isTimeAvailable(appts: List<Appointment>, time: LocalTime): Boolean =
-    !appts.map { it.scheduledTime.toLocalTime().hour }.contains(time.hour)
+    getAvailability(appts).map { it.hour }.contains(time.hour)
 
 }

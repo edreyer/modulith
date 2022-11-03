@@ -3,6 +3,7 @@ package io.liquidsoftware.base.user.application.port.`in`
 import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.workflow.Event
 import io.liquidsoftware.common.workflow.Query
+import io.liquidsoftware.common.workflow.WorkflowError
 
 // Inputs
 data class FindUserByIdQuery(val userId: String) : Query
@@ -18,6 +19,6 @@ data class SystemUserFoundEvent(val userDetailsDto: UserDetailsWithId) : Event()
 
 
 // Error
-data class UserNotFoundError(override val message: String) : RuntimeException(message)
+data class UserNotFoundError(override val message: String) : WorkflowError(message)
 
 

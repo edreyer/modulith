@@ -1,9 +1,8 @@
 package io.liquidsoftware.common.workflow
 
 import arrow.core.Either
-import arrow.core.continuations.either
+import arrow.core.continuations.effect
 import arrow.core.continuations.ensureNotNull
-import io.liquidsoftware.common.ext.toResult
 import io.liquidsoftware.common.logging.LoggerDelegate
 import kotlin.reflect.KClass
 
@@ -37,33 +36,25 @@ object WorkflowDispatcher {
 //    commandList.add(handler as SafeWorkflow<Command, *>)
 //  }
 
-  suspend fun <E: Event> dispatch(query: Query): Result<E> {
-    val either: Either<Throwable, E> = either {
-      ensureNotNull(queryHandlers[query::class]) {
-        IllegalStateException("No handler for query $query")
-      }.let {
-        try { it.invoke(query) as E }
-        catch (ex: Throwable) { shift(ex) }
-      }
+  suspend fun <E: Event> dispatch(query: Query): Either<WorkflowError, E> = effect {
+    ensureNotNull(queryHandlers[query::class]) {
+      MissingHandler("No handler for query $query")
+    }.let {
+      it.invoke(query) as E
     }
-    return either.toResult()
-  }
+  }.toEither()
 
   // Use this to support List of Events
 //  @Suppress("UNCHECKED_CAST")
 //  suspend fun <E: Event> dispatch(command: Command): List<Result<E>> =
 //    commandHandlers[command::class]?.map { runAsync(it as SafeWorkflow<Command, E>, command) } ?: emptyList()
 
-  suspend fun <E: Event> dispatch(command: Command): Result<E> {
-    val either: Either<Throwable, E> = either {
-      ensureNotNull(commandHandlers[command::class]) {
-        IllegalStateException("No handler for command $command")
-      }.let {
-        try { it.invoke(command) as E }
-        catch (ex: Throwable) { shift(ex) }
-      }
+  suspend fun <E: Event> dispatch(command: Command): Either<WorkflowError, E> = effect {
+    ensureNotNull(commandHandlers[command::class]) {
+      MissingHandler("No handler for command $command")
+    }.let {
+      it.invoke(command) as E
     }
-    return either.toResult()
-  }
+  }.toEither()
 
 }

@@ -1,5 +1,13 @@
 package io.liquidsoftware.base.server.config
 
+import io.liquidsoftware.base.user.application.port.`in`.SystemFindUserByEmailQuery
+import io.liquidsoftware.base.user.application.port.`in`.SystemUserFoundEvent
+import io.liquidsoftware.common.security.JwtProperties
+import io.liquidsoftware.common.security.JwtTokenAuthenticationFilter
+import io.liquidsoftware.common.security.JwtTokenProvider
+import io.liquidsoftware.common.security.runAsSuperUser
+import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.workflow.WorkflowDispatcher.log
 import kotlinx.coroutines.reactor.mono
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -16,14 +24,6 @@ import org.springframework.web.cors.CorsConfiguration
 import org.springframework.web.cors.reactive.CorsConfigurationSource
 import org.springframework.web.cors.reactive.CorsWebFilter
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
-import io.liquidsoftware.base.user.application.port.`in`.SystemFindUserByEmailQuery
-import io.liquidsoftware.base.user.application.port.`in`.SystemUserFoundEvent
-import io.liquidsoftware.common.security.JwtProperties
-import io.liquidsoftware.common.security.JwtTokenAuthenticationFilter
-import io.liquidsoftware.common.security.JwtTokenProvider
-import io.liquidsoftware.common.security.runAsSuperUser
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
-import io.liquidsoftware.common.workflow.WorkflowDispatcher.log
 
 @Configuration
 @EnableWebFluxSecurity
@@ -60,10 +60,11 @@ class WebConfig {
       mono {
         WorkflowDispatcher.dispatch<SystemUserFoundEvent>(SystemFindUserByEmailQuery(username))
           .fold(
-            { it.userDetailsDto },
             { ex ->
               log.debug("Failed to find user with username: $username", ex)
-              null}
+              null
+            },
+            { it.userDetailsDto }
           )
       }
         .runAsSuperUser()

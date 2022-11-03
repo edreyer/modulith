@@ -21,7 +21,6 @@ import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
-import kotlin.random.Random
 
 internal interface AppointmentFields {
   val id: AppointmentId
@@ -142,7 +141,7 @@ internal data class CompleteAppointment(
     // in a real appt, it would aggregate the value of the services on the work order,
     // substract any discounts/credits, calculate tax.
     // Here, we create a random value to keep it simple
-    return Random.nextLong(9000, 11000) // $90 - $110
+    return 9000
   }
 }
 

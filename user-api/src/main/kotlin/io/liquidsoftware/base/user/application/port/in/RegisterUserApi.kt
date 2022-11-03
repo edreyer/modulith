@@ -1,9 +1,8 @@
 package io.liquidsoftware.base.user.application.port.`in`
 
-import arrow.core.Nel
-import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.workflow.Command
 import io.liquidsoftware.common.workflow.Event
+import io.liquidsoftware.common.workflow.WorkflowError
 
 // Input
 data class RegisterUserCommand(
@@ -21,8 +20,6 @@ data class UserRegisteredEvent(
 ) : Event(), UserEvent
 
 // Errors
-sealed class RegisterUserError : RuntimeException()
+data class UserExistsError(override val message: String) : WorkflowError(message)
 
-data class UserExistsError(val error: String) : RegisterUserError()
-data class UserValidationErrors(val errors: Nel<ValidationError>) : RegisterUserError()
 
