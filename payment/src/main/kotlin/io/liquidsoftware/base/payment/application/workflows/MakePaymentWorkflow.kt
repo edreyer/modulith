@@ -3,12 +3,12 @@ package io.liquidsoftware.base.payment.application.workflows
 import arrow.core.continuations.EffectScope
 import arrow.core.continuations.ensureNotNull
 import io.liquidsoftware.base.payment.PaymentMethodId
+import io.liquidsoftware.base.payment.application.mapper.toDto
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodNotFoundError
 import io.liquidsoftware.base.payment.application.port.out.FindPaymentMethodPort
 import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
-import io.liquidsoftware.base.payment.application.port.out.toDto
 import io.liquidsoftware.base.payment.application.service.StripeService
 import io.liquidsoftware.base.payment.domain.Payment
 import io.liquidsoftware.base.user.UserId

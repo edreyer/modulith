@@ -1,12 +1,12 @@
 package io.liquidsoftware.base.user.application.workflows
 
 import arrow.core.continuations.EffectScope
+import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.DisableUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.UserDisabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
-import io.liquidsoftware.base.user.application.workflows.mapper.toUserDto
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError

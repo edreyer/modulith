@@ -1,4 +1,4 @@
-package io.liquidsoftware.base.payment.application.port.out
+package io.liquidsoftware.base.payment.application.mapper
 
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDtoOut
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodDtoOut

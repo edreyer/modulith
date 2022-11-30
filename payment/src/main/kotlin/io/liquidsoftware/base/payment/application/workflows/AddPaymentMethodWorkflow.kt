@@ -1,10 +1,10 @@
 package io.liquidsoftware.base.payment.application.workflows
 
 import arrow.core.continuations.EffectScope
+import io.liquidsoftware.base.payment.application.mapper.toDto
 import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
-import io.liquidsoftware.base.payment.application.port.out.toDto
 import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
 import io.liquidsoftware.common.ext.getOrShift
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow

@@ -2,12 +2,12 @@ package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.continuations.EffectScope
 import arrow.core.continuations.ensureNotNull
+import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentValidationError
 import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
-import io.liquidsoftware.base.booking.application.port.out.toDto
 import io.liquidsoftware.base.booking.domain.InProgressAppointment
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher

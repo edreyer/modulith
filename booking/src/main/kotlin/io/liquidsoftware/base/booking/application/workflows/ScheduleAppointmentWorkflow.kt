@@ -3,15 +3,10 @@ package io.liquidsoftware.base.booking.application.workflows
 import arrow.core.Nel
 import arrow.core.continuations.EffectScope
 import arrow.core.continuations.effect
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentValidationError
-import io.liquidsoftware.base.booking.application.port.`in`.DateTimeUnavailableError
-import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
+import io.liquidsoftware.base.booking.application.mapper.toDto
+import io.liquidsoftware.base.booking.application.port.`in`.*
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
-import io.liquidsoftware.base.booking.application.port.out.toDto
 import io.liquidsoftware.base.booking.application.service.AvailabilityService
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder

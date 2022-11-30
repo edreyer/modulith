@@ -2,12 +2,12 @@ package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.continuations.EffectScope
 import arrow.core.continuations.ensureNotNull
+import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
 import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
-import io.liquidsoftware.base.booking.application.port.out.toDto
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
@@ -16,7 +16,6 @@ import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
-import io.liquidsoftware.common.workflow.WorkflowDispatcher.log
 import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.stereotype.Component
 import javax.annotation.PostConstruct
@@ -28,7 +27,7 @@ internal class PayAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<PayAppointmentCommand, AppointmentPaidEvent>() {
 
-  private val logger by LoggerDelegate()
+  private val log by LoggerDelegate()
 
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
