@@ -4,12 +4,12 @@ import arrow.core.continuations.EffectScope
 import arrow.core.continuations.effect
 import arrow.core.continuations.ensureNotNull
 import arrow.core.continuations.toResult
+import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
-import io.liquidsoftware.base.booking.application.port.out.toDto
 import io.liquidsoftware.base.booking.application.service.AppointmentStateService
 import io.liquidsoftware.common.ext.getOrShift
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow

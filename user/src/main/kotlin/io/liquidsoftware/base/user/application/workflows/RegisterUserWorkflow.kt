@@ -1,12 +1,12 @@
 package io.liquidsoftware.base.user.application.workflows
 
 import arrow.core.continuations.EffectScope
+import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
-import io.liquidsoftware.base.user.application.workflows.mapper.toUserDto
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
 import io.liquidsoftware.common.security.runAsSuperUser
