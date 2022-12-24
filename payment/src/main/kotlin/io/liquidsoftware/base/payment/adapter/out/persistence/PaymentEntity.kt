@@ -3,8 +3,8 @@ package io.liquidsoftware.base.payment.adapter.out.persistence
 import io.liquidsoftware.base.payment.PaymentNamespaces
 import io.liquidsoftware.common.persistence.BaseEntity
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
-import javax.persistence.Entity
-import javax.persistence.Table
+import jakarta.persistence.Entity
+import jakarta.persistence.Table
 
 @Entity
 @Table(name = "payments")

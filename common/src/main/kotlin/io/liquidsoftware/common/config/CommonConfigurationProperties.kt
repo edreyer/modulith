@@ -1,10 +1,8 @@
 package io.liquidsoftware.common.config
 
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.ConstructorBinding
 import io.liquidsoftware.common.logging.LoggerDelegate
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConstructorBinding
 @ConfigurationProperties(prefix = "common")
 class CommonConfigurationProperties(
   private val mode: String

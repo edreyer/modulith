@@ -1,13 +1,13 @@
 package io.liquidsoftware.common.persistence
 
+import jakarta.persistence.Id
+import jakarta.persistence.MappedSuperclass
+import jakarta.persistence.PreRemove
+import jakarta.persistence.Version
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
-import javax.persistence.Id
-import javax.persistence.MappedSuperclass
-import javax.persistence.PreRemove
-import javax.persistence.Version
 
 /**
  * This class inspired by: https://stackoverflow.com/questions/50233048/inherit-parent-properties-from-a-base-class-with-jpa-annotations-in-kotlin

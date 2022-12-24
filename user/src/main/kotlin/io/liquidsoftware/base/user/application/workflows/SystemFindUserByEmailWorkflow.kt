@@ -14,9 +14,9 @@ import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
+import jakarta.annotation.PostConstruct
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
 @Component
 internal class SystemFindUserByEmailWorkflow(
