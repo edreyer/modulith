@@ -32,10 +32,10 @@ internal class ScheduleAppointmentWorkflow(
   context(EffectScope<WorkflowError>)
   override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent {
     // business invariant we must check
-    val todaysAppts = findAppointmentPort.findAll(request.scheduledTime.toLocalDate())
+    val scheduledAppts = findAppointmentPort.findAll(request.scheduledTime.toLocalDate())
     val scheduledTime = request.scheduledTime.toLocalTime()
 
-    ensure(availabilityService.isTimeAvailable(todaysAppts, scheduledTime)) {
+    ensure(availabilityService.isTimeAvailable(scheduledAppts, scheduledTime)) {
       DateTimeUnavailableError("'$scheduledTime' is no longer available.")
     }
 
