@@ -1,12 +1,25 @@
 package io.liquidsoftware.base.booking.adapter.out.persistence
 
 import io.liquidsoftware.base.booking.BookingNamespaces
-import io.liquidsoftware.base.booking.application.port.`in`.*
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
+import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderStatus
 import io.liquidsoftware.common.persistence.BaseEntity
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
-import jakarta.persistence.*
+import jakarta.persistence.CascadeType
+import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity

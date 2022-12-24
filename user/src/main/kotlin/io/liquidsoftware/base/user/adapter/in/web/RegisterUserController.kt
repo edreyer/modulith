@@ -1,6 +1,10 @@
 package io.liquidsoftware.base.user.adapter.`in`.web
 
-import io.liquidsoftware.base.user.application.port.`in`.*
+import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
+import io.liquidsoftware.base.user.application.port.`in`.RoleDto
+import io.liquidsoftware.base.user.application.port.`in`.UserDto
+import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
+import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.common.validation.Msisdn
 import io.liquidsoftware.common.workflow.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
