@@ -6,7 +6,13 @@ import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.CompletedSuccessDt
 import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.PaymentSuccessDto
 import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.ScheduleSuccessDto
 import io.liquidsoftware.base.booking.adapter.`in`.web.api.v1.StartedSuccessDto
-import io.liquidsoftware.base.booking.application.port.`in`.*
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedDtoIn
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoIn
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentIdDtoIn
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaymentDto
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
+import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderDtoIn
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodDtoIn
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodDtoOut
 import io.liquidsoftware.base.web.integration.user.BaseUserWebTest

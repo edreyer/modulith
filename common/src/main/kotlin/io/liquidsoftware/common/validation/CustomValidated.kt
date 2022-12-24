@@ -3,7 +3,9 @@ package io.liquidsoftware.common.validation
 import jakarta.validation.Constraint
 import jakarta.validation.Payload
 import kotlin.annotation.AnnotationRetention.RUNTIME
-import kotlin.annotation.AnnotationTarget.*
+import kotlin.annotation.AnnotationTarget.FUNCTION
+import kotlin.annotation.AnnotationTarget.PROPERTY_GETTER
+import kotlin.annotation.AnnotationTarget.PROPERTY_SETTER
 import kotlin.reflect.KClass
 
 @MustBeDocumented
