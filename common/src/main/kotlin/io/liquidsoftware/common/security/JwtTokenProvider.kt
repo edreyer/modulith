@@ -1,20 +1,15 @@
 package io.liquidsoftware.common.security
 
-import io.jsonwebtoken.Claims
-import io.jsonwebtoken.Jws
-import io.jsonwebtoken.JwtException
-import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.*
 import io.jsonwebtoken.security.Keys
 import io.liquidsoftware.common.logging.LoggerDelegate
+import jakarta.annotation.PostConstruct
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.User
-import java.util.Base64
-import java.util.Date
-import javax.annotation.PostConstruct
+import java.util.*
 import javax.crypto.SecretKey
 
 open class JwtTokenProvider(

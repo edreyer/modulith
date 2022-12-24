@@ -9,18 +9,10 @@ import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.persistence.BaseEntity
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
+import jakarta.persistence.*
 import org.hibernate.annotations.Filter
 import org.hibernate.annotations.FilterDef
 import org.hibernate.annotations.Where
-import javax.persistence.CollectionTable
-import javax.persistence.Column
-import javax.persistence.ElementCollection
-import javax.persistence.Entity
-import javax.persistence.EnumType
-import javax.persistence.Enumerated
-import javax.persistence.FetchType
-import javax.persistence.JoinColumn
-import javax.persistence.Table
 
 @Entity
 @Table(name = "users")

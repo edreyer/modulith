@@ -1,14 +1,7 @@
 package io.liquidsoftware.base.web.integration.security
 
 import assertk.assertThat
-import assertk.assertions.contains
-import assertk.assertions.hasMessage
-import assertk.assertions.isEmpty
-import assertk.assertions.isEqualTo
-import assertk.assertions.isFailure
-import assertk.assertions.isFalse
-import assertk.assertions.isInstanceOf
-import assertk.assertions.isTrue
+import assertk.assertions.*
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -25,8 +18,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.core.userdetails.User
 import java.nio.charset.StandardCharsets
-import java.util.Base64
-import java.util.Date
+import java.util.*
 import java.util.stream.Collectors
 
 internal class JwtTokenProviderTest {
@@ -35,7 +27,7 @@ internal class JwtTokenProviderTest {
   private lateinit var properties: JwtProperties
 
   @BeforeEach
-  private fun setup() {
+  fun setup() {
     properties = JwtProperties()
     log.debug("jwt properties::" + properties)
     jwtTokenProvider = JwtTokenProvider(properties)

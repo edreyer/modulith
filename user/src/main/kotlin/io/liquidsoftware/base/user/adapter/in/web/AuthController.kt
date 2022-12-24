@@ -2,6 +2,8 @@ package io.liquidsoftware.base.user.adapter.`in`.web
 
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.JwtTokenProvider
+import jakarta.validation.Valid
+import jakarta.validation.constraints.NotEmpty
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
@@ -12,8 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import javax.validation.Valid
-import javax.validation.constraints.NotEmpty
 
 data class UserLoginInputDto(
   @NotEmpty val username: String,

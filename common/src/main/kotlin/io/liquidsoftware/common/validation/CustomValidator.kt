@@ -1,7 +1,7 @@
 package io.liquidsoftware.common.validation
 
-import javax.validation.ConstraintValidator
-import javax.validation.ConstraintValidatorContext
+import jakarta.validation.ConstraintValidator
+import jakarta.validation.ConstraintValidatorContext
 
 class CustomValidator : ConstraintValidator<CustomValidated, Any> {
   override fun initialize(constraintAnnotation: CustomValidated) {}

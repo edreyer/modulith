@@ -2,6 +2,8 @@ package io.liquidsoftware.base.web.integration.security
 
 import com.ninjasquad.springmockk.MockkClear
 import com.ninjasquad.springmockk.clear
+import io.liquidsoftware.common.security.JwtTokenAuthenticationFilter
+import io.liquidsoftware.common.security.JwtTokenProvider
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -13,8 +15,6 @@ import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.web.server.ServerWebExchange
 import org.springframework.web.server.WebFilterChain
 import reactor.core.publisher.Mono
-import io.liquidsoftware.common.security.JwtTokenAuthenticationFilter
-import io.liquidsoftware.common.security.JwtTokenProvider
 
 internal class JwtAuthenticationFilterTest {
   private val tokenProvider = mockk<JwtTokenProvider>()
@@ -22,7 +22,7 @@ internal class JwtAuthenticationFilterTest {
   private val chain = mockk<WebFilterChain>()
 
   @BeforeEach
-  private fun setup() {
+  fun setup() {
     tokenProvider.clear(MockkClear.BEFORE)
     exchange.clear(MockkClear.BEFORE)
     chain.clear(MockkClear.BEFORE)

@@ -15,8 +15,8 @@ import io.liquidsoftware.common.ext.getOrShift
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
+import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
-import javax.annotation.PostConstruct
 
 @Component
 internal class CancelAppointmentWorkflow(
