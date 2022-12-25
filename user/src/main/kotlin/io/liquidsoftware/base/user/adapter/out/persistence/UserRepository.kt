@@ -1,17 +1,16 @@
 package io.liquidsoftware.base.user.adapter.out.persistence
 
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Mono
 
 @Repository
-internal interface UserRepository : JpaRepository<UserEntity, String> {
+internal interface UserRepository : ReactiveMongoRepository<UserEntity, String> {
 
-  @Query(value = "from UserEntity where id = :userId")
-  fun findByUserId(userId: String) : UserEntity?
+  suspend fun findByUserId(userId: String) : Mono<UserEntity>
 
-  fun findByEmail(email: String) : UserEntity?
+  suspend fun findByEmail(email: String) : Mono<UserEntity>
 
-  fun findByMsisdn(msisdn: String) : UserEntity?
+  suspend fun findByMsisdn(msisdn: String) : Mono<UserEntity>
 
 }

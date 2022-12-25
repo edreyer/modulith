@@ -16,6 +16,8 @@ import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.Permission
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.withContext
 
 internal class UserPersistenceAdapter(
@@ -27,25 +29,30 @@ internal class UserPersistenceAdapter(
 
   override suspend fun findUserById(userId: String): User? = withContext(Dispatchers.IO) {
     userRepository.findByUserId(userId)
-      ?.toUser()
-      ?.also { ac.checkPermission(it.acl(), Permission.READ)}
+      .awaitSingle()
+      .toUser()
+      .also { ac.checkPermission(it.acl(), Permission.READ)}
   }
 
   override suspend fun findUserByMsisdn(msisdn: String) : User? = withContext(Dispatchers.IO) {
     userRepository.findByMsisdn(msisdn)
+      .awaitSingleOrNull()
       ?.toUser()
       ?.also { ac.checkPermission(it.acl(), Permission.READ)}
   }
 
   override suspend fun findUserByEmail(email: String) : User? = withContext(Dispatchers.IO) {
     userRepository.findByEmail(email)
+      .awaitSingleOrNull()
       ?.toUser()
       ?.also { ac.checkPermission(it.acl(), Permission.READ)}
   }
 
   private suspend fun saveNewUser(user: UserEntity): User = withContext(Dispatchers.IO) {
     ac.checkPermission(user.toUser().acl(), Permission.MANAGE)
-    userRepository.saveAndFlush(user).toUser()
+    userRepository.save(user)
+      .awaitSingle()
+      .toUser()
   }
 
   override suspend fun handle(event: UserRegisteredEvent): UserRegisteredEvent = withContext(Dispatchers.IO) {
@@ -55,9 +62,10 @@ internal class UserPersistenceAdapter(
 
   override suspend fun <T : UserEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     userRepository.findByUserId(event.userDto.id)
-      ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
-      ?.handle(event)
-      ?.let { userRepository.saveAndFlush(it) }
+      .awaitSingle()
+      .also { ac.checkPermission(it.acl(), Permission.WRITE) }
+      .handle(event)
+      .let { userRepository.save(it) }
     event
   }
 
