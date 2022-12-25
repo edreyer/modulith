@@ -3,6 +3,10 @@ logging:
   level:
     org.springframework: INFO
 
+server:
+  error:
+    include-message: always
+
 spring:
 
   config:
@@ -22,6 +26,9 @@ spring:
     jdbc:
       repositories:
         enabled: true
+    mongodb:
+      database: modulith-mongo
+      uri: mongodb+srv://modulith-mongo:YKaszUbDtpPriKnP@modulith-mongo.xlbsmtf.mongodb.net/?retryWrites=true&w=majority
 
   jpa:
     properties:
