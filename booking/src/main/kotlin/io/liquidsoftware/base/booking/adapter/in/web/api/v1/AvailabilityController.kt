@@ -4,7 +4,6 @@ import io.liquidsoftware.base.booking.adapter.`in`.web.V1BookingPaths
 import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityRetrievedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
-import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -20,7 +19,7 @@ data class AvailabilityErrors(val errors: String) : AvailabilityDto()
 class AvailabilityController {
 
   @GetMapping(value = [V1BookingPaths.AVAILABILITY])
-  suspend fun availability(@PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") date: LocalDate)
+  suspend fun availability(@PathVariable date: LocalDate)
   : ResponseEntity<AvailabilityDto> {
     return WorkflowDispatcher.dispatch<AvailabilityRetrievedEvent>(GetAvailabilityQuery(date))
       .fold(

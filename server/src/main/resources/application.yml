@@ -13,44 +13,21 @@ spring:
     import:
       - classpath:common.yml
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/modulith
-    driver-class-name: org.postgresql.Driver
-    username: ${USER}
-    password:
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 2
-
   data:
-    jdbc:
-      repositories:
-        enabled: true
     mongodb:
       database: modulith-mongo
       uri: mongodb+srv://modulith-mongo:YKaszUbDtpPriKnP@modulith-mongo.xlbsmtf.mongodb.net/?retryWrites=true&w=majority
-
-  jpa:
-    properties:
-      hibernate:
-        jdbc:
-          time_zone: UTC # see: https://vladmihalcea.com/date-timestamp-jpa-hibernate/
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        ddl-auto: validate
-      hibernate.format_sql: false
-    generate-ddl: false
-    show-sql: false
-
-  flyway:
-    enabled: true
-    user: ${USER}
-    password:
 
   jackson:
 #    deserialization.UNWRAP_ROOT_VALUE: true
     serialization:
 #      WRAP_ROOT_VALUE: true
       WRITE_DATES_AS_TIMESTAMPS: false
+
+  mvc:
+    format:
+      date: yyyy-MM-dd
+      date-time: yyyy-MM-dd HH:mm:ss
 
 security:
   jwt:
