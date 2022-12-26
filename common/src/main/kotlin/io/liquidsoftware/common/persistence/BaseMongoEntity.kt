@@ -1,8 +1,10 @@
 package io.liquidsoftware.common.persistence
 
 import org.bson.types.ObjectId
+import org.springframework.data.annotation.CreatedBy
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedBy
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.annotation.Transient
 import org.springframework.data.annotation.Version
@@ -29,8 +31,14 @@ abstract class BaseMongoEntity(
   @CreatedDate
   var createdAt: LocalDateTime? = null
 
+  @CreatedBy
+  var createdByUser: String? = null
+
   @LastModifiedDate
   var updatedAt: LocalDateTime? = null
+
+  @LastModifiedBy
+  var modifiedByUser: String? = null
 
   override fun getId(): ObjectId? = this.mongoId
 
