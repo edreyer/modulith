@@ -65,7 +65,7 @@ internal class UserPersistenceAdapter(
       .awaitSingle()
       .also { ac.checkPermission(it.acl(), Permission.WRITE) }
       .handle(event)
-      .let { userRepository.save(it) }
+      .let { userRepository.save(it).awaitSingle() }
     event
   }
 

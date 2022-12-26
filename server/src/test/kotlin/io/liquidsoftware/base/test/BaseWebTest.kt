@@ -21,8 +21,14 @@ import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.boot.test.web.server.LocalServerPort
+import org.springframework.context.ApplicationContextInitializer
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.junit.jupiter.SpringExtension
+import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.utility.DockerImageName
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(SpringExtension::class)
@@ -36,6 +42,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
   ],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+@ContextConfiguration(initializers = [BaseWebTest.Initializer::class])
 class BaseWebTest {
 
   val log by LoggerDelegate()
@@ -46,6 +53,25 @@ class BaseWebTest {
   @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
   @LocalServerPort
   lateinit var port: Integer
+
+  companion object {
+    val mongoDBContainer = MongoDBContainer(DockerImageName.parse("mongo:5"))
+  }
+
+  internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
+
+    val log by LoggerDelegate()
+    override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
+      mongoDBContainer.start();
+
+      log.debug("MONGODB: ${mongoDBContainer.replicaSetUrl}")
+
+      TestPropertyValues.of(
+        "spring.data.mongodb.database=test",
+        "spring.data.mongodb.uri=${mongoDBContainer.replicaSetUrl}",
+      ).applyTo(configurableApplicationContext.environment)
+    }
+  }
 
   protected fun createUser(email: String, msisdn: String): RegisteredUserDto {
     return registerUser(RegisterUserInputDto(
