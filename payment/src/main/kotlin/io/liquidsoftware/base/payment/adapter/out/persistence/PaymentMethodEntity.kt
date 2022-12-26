@@ -1,19 +1,21 @@
 package io.liquidsoftware.base.payment.adapter.out.persistence
 
 import io.liquidsoftware.base.payment.PaymentNamespaces
-import io.liquidsoftware.common.persistence.BaseEntity
+import io.liquidsoftware.common.persistence.BaseMongoEntity
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
+import org.springframework.data.mongodb.core.index.Indexed
+import org.springframework.data.mongodb.core.mapping.Document
 
-@Entity
-@Table(name = "payment_methods")
+@Document("payment_methods")
 internal class PaymentMethodEntity(
 
-  paymentMethodId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_METHOD_NS),
-
+  @Indexed(unique = true)
+  var paymentMethodId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_METHOD_NS),
+  @Indexed
   var userId: String,
+  @Indexed
   var stripePaymentMethodId: String,
+
   var lastFour: String
 
-) : BaseEntity(paymentMethodId, PaymentNamespaces.PAYMENT_METHOD_NS)
+) : BaseMongoEntity(paymentMethodId, PaymentNamespaces.PAYMENT_METHOD_NS)

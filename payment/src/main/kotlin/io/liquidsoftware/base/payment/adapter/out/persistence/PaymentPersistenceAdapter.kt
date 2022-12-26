@@ -18,6 +18,8 @@ import io.liquidsoftware.common.ext.className
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.AclChecker
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.withContext
 
 internal class PaymentPersistenceAdapter(
@@ -26,18 +28,21 @@ internal class PaymentPersistenceAdapter(
   private val ac: AclChecker
 ) : FindPaymentMethodPort, PaymentEventPort {
 
-  private val logger by LoggerDelegate()
+  private val log by LoggerDelegate()
 
   override suspend fun findByPaymentMethodId(
     paymentMethodId: PaymentMethodId, userId: UserId): PaymentMethod? =
     withContext(Dispatchers.IO) {
-     paymentMethodRepository.findByIdAndUserId(paymentMethodId.value, userId.value)?.toPaymentMethod()
+     paymentMethodRepository
+       .findByPaymentMethodIdAndUserId(paymentMethodId.value, userId.value)
+       .awaitSingleOrNull()
+       ?.toPaymentMethod()
     }
 
   override suspend fun <T : PaymentMethodEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     when (event) {
       is PaymentMethodAddedEvent -> {
-        paymentMethodRepository.saveAndFlush(event.paymentMethodDto.toEntity())
+        paymentMethodRepository.save(event.paymentMethodDto.toEntity()).awaitSingle()
         event
       }
       else -> throw IllegalStateException("Unknown event type: ${event.className()}")
@@ -49,7 +54,7 @@ internal class PaymentPersistenceAdapter(
   override suspend fun <T : PaymentEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     when (event) {
       is PaymentMadeEvent -> {
-        paymentRepository.saveAndFlush(event.paymentDto.toEntity())
+        paymentRepository.save(event.paymentDto.toEntity()).awaitSingle()
         event
       }
       else -> throw IllegalStateException("Unknown event type: ${event.className()}")

@@ -1,11 +1,12 @@
 package io.liquidsoftware.base.payment.adapter.out.persistence
 
-import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Mono
 
 @Repository
-internal interface PaymentMethodRepository: JpaRepository<PaymentMethodEntity, String> {
+internal interface PaymentMethodRepository: ReactiveMongoRepository<PaymentMethodEntity, String> {
 
-  fun findByIdAndUserId(id: String, userId: String) : PaymentMethodEntity?
+  fun findByPaymentMethodIdAndUserId(id: String, userId: String) : Mono<PaymentMethodEntity>
 
 }
