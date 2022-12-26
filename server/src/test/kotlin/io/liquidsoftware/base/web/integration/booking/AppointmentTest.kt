@@ -16,6 +16,8 @@ import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderDtoIn
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodDtoIn
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodDtoOut
 import io.liquidsoftware.base.web.integration.user.BaseUserWebTest
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -32,7 +34,7 @@ class AppointmentTest : BaseUserWebTest() {
   fun scheduleNewAppointment() {
     val apptDto = AppointmentDtoIn(
       duration = 30,
-      scheduledTime = LocalDateTime.now().plusDays(1).withHour(10),
+      scheduledTime = LocalDateTime.now().plusSeconds(2),
       workOrder = WorkOrderDtoIn(
         service = "Oil Change",
         notes = "Scheduled!"
@@ -61,6 +63,7 @@ class AppointmentTest : BaseUserWebTest() {
   @Test
   @Order(3)
   fun testInProgress() {
+    runBlocking { delay(2000) }
     val apptDto = AppointmentIdDtoIn(appt?.id!!)
     val outputDto = post("/api/v1/appointments/in-progress", apptDto, accessToken)
       .then()
@@ -95,8 +98,8 @@ class AppointmentTest : BaseUserWebTest() {
       .statusCode(200)
       .extract().`as`(PaymentMethodDtoOut::class.java)
 
-    val apptDto = AppointmentPaymentDto(appt?.id!!, pmOut.paymentMethodId)
-    val apptDtoOut = post("/api/v1/appointments/pay", apptDto, accessToken)
+    val apptPaymentDto = AppointmentPaymentDto(appt?.id!!, pmOut.paymentMethodId)
+    val apptDtoOut = post("/api/v1/appointments/pay", apptPaymentDto, accessToken)
       .then()
       .statusCode(200)
       .extract().`as`(PaymentSuccessDto::class.java)

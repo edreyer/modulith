@@ -9,7 +9,7 @@ internal class AvailabilityService {
 
   suspend fun getAvailability(appts: List<Appointment>): List<LocalTime> {
     val existing = appts.map { it.scheduledTime.toLocalTime().hour }
-    return generateSequence(9) { it + 1 }.take(8)
+    return generateSequence(9) { it + 1 }.take(12)
       .filter { it !in existing }
       .map { LocalTime.of(it, 0) }
       .toList()

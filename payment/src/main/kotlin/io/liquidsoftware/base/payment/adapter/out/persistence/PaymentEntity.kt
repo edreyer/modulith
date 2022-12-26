@@ -1,19 +1,27 @@
 package io.liquidsoftware.base.payment.adapter.out.persistence
 
 import io.liquidsoftware.base.payment.PaymentNamespaces
-import io.liquidsoftware.common.persistence.BaseEntity
+import io.liquidsoftware.common.persistence.BaseMongoEntity
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
+import io.liquidsoftware.common.security.acl.Acl
+import io.liquidsoftware.common.security.acl.AclRole
+import org.springframework.data.mongodb.core.index.Indexed
+import org.springframework.data.mongodb.core.mapping.Document
 
-@Entity
-@Table(name = "payments")
+@Document("payments")
 internal class PaymentEntity(
 
-  paymentId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_NS),
-
+  @Indexed(unique = true)
+  var paymentId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_NS),
+  @Indexed
   var userId: String,
+  @Indexed
   var paymentMethodId: String,
+
   var amount: Long
 
-) : BaseEntity(paymentId, PaymentNamespaces.PAYMENT_NS)
+) : BaseMongoEntity(paymentId, PaymentNamespaces.PAYMENT_NS) {
+
+  fun acl() = Acl.of(paymentId, userId, AclRole.MANAGER)
+
+}
