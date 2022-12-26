@@ -57,7 +57,6 @@ data class WorkOrderDtoIn(
 )
 
 data class WorkOrderDtoOut(
-  val id: String,
   val service: String,
   val status: WorkOrderStatus,
 

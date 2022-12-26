@@ -4,7 +4,18 @@ import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
 import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderStatus
-import io.liquidsoftware.base.booking.domain.*
+import io.liquidsoftware.base.booking.domain.Appointment
+import io.liquidsoftware.base.booking.domain.CancelledAppointment
+import io.liquidsoftware.base.booking.domain.CancelledWorkOrder
+import io.liquidsoftware.base.booking.domain.CompleteAppointment
+import io.liquidsoftware.base.booking.domain.CompleteWorkOrder
+import io.liquidsoftware.base.booking.domain.InProgressAppointment
+import io.liquidsoftware.base.booking.domain.InProgressWorkOrder
+import io.liquidsoftware.base.booking.domain.PaidAppointment
+import io.liquidsoftware.base.booking.domain.PaidWorkOrder
+import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
+import io.liquidsoftware.base.booking.domain.ScheduledAppointment
+import io.liquidsoftware.base.booking.domain.WorkOrder
 
 internal fun Appointment.toDto(): AppointmentDtoOut =
   AppointmentDtoOut(
@@ -32,7 +43,6 @@ internal fun Appointment.toDto(): AppointmentDtoOut =
 
 internal fun WorkOrder.toDto() =
   WorkOrderDtoOut(
-    id = id.value,
     service = service.value,
     status = when (this) {
       is ReadyWorkOrder -> WorkOrderStatus.READY

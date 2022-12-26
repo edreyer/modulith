@@ -29,9 +29,9 @@ internal class UserPersistenceAdapter(
 
   override suspend fun findUserById(userId: String): User? = withContext(Dispatchers.IO) {
     userRepository.findByUserId(userId)
-      .awaitSingle()
-      .toUser()
-      .also { ac.checkPermission(it.acl(), Permission.READ)}
+      .awaitSingleOrNull()
+      ?.toUser()
+      ?.also { ac.checkPermission(it.acl(), Permission.READ)}
   }
 
   override suspend fun findUserByMsisdn(msisdn: String) : User? = withContext(Dispatchers.IO) {
@@ -71,11 +71,11 @@ internal class UserPersistenceAdapter(
 
   private fun UserEntity.toUser() : User {
     return when {
-      !this.active -> DisabledUser.of(this.id, this.msisdn, this.email, this.password, this.roles.first())
+      !this.active -> DisabledUser.of(this.userId, this.msisdn, this.email, this.password, this.roles.first())
         .fold(ErrorHandling.ERROR_HANDLER, ::identity)
-      Role.ROLE_USER in this.roles -> ActiveUser.of(this.id, this.msisdn, this.email, this.password)
+      Role.ROLE_USER in this.roles -> ActiveUser.of(this.userId, this.msisdn, this.email, this.password)
         .fold(ErrorHandling.ERROR_HANDLER, ::identity)
-      Role.ROLE_ADMIN in this.roles -> AdminUser.of(this.id, this.msisdn, this.email, this.password)
+      Role.ROLE_ADMIN in this.roles -> AdminUser.of(this.userId, this.msisdn, this.email, this.password)
         .fold(ErrorHandling.ERROR_HANDLER, ::identity)
       else -> {
         val err = "Unknown User Type. roles=${this.roles}"
