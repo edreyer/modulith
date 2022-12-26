@@ -1,18 +1,18 @@
 package io.liquidsoftware.base.booking.adapter.out.persistence
 
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
+import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
+import reactor.core.publisher.Flux
+import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 @Repository
-internal interface AppointmentRepository : JpaRepository<AppointmentEntity, String> {
+internal interface AppointmentRepository : ReactiveMongoRepository<AppointmentEntity, String> {
 
-  @Query(value = "from AppointmentEntity where id = :appointmentId")
-  fun findByAppointmentId(appointmentId: String) : AppointmentEntity?
+  fun findByAppointmentId(appointmentId: String) : Mono<AppointmentEntity>
 
-  fun findByUserId(userId: String): List<AppointmentEntity>
+  fun findByUserId(userId: String): Flux<AppointmentEntity>
 
-  fun findByScheduledTimeBetween(start: LocalDateTime, end: LocalDateTime): List<AppointmentEntity>
+  fun findByScheduledTimeBetween(start: LocalDateTime, end: LocalDateTime): Flux<AppointmentEntity>
 
 }

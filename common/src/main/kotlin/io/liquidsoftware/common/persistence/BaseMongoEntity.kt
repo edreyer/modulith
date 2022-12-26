@@ -4,6 +4,7 @@ import org.bson.types.ObjectId
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.annotation.Transient
 import org.springframework.data.annotation.Version
 import org.springframework.data.domain.Persistable
 import java.time.LocalDateTime
@@ -11,10 +12,10 @@ import java.time.LocalDateTime
 /**
  */
 abstract class BaseMongoEntity(
-  private var id: String,
+  @Transient @JvmField var id: String,
   @Transient private var namespace: String,
   @Id private var mongoId: ObjectId? = null
-) : Persistable<String> {
+) : Persistable<ObjectId> {
 
   init {
     if (!id.startsWith(namespace)) {
@@ -31,7 +32,7 @@ abstract class BaseMongoEntity(
   @LastModifiedDate
   var updatedAt: LocalDateTime? = null
 
-  override fun getId(): String = id
+  override fun getId(): ObjectId? = this.mongoId
 
   override fun isNew(): Boolean {
     return version == null

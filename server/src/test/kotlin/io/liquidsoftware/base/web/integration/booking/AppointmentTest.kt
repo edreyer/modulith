@@ -103,7 +103,7 @@ class AppointmentTest : BaseUserWebTest() {
       .appointment
 
     assertThat(apptDtoOut.status).isEqualTo(AppointmentStatus.PAID)
-    assertThat(apptDtoOut.workOrderDto?.notes).isEqualTo("Complete!")
+    assertThat(apptDtoOut.workOrderDto.notes).isEqualTo("Complete!")
   }
 
 }

@@ -15,7 +15,7 @@ class JwtPropertiesTest {
   @Nested
   internal inner class UnitTest {
     private lateinit var properties: JwtProperties
-    
+
     @BeforeEach
     fun setup() {
       properties = JwtProperties()
