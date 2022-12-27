@@ -16,7 +16,7 @@ spring:
   data:
     mongodb:
       database: modulith-mongo
-      uri: mongodb+srv://modulith-mongo:YKaszUbDtpPriKnP@modulith-mongo.xlbsmtf.mongodb.net/?retryWrites=true&w=majority
+      uri: mongodb://localhost:27017/
 
   jackson:
 #    deserialization.UNWRAP_ROOT_VALUE: true
