@@ -47,7 +47,7 @@ internal class PayAppointmentWorkflow(
     ))
       .map { PaidAppointment.of(completeAppt, it.paymentDto.paymentId).getOrShift() }
       .map { appointmentEventPort.handle(AppointmentPaidEvent(it.toDto())) }
-      .tapLeft { ex -> log.error("Failed to make payment on appt ${request.appointmentId}", ex) }
+      .onLeft { ex -> log.error("Failed to make payment on appt ${request.appointmentId}", ex) }
       .getOrShift()
 
   }

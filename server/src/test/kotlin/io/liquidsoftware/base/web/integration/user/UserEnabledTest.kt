@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.web.integration.user
 
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import assertk.assertThat
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
@@ -18,7 +18,7 @@ class UserEnabledTest : BaseUserWebTest() {
   fun testUserEnableDisable() = runBlocking {
     val user = runAsSuperUser {
       WorkflowDispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
-        .getOrHandle { throw it }
+        .getOrElse { throw it }
         .userDto
     }
     assertThat(user.active).isTrue()
@@ -29,7 +29,7 @@ class UserEnabledTest : BaseUserWebTest() {
 
     val disabledUser = runAsSuperUser {
       WorkflowDispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
-        .getOrHandle { throw it }
+        .getOrElse { throw it }
         .userDto
     }
     assertThat(disabledUser.active).isFalse()

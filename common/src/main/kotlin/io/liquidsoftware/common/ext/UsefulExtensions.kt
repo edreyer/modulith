@@ -6,7 +6,7 @@ import arrow.core.Either.Right
 import arrow.core.Validated
 import arrow.core.continuations.Effect
 import arrow.core.continuations.EffectScope
-import arrow.core.getOrHandle
+import arrow.core.getOrElse
 import io.liquidsoftware.common.types.ValidationErrorNel
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.ValidationErrors
@@ -35,7 +35,7 @@ suspend inline fun <reified T> Result<T>.getOrShift(): T = this.getOrElse {
 }
 
 context(EffectScope<WorkflowError>)
-  suspend inline fun <reified T> Either<WorkflowError, T>.getOrShift(): T = this.getOrHandle {
+  suspend inline fun <reified T> Either<WorkflowError, T>.getOrShift(): T = this.getOrElse {
   shift(ServerError(it.message))
 }
 
