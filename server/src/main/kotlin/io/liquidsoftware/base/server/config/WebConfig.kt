@@ -32,7 +32,8 @@ class WebConfig {
   @Bean
   fun corsWebFilter() : CorsWebFilter {
     val corsConfiguration = CorsConfiguration().apply {
-        this.allowedOrigins = listOf("*")
+        this.applyPermitDefaultValues()
+        this.addAllowedMethod("PUT")
       }
     val source: CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
       this.registerCorsConfiguration("/**", corsConfiguration)
