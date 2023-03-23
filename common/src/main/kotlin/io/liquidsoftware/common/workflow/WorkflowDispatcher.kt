@@ -50,9 +50,7 @@ object WorkflowDispatcher {
 //    commandHandlers[command::class]?.map { runAsync(it as SafeWorkflow<Command, E>, command) } ?: emptyList()
 
   suspend fun <E: Event> dispatch(command: Command): Either<WorkflowError, E> {
-    log.debug("BEFORE EFFECT")
     return effect {
-      log.debug("START EFFECT")
       ensureNotNull(commandHandlers[command::class]) {
         MissingHandler("No handler for command $command")
       }.let {
