@@ -32,7 +32,7 @@ class WebConfig {
   @Bean
   fun corsWebFilter() : CorsWebFilter {
     val corsConfiguration = CorsConfiguration().apply {
-        this.allowedOrigins = listOf("localhost", "modulith*herokuapp.com")
+        this.allowedOrigins = listOf("*")
       }
     val source: CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
       this.registerCorsConfiguration("/**", corsConfiguration)
