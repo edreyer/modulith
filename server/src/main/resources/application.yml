@@ -2,6 +2,7 @@
 logging:
   level:
     org.springframework: INFO
+    io.liquidsoftware: DEBUG
 
 server:
   error:

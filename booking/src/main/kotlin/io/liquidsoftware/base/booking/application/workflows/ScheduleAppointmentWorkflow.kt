@@ -1,17 +1,21 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.Nel
 import arrow.core.continuations.EffectScope
 import arrow.core.continuations.effect
 import io.liquidsoftware.base.booking.application.mapper.toDto
-import io.liquidsoftware.base.booking.application.port.`in`.*
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentValidationError
+import io.liquidsoftware.base.booking.application.port.`in`.DateTimeUnavailableError
+import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AvailabilityService
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
-import io.liquidsoftware.common.types.ValidationError
+import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.toErrString
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
@@ -39,7 +43,7 @@ internal class ScheduleAppointmentWorkflow(
       DateTimeUnavailableError("'$scheduledTime' is no longer available.")
     }
 
-    return effect<Nel<ValidationError>, Appointment> {
+    return effect<ValidationErrors, Appointment> {
       val wo = ReadyWorkOrder.of(
         service = request.workOrder.service,
         notes = request.workOrder.notes
@@ -48,9 +52,9 @@ internal class ScheduleAppointmentWorkflow(
         userId = request.userId,
         scheduledTime = request.scheduledTime,
         duration = request.duration,
-        workOrder = wo.bind()
+        workOrder = wo
       )
-      appt.bind()
+      appt
     }
     .fold(
       { shift(AppointmentValidationError(it.toErrString())) },

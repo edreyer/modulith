@@ -1,10 +1,11 @@
 package io.liquidsoftware.base.payment
 
+import arrow.core.continuations.EffectScope
 import io.liquidsoftware.base.payment.PaymentNamespaces.PAYMENT_METHOD_NS
 import io.liquidsoftware.base.payment.PaymentNamespaces.PAYMENT_NS
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.types.SimpleType
-import io.liquidsoftware.common.types.ValidationErrorNel
+import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.ensure
 import org.valiktor.functions.matches
 import org.valiktor.validate
@@ -17,11 +18,12 @@ object PaymentNamespaces {
 class PaymentId private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    fun of(value: String): ValidationErrorNel<PaymentId> = ensure {
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(value: String): PaymentId = ensure {
       validate(PaymentId(value)) {
         validate(PaymentId::value).matches("${PAYMENT_NS}.*".toRegex())
       }
-    }
+    }.bind()
 
     fun create() = PaymentId(NamespaceIdGenerator.nextId(PAYMENT_NS))
   }
@@ -29,11 +31,12 @@ class PaymentId private constructor(override val value: String)
 
 class PaymentMethodId private constructor(override val value: String) : SimpleType<String>() {
   companion object {
-    fun of(value: String): ValidationErrorNel<PaymentMethodId> = ensure {
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(value: String): PaymentMethodId = ensure {
       validate(PaymentMethodId(value)) {
         validate(PaymentMethodId::value).matches("${PAYMENT_METHOD_NS}.*".toRegex())
       }
-    }
+    }.bind()
 
     fun create() = PaymentMethodId(NamespaceIdGenerator.nextId(PAYMENT_METHOD_NS))
   }

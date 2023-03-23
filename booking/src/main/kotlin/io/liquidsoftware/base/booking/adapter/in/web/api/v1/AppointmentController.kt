@@ -21,6 +21,7 @@ import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentComm
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.web.ControllerSupport
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.workflow.WorkflowDispatcher.log
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -54,6 +55,7 @@ class AppointmentController(
   @PostMapping(value = [V1BookingPaths.SCHEDULE_APPT])
   suspend fun schedule(@RequestBody appt: AppointmentDtoIn)
     : ResponseEntity<ScheduledAppointmentOutputDto> {
+    log.debug("AppointmentController.schedule()")
     return WorkflowDispatcher.dispatch<AppointmentScheduledEvent>(
       ScheduleAppointmentCommand(ex.getCurrentUser().id, appt.scheduledTime, appt.duration, appt.workOrder)
     )

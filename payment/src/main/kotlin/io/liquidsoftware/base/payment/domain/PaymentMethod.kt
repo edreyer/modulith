@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.payment.domain
 
-import arrow.core.zip
+import arrow.core.continuations.EffectScope
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.PaymentNamespaces
 import io.liquidsoftware.base.user.UserId
@@ -8,7 +8,7 @@ import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.types.NonEmptyString
-import io.liquidsoftware.common.types.ValidationErrorNel
+import io.liquidsoftware.common.types.ValidationErrors
 
 internal interface PaymentMethodFields {
   val id: PaymentMethodId
@@ -32,15 +32,15 @@ internal data class ActivePaymentMethod(
   val data: PaymentMethodData
 ) : PaymentMethod(), PaymentMethodFields by data {
   companion object {
-    fun of(paymentMethodId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_METHOD_NS),
-           userId: String, stripePaymentMethodId: String, lastFour: String) : ValidationErrorNel<ActivePaymentMethod> {
-      return PaymentMethodId.of(paymentMethodId).zip(
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(paymentMethodId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_METHOD_NS),
+           userId: String, stripePaymentMethodId: String, lastFour: String) : ActivePaymentMethod {
+      return ActivePaymentMethod(PaymentMethodData(
+        PaymentMethodId.of(paymentMethodId),
         UserId.of(userId),
         NonEmptyString.of(stripePaymentMethodId),
         NonEmptyString.of(lastFour)
-      ) { pmId, uId, spmId, lf ->
-        ActivePaymentMethod(PaymentMethodData(pmId, uId, spmId, lf))
-      }
+      ))
     }
   }
 }

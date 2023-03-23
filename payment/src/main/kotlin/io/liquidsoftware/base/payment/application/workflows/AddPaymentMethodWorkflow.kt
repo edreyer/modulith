@@ -1,6 +1,7 @@
 package io.liquidsoftware.base.payment.application.workflows
 
 import arrow.core.continuations.EffectScope
+import arrow.core.continuations.effect
 import io.liquidsoftware.base.payment.application.mapper.toDto
 import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
@@ -23,12 +24,15 @@ internal class AddPaymentMethodWorkflow(
 
   context(EffectScope<WorkflowError>)
   override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent {
-    return ActivePaymentMethod.of(
-      userId = request.paymentMethod.userId,
-      stripePaymentMethodId = request.paymentMethod.stripePaymentMethodId,
-      lastFour = request.paymentMethod.lastFour
-    )
+    return effect {
+      ActivePaymentMethod.of(
+        userId = request.paymentMethod.userId,
+        stripePaymentMethodId = request.paymentMethod.stripePaymentMethodId,
+        lastFour = request.paymentMethod.lastFour
+      )
+    }
       .getOrShift()
       .let { paymentEventPort.handle(PaymentMethodAddedEvent(it.toDto())) }
-  }
+    }
 }
+

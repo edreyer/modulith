@@ -1,6 +1,7 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.continuations.EffectScope
+import arrow.core.continuations.effect
 import arrow.core.continuations.ensureNotNull
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
@@ -11,12 +12,12 @@ import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
-import io.liquidsoftware.common.ext.getOrShift
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowValidationError
 import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 
@@ -45,10 +46,14 @@ internal class PayAppointmentWorkflow(
       paymentMethodId = request.paymentMethodId,
       amount = completeAppt.totalDue()
     ))
-      .map { PaidAppointment.of(completeAppt, it.paymentDto.paymentId).getOrShift() }
+      .map { effect { PaidAppointment.of(completeAppt, it.paymentDto.paymentId) }.fold(
+        { shift(WorkflowValidationError(it)) },
+        { it }
+      )}
       .map { appointmentEventPort.handle(AppointmentPaidEvent(it.toDto())) }
-      .onLeft { ex -> log.error("Failed to make payment on appt ${request.appointmentId}", ex) }
-      .getOrShift()
+      .onLeft { ex ->
+        log.error("Failed to make payment on appt ${request.appointmentId}", ex)
+      }.bind()
 
   }
 

@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.booking.adapter.out.persistence
 
+import arrow.core.continuations.effect
 import arrow.core.identity
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
@@ -26,6 +27,7 @@ import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.Permission
+import io.liquidsoftware.common.types.ValidationErrors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.reactive.asFlow
@@ -46,8 +48,8 @@ internal class BookingPersistenceAdapter(
       apptRepository.findByAppointmentId(apptId)
         .awaitSingleOrNull()
         ?.toAppointment()
-        ?.also { ac.checkPermission(it.acl(), Permission.READ)}
-    }
+    }?.also { ac.checkPermission(it.acl(), Permission.READ) }
+
 
   override suspend fun findScheduledById(apptId: String): ScheduledAppointment? =
     findById(apptId)
@@ -111,27 +113,28 @@ internal class BookingPersistenceAdapter(
     }
   }
 
-  private fun AppointmentEntity.toAppointment(): Appointment {
+  private suspend fun AppointmentEntity.toAppointment(): Appointment {
+    val entity = this;
     return when (this.status) {
-      AppointmentStatus.SCHEDULED -> ScheduledAppointment.of(
-          this.appointmentId, this.userId, this.scheduledTime, this.duration,
-          this.workOrder.toWorkOrder() as ReadyWorkOrder
-        ).fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.IN_PROGRESS -> InProgressAppointment.of(
-          this.appointmentId, this.userId, this.scheduledTime, this.duration,
+      AppointmentStatus.SCHEDULED -> effect<ValidationErrors, Appointment> { ScheduledAppointment.of(
+        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
+        entity.workOrder.toWorkOrder() as ReadyWorkOrder
+        )}.fold(ERROR_HANDLER, ::identity)
+      AppointmentStatus.IN_PROGRESS -> effect<ValidationErrors, Appointment> { InProgressAppointment.of(
+        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
           workOrder.toWorkOrder() as InProgressWorkOrder
-        ).fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.COMPLETE -> CompleteAppointment.of(
-        this.appointmentId, this.userId, this.scheduledTime, this.duration,
-        workOrder.toWorkOrder() as CompleteWorkOrder, this.completeTime!!
-      ).fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.PAID -> PaidAppointment.of(
-        this.appointmentId, this.paymentId!!, this.userId, this.scheduledTime, this.duration,
-        workOrder.toWorkOrder() as PaidWorkOrder, this.completeTime!!
-      ).fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.CANCELLED -> CancelledAppointment.of(
-        this.appointmentId, this.userId, this.scheduledTime, this.duration, workOrder.toWorkOrder(), this.cancelTime!!
-      ).fold(ERROR_HANDLER, ::identity)
+        )}.fold(ERROR_HANDLER, ::identity)
+      AppointmentStatus.COMPLETE -> effect<ValidationErrors, Appointment> { CompleteAppointment.of(
+        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
+        workOrder.toWorkOrder() as CompleteWorkOrder, entity.completeTime!!
+      )}.fold(ERROR_HANDLER, ::identity)
+      AppointmentStatus.PAID -> effect<ValidationErrors, Appointment> { PaidAppointment.of(
+        entity.appointmentId, entity.paymentId!!, entity.userId, entity.scheduledTime, entity.duration,
+        workOrder.toWorkOrder() as PaidWorkOrder, entity.completeTime!!
+      )}.fold(ERROR_HANDLER, ::identity)
+      AppointmentStatus.CANCELLED -> effect<ValidationErrors, Appointment> { CancelledAppointment.of(
+        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration, workOrder.toWorkOrder(), entity.cancelTime!!
+      )}.fold(ERROR_HANDLER, ::identity)
     }
   }
 
@@ -149,22 +152,23 @@ internal class BookingPersistenceAdapter(
     )
 
 
-  private fun WorkOrderEmbedded.toWorkOrder(): WorkOrder {
+  private suspend fun WorkOrderEmbedded.toWorkOrder(): WorkOrder {
+    val wo = this
     return when (this.status) {
-      WorkOrderStatus.READY -> ReadyWorkOrder.of(this.service, this.notes)
+      WorkOrderStatus.READY -> effect { ReadyWorkOrder.of(wo.service, wo.notes) }
         .fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.IN_PROGRESS -> InProgressWorkOrder.of(
-        this.service, this.startTime!!
-      ).fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.COMPLETE -> CompleteWorkOrder.of(
-        this.service, this.startTime!!, this.completeTime!!, this.notes!!
-      ).fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.PAID -> PaidWorkOrder.of(
-        this.service, this.startTime!!, this.completeTime!!, this.paymentTime!!, this.notes!!
-      ).fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.CANCELLED -> CancelledWorkOrder.of(
-        this.service, this.cancelTime!!, this.notes!!
-      ).fold(ERROR_HANDLER, ::identity)
+      WorkOrderStatus.IN_PROGRESS -> effect { InProgressWorkOrder.of(
+        wo.service, wo.startTime!!
+      )}.fold(ERROR_HANDLER, ::identity)
+      WorkOrderStatus.COMPLETE -> effect { CompleteWorkOrder.of(
+        wo.service, wo.startTime!!, wo.completeTime!!, wo.notes!!
+      )}.fold(ERROR_HANDLER, ::identity)
+      WorkOrderStatus.PAID -> effect { PaidWorkOrder.of(
+        wo.service, wo.startTime!!, wo.completeTime!!, wo.paymentTime!!, wo.notes!!
+      )}.fold(ERROR_HANDLER, ::identity)
+      WorkOrderStatus.CANCELLED -> effect { CancelledWorkOrder.of(
+        wo.service, wo.cancelTime!!, wo.notes!!
+      )}.fold(ERROR_HANDLER, ::identity)
     }
   }
 

@@ -1,10 +1,9 @@
 package io.liquidsoftware.base.booking.domain
 
 import arrow.core.Some
-import arrow.core.validNel
-import arrow.core.zip
+import arrow.core.continuations.EffectScope
 import io.liquidsoftware.common.types.NonEmptyString
-import io.liquidsoftware.common.types.ValidationErrorNel
+import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.ensure
 import org.valiktor.functions.isValid
 import org.valiktor.validate
@@ -21,23 +20,28 @@ internal data class WorkOrderData(
 internal sealed class
 WorkOrder : WorkOrderFields {
   companion object {
-    fun startDateValidator(startTime: LocalDateTime): ValidationErrorNel<Some<LocalDateTime>> = ensure {
+    context(EffectScope<ValidationErrors>)
+    suspend fun startDateValidator(startTime: LocalDateTime): LocalDateTime = ensure {
       validate(Some(startTime)) {
         validate(Some<LocalDateTime>::value).isValid { it.isBefore(LocalDateTime.now()) }
       }
-    }
-    fun completeDateValidator(startTime:LocalDateTime, completeTime: LocalDateTime): ValidationErrorNel<Some<LocalDateTime>> = ensure {
+    }.bind().value
+
+    context(EffectScope<ValidationErrors>)
+    suspend fun completeDateValidator(startTime:LocalDateTime, completeTime: LocalDateTime): LocalDateTime = ensure {
       validate(Some(completeTime)) {
         validate(Some<LocalDateTime>::value).isValid { it.isBefore(LocalDateTime.now()) }
         validate(Some<LocalDateTime>::value).isValid { it.isAfter(startTime) }
       }
-    }
-    fun paymentDateValidator(completeTime:LocalDateTime, paymentTime: LocalDateTime): ValidationErrorNel<Some<LocalDateTime>> = ensure {
+    }.bind().value
+
+    context(EffectScope<ValidationErrors>)
+    suspend fun paymentDateValidator(completeTime:LocalDateTime, paymentTime: LocalDateTime): LocalDateTime = ensure {
       validate(Some(paymentTime)) {
         validate(Some<LocalDateTime>::value).isValid { it.isBefore(LocalDateTime.now()) }
         validate(Some<LocalDateTime>::value).isValid { it.isAfter(completeTime) }
       }
-    }
+    }.bind().value
 
   }
 }
@@ -47,15 +51,9 @@ internal data class ReadyWorkOrder(
   private val data: WorkOrderData
 ) : WorkOrder(), WorkOrderFields by data {
   companion object {
-    fun of(
-      service: String,
-      notes: String? = null):
-      ValidationErrorNel<ReadyWorkOrder> {
-      return NonEmptyString.of(service).zip (
-        notes.validNel()
-      ) { s, n ->
-        ReadyWorkOrder(n, WorkOrderData(s))
-      }
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(service: String, notes: String? = null): ReadyWorkOrder {
+      return ReadyWorkOrder(notes, WorkOrderData(NonEmptyString.of(service)))
     }
   }
 }
@@ -65,14 +63,9 @@ internal data class InProgressWorkOrder(
   private val data: WorkOrderData
 ) : WorkOrder(), WorkOrderFields by data {
   companion object {
-    fun of(service: String, startTime: LocalDateTime):
-      ValidationErrorNel<InProgressWorkOrder> {
-      return startDateValidator(startTime).zip (
-        NonEmptyString.of(service),
-      ) { sd, s ->
-        InProgressWorkOrder(sd.value, WorkOrderData(s))
-      }
-    }
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(service: String, startTime: LocalDateTime): InProgressWorkOrder =
+      InProgressWorkOrder(startDateValidator(startTime), WorkOrderData(NonEmptyString.of(service)))
 
     fun of(ready: ReadyWorkOrder): InProgressWorkOrder =
       InProgressWorkOrder(
@@ -89,17 +82,14 @@ internal data class CompleteWorkOrder(
   private val data: WorkOrderData
 ) : WorkOrder(), WorkOrderFields by data {
   companion object {
-    fun of(service: String,
-           startTime: LocalDateTime, completeTime: LocalDateTime, notes: String = ""):
-      ValidationErrorNel<CompleteWorkOrder> {
-      return NonEmptyString.of(service).zip (
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(service: String,
+           startTime: LocalDateTime, completeTime: LocalDateTime, notes: String = ""): CompleteWorkOrder =
+      CompleteWorkOrder(
         startDateValidator(startTime),
         completeDateValidator(startTime, completeTime),
-        notes.validNel()
-      ) { s, st, ct, n ->
-        CompleteWorkOrder(st.value, ct.value, n, WorkOrderData(s))
-      }
-    }
+        notes,
+        WorkOrderData(NonEmptyString.of(service)))
     fun of(inProgress: InProgressWorkOrder, notes: String?): CompleteWorkOrder =
       CompleteWorkOrder(
         inProgress.startTime,
@@ -110,6 +100,7 @@ internal data class CompleteWorkOrder(
   }
 }
 
+
 internal data class PaidWorkOrder(
   private val startTime: LocalDateTime,
   val completeTime: LocalDateTime,
@@ -118,19 +109,18 @@ internal data class PaidWorkOrder(
   private val data: WorkOrderData
 ) : WorkOrder(), WorkOrderFields by data {
   companion object {
-    fun of(service: String,
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(service: String,
            startTime: LocalDateTime, completeTime: LocalDateTime,
-           paymentTime: LocalDateTime, notes: String? = ""):
-      ValidationErrorNel<PaidWorkOrder> {
-      return NonEmptyString.of(service).zip (
-        startDateValidator(startTime),
-        completeDateValidator(startTime, completeTime),
-        paymentDateValidator(completeTime, paymentTime),
-        notes.validNel()
-      ) { s, st, et, pt, n ->
-        PaidWorkOrder(st.value, et.value, pt.value, n, WorkOrderData(s))
-      }
-    }
+           paymentTime: LocalDateTime, notes: String? = ""): PaidWorkOrder =
+      PaidWorkOrder(
+             startDateValidator(startTime),
+             completeDateValidator(startTime, completeTime),
+             paymentDateValidator(completeTime, paymentTime),
+             notes,
+             WorkOrderData(NonEmptyString.of(service))
+      )
+
     fun of(complete: CompleteWorkOrder): PaidWorkOrder =
       PaidWorkOrder(
         complete.startTime,
@@ -148,15 +138,11 @@ internal data class CancelledWorkOrder(
   private val data: WorkOrderData
 ) : WorkOrder(), WorkOrderFields by data {
   companion object {
-    fun of(service: String,
-           cancelTime: LocalDateTime, notes: String = ""):
-      ValidationErrorNel<CancelledWorkOrder> {
-      return NonEmptyString.of(service).zip (
-        notes.validNel()
-      ) { s, n ->
-        CancelledWorkOrder(cancelTime, n, WorkOrderData(s))
-      }
-    }
+    context(EffectScope<ValidationErrors>)
+    suspend fun of(service: String, cancelTime: LocalDateTime, notes: String = ""): CancelledWorkOrder =
+      CancelledWorkOrder(
+        cancelTime, notes, WorkOrderData(NonEmptyString.of(service))
+      )
   }
 }
 

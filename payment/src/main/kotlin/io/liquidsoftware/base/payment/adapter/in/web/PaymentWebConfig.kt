@@ -1,4 +1,4 @@
-package io.liquidsoftware.base.payment.adapter.`in`.web.api.v1
+package io.liquidsoftware.base.payment.adapter.`in`.web
 
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration

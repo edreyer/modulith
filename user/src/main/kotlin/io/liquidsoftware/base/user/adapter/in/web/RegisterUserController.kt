@@ -6,9 +6,9 @@ import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.common.validation.Msisdn
-import io.liquidsoftware.common.workflow.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowValidationError
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty
@@ -42,7 +42,7 @@ internal class RegisterUserController {
         {
           when (it) {
             is UserExistsError -> ResponseEntity.badRequest().body(it.toOutputDto())
-            is ValidationErrors -> ResponseEntity.badRequest().body(it.toOutputDto())
+            is WorkflowValidationError -> ResponseEntity.badRequest().body(it.toOutputDto())
             else -> ResponseEntity.status(500).body(it.toOutputDto())
           }
         },
@@ -61,7 +61,7 @@ internal class RegisterUserController {
   fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
     RegisterUserErrorsDto(this.message)
 
-  fun ValidationErrors.toOutputDto(): RegisterUserOutputDto =
+  fun WorkflowValidationError.toOutputDto(): RegisterUserOutputDto =
     RegisterUserErrorsDto(this.message)
 
   fun WorkflowError.toOutputDto(): RegisterUserOutputDto =

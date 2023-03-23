@@ -1,7 +1,7 @@
-#logging:
-#  level:
-#    org:
-#      springframework: DEBUG
+logging:
+  level:
+    org.springframework: INFO
+    io.liquidsoftware: DEBUG
 
 spring:
 

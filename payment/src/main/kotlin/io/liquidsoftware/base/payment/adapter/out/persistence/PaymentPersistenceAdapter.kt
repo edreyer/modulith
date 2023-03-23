@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.payment.adapter.out.persistence
 
+import arrow.core.continuations.effect
 import arrow.core.identity
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDtoOut
@@ -13,7 +14,7 @@ import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
 import io.liquidsoftware.base.payment.domain.PaymentMethod
 import io.liquidsoftware.base.user.UserId
-import io.liquidsoftware.common.errors.ErrorHandling.ERROR_HANDLER
+import io.liquidsoftware.common.errors.ErrorHandling
 import io.liquidsoftware.common.ext.className
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.AclChecker
@@ -49,8 +50,6 @@ internal class PaymentPersistenceAdapter(
     }
   }
 
-
-
   override suspend fun <T : PaymentEvent> handle(event: T): T = withContext(Dispatchers.IO) {
     when (event) {
       is PaymentMadeEvent -> {
@@ -75,14 +74,17 @@ internal class PaymentPersistenceAdapter(
     amount = this.amount
   )
 
-  private fun PaymentMethodEntity.toPaymentMethod(): PaymentMethod {
-    return ActivePaymentMethod.of(
-      this.id,
-      this.userId,
-      this.stripePaymentMethodId,
-      this.lastFour
-    )
-      .fold(ERROR_HANDLER, ::identity)
+  private suspend fun PaymentMethodEntity.toPaymentMethod(): PaymentMethod {
+    val pmEntity = this
+    return effect {
+      ActivePaymentMethod.of(
+        pmEntity.id,
+        pmEntity.userId,
+        pmEntity.stripePaymentMethodId,
+        pmEntity.lastFour
+      )
+    }
+      .fold(ErrorHandling.ERROR_HANDLER, ::identity)
   }
 
 }

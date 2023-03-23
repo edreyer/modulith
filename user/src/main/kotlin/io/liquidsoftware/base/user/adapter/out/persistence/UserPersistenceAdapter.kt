@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.user.adapter.out.persistence
 
+import arrow.core.continuations.effect
 import arrow.core.identity
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
@@ -11,7 +12,7 @@ import io.liquidsoftware.base.user.domain.AdminUser
 import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.User
-import io.liquidsoftware.common.errors.ErrorHandling
+import io.liquidsoftware.common.errors.ErrorHandling.ERROR_HANDLER
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.Permission
@@ -69,14 +70,22 @@ internal class UserPersistenceAdapter(
     event
   }
 
-  private fun UserEntity.toUser() : User {
+  private suspend fun UserEntity.toUser() : User {
+    val entity = this
     return when {
-      !this.active -> DisabledUser.of(this.userId, this.msisdn, this.email, this.password, this.roles.first())
-        .fold(ErrorHandling.ERROR_HANDLER, ::identity)
-      Role.ROLE_USER in this.roles -> ActiveUser.of(this.userId, this.msisdn, this.email, this.password)
-        .fold(ErrorHandling.ERROR_HANDLER, ::identity)
-      Role.ROLE_ADMIN in this.roles -> AdminUser.of(this.userId, this.msisdn, this.email, this.password)
-        .fold(ErrorHandling.ERROR_HANDLER, ::identity)
+
+      !this.active -> effect {
+        DisabledUser.of(entity.userId, entity.msisdn, entity.email, entity.password, entity.roles.first())
+      }.fold(ERROR_HANDLER, ::identity)
+
+      Role.ROLE_USER in this.roles -> effect {
+        ActiveUser.of(entity.userId, entity.msisdn, entity.email, entity.password)
+      }.fold(ERROR_HANDLER, ::identity)
+
+      Role.ROLE_ADMIN in this.roles -> effect {
+        AdminUser.of(entity.userId, entity.msisdn, entity.email, entity.password)
+      }.fold(ERROR_HANDLER, ::identity)
+
       else -> {
         val err = "Unknown User Type. roles=${this.roles}"
         logger.error(err)

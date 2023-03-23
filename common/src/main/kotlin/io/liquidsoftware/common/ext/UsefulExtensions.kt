@@ -6,11 +6,11 @@ import arrow.core.Either.Right
 import arrow.core.Validated
 import arrow.core.continuations.Effect
 import arrow.core.continuations.EffectScope
-import arrow.core.getOrElse
 import io.liquidsoftware.common.types.ValidationErrorNel
+import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.ServerError
-import io.liquidsoftware.common.workflow.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowValidationError
 import org.springframework.web.bind.annotation.ResponseStatus
 import java.util.Optional
 
@@ -26,7 +26,7 @@ fun Any.className(): String = this::class.qualifiedName ?: this::class.java.name
 context(EffectScope<WorkflowError>)
 suspend inline fun <reified T> ValidationErrorNel<T>.getOrShift(): T = when (this) {
   is Validated.Valid -> this.value
-  is Validated.Invalid -> shift(ValidationErrors(this.value))
+  is Validated.Invalid -> shift(WorkflowValidationError(this.value))
 }
 
 context(EffectScope<WorkflowError>)
@@ -35,12 +35,22 @@ suspend inline fun <reified T> Result<T>.getOrShift(): T = this.getOrElse {
 }
 
 context(EffectScope<WorkflowError>)
-  suspend inline fun <reified T> Either<WorkflowError, T>.getOrShift(): T = this.getOrElse {
-  shift(ServerError(it.message))
+suspend inline fun <reified T> Either<ValidationErrors, T>.getOrShift(): T = when (this) {
+  is Right<T> -> this.value
+  is Left<ValidationErrors> -> shift(WorkflowValidationError(this.value))
 }
 
+//context(EffectScope<WorkflowError>)
+//suspend inline fun <reified T> Either<WorkflowError, T>.getOrShift(): T = when (this) {
+//  is Right<T> -> this.value
+//  is Left<WorkflowError> -> shift(this.value)
+//}
+
 context(EffectScope<WorkflowError>)
-suspend inline fun <reified T> Effect<WorkflowError, T>.getOrShift(): T = this.toResult().getOrShift()
+suspend inline fun <reified T> Effect<ValidationErrors, T>.getOrShift(): T =
+  this.handleError {
+    shift(WorkflowValidationError(it))
+  }.bind()
 
 fun Throwable.hasResponseStatus(): Boolean = this.javaClass.isAnnotationPresent(ResponseStatus::class.java)
 

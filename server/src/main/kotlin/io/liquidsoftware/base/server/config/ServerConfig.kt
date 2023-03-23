@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.server.config
 
 import io.liquidsoftware.base.booking.adapter.`in`.web.BookingWebConfig
-import io.liquidsoftware.base.payment.adapter.`in`.web.api.v1.PaymentWebConfig
+import io.liquidsoftware.base.payment.adapter.`in`.web.PaymentWebConfig
 import io.liquidsoftware.base.user.adapter.`in`.web.UserWebConfig
 import io.liquidsoftware.common.config.CommonConfig
 import org.springframework.boot.autoconfigure.domain.EntityScan

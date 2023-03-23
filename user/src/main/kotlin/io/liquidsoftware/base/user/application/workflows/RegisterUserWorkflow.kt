@@ -1,6 +1,7 @@
 package io.liquidsoftware.base.user.application.workflows
 
 import arrow.core.continuations.EffectScope
+import arrow.core.continuations.effect
 import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
@@ -11,9 +12,9 @@ import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
 import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
-import io.liquidsoftware.common.workflow.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowValidationError
 import jakarta.annotation.PostConstruct
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
@@ -46,13 +47,13 @@ internal class RegisterUserWorkflow(
   private suspend fun validateNewUser(cmd: RegisterUserCommand) : UnregisteredUser =
     findUserPort.findUserByEmail(cmd.email)
       ?.let { shift(UserExistsError("User ${cmd.msisdn} exists")) }
-      ?: UnregisteredUser.of(
+      ?: effect { UnregisteredUser.of(
         msisdn = cmd.msisdn,
         email = cmd.email,
         encryptedPassword = passwordEncoder.encode(cmd.password),
         role = Role.valueOf(cmd.role)
-      ).fold(
-        { shift(ValidationErrors(it)) },
+      ) }.fold(
+        { shift(WorkflowValidationError(it)) },
         { it }
       )
 

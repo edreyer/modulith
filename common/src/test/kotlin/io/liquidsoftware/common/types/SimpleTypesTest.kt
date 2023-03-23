@@ -1,36 +1,38 @@
 package io.liquidsoftware.common.types
 
-import org.junit.jupiter.api.Assertions.assertTrue
+import arrow.core.continuations.effect
+import io.kotest.common.runBlocking
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 
 class SimpleTypesTest {
 
   @Test
-  fun `Test NonEmptyString`() {
-    assertTrue(NonEmptyString.of("good").isValid)
-    assertTrue(NonEmptyString.of("").isInvalid)
+  fun `Test NonEmptyString`() = runBlocking {
+    effect { NonEmptyString.of("good") }.toEither().isRight() shouldBe true
+    effect { NonEmptyString.of("") }.toEither().isRight() shouldBe false
   }
 
   @Test
-  fun `Test EmailAddress`() {
-    assertTrue(EmailAddress.of("erik@curbee.com").isValid)
-    assertTrue(EmailAddress.of("erik@curbee").isInvalid)
-    assertTrue(EmailAddress.of("").isInvalid)
+  fun `Test EmailAddress`() = runBlocking {
+    effect { EmailAddress.of("erik@curbee.com") }.toEither().isRight() shouldBe true
+    effect { EmailAddress.of("erik@curbee") }.toEither().isRight() shouldBe false
+    effect { EmailAddress.of("") }.toEither().isRight() shouldBe false
   }
 
   @Test
-  fun `Test PostalCode`() {
-    assertTrue(PostalCode.of("12345").isValid)
-    assertTrue(PostalCode.of("123").isInvalid)
-    assertTrue(PostalCode.of("").isInvalid)
+  fun `Test PostalCode`() = runBlocking {
+    effect { PostalCode.of("12345") }.toEither().isRight() shouldBe true
+    effect { PostalCode.of("123") }.toEither().isRight() shouldBe false
+    effect { PostalCode.of("") }.toEither().isRight() shouldBe false
   }
 
   @Test
-  fun `Test Msisdn`() {
-    assertTrue(Msisdn.of("+15125551212").isValid)
-    assertTrue(Msisdn.of("5125551212").isValid)
-    assertTrue(Msisdn.of("5551212").isInvalid)
+  fun `Test Msisdn`() = runBlocking {
+    effect { Msisdn.of("+15125551212") }.toEither().isRight() shouldBe true
+    effect { Msisdn.of("5125551212") }.toEither().isRight() shouldBe true
+    effect { Msisdn.of("5551212") }.toEither().isRight() shouldBe false
   }
 
 }

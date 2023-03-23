@@ -1,6 +1,7 @@
 package io.liquidsoftware.base.payment.application.workflows
 
 import arrow.core.continuations.EffectScope
+import arrow.core.continuations.effect
 import arrow.core.continuations.ensureNotNull
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.application.mapper.toDto
@@ -32,21 +33,22 @@ internal class MakePaymentWorkflow(
 
   context(EffectScope<WorkflowError>)
   override suspend fun execute(request: MakePaymentCommand): PaymentMadeEvent {
-    val pmId = PaymentMethodId.of(request.paymentMethodId).getOrShift()
-    val userId = UserId.of(request.userId).getOrShift()
+    val pmId = effect { PaymentMethodId.of(request.paymentMethodId) }.getOrShift()
+    val userId = effect { UserId.of(request.userId) }.getOrShift()
     val pm = ensureNotNull(findPaymentMethodPort.findByPaymentMethodId(pmId, userId)) {
       PaymentMethodNotFoundError(request.paymentMethodId)
     }
 
     return stripeService.makePayment(pm, request.amount)
       .let {
-        Payment.of(
-          paymentMethodId = it.paymentMethod.id.value,
-          userId = request.userId,
-          amount = it.amount
-        )
+        effect {
+          Payment.of(
+            paymentMethodId = it.paymentMethod.id.value,
+            userId = request.userId,
+            amount = it.amount
+          )
+        }.getOrShift()
       }
-      .map { paymentEventPort.handle(PaymentMadeEvent(it.toDto())) }
-      .getOrShift()
+      .let { paymentEventPort.handle(PaymentMadeEvent(it.toDto())) }
   }
 }

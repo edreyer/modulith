@@ -39,9 +39,14 @@ abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
         execute(request)
       } catch(ex: ValidationException) {
         log.error("Workflow Error on request: $request", ex)
-        shift(ValidationErrors(ex.errors))
+        shift(WorkflowValidationError(ex.errors))
       }
-    }.bind()
+    }
+      .handleError { err ->
+        log.error("Workflow Error on request: $request", err)
+        shift(err)
+      }
+      .bind()
   }
 
   context(EffectScope<WorkflowError>)
