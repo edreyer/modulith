@@ -60,7 +60,7 @@ internal class AppointmentEntity(
   }
 
   private fun handle(event: AppointmentStartedEvent): AppointmentEntity {
-    status = event.appointmentDto.status
+    status = AppointmentStatus.IN_PROGRESS
     workOrder.handle(event)
     return this
   }
@@ -73,8 +73,7 @@ internal class AppointmentEntity(
   }
 
   private fun handle(event: AppointmentPaidEvent): AppointmentEntity {
-    status = event.appointmentDto.status
-    cancelTime = if (cancelTime == null) LocalDateTime.now() else cancelTime
+    status = AppointmentStatus.PAID
     paymentId = event.appointmentDto.paymentId
     workOrder.handle(event)
     return this
@@ -82,7 +81,7 @@ internal class AppointmentEntity(
 
   private fun handle(event: AppointmentCancelledEvent): AppointmentEntity {
     status = AppointmentStatus.CANCELLED
-    cancelTime = if (cancelTime == null) LocalDateTime.now() else cancelTime
+    cancelTime = cancelTime ?: LocalDateTime.now()
     workOrder.handle(event)
     return this
   }

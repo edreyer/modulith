@@ -45,7 +45,7 @@ class AppointmentTest : BaseUserWebTest() {
       .then()
       .statusCode(200)
       .extract().`as`(ScheduleSuccessDto::class.java)
-    
+
     appt = outputDto.appointment
     assertThat(appt?.status).isEqualTo(AppointmentStatus.SCHEDULED)
     assertThat(appt?.workOrderDto?.notes).isEqualTo("Scheduled!")
@@ -107,6 +107,19 @@ class AppointmentTest : BaseUserWebTest() {
 
     assertThat(apptDtoOut.status).isEqualTo(AppointmentStatus.PAID)
     assertThat(apptDtoOut.workOrderDto.notes).isEqualTo("Complete!")
+  }
+
+  @Test
+  @Order(6)
+  fun testFetchAppointments() {
+    val appts = get("/api/v1/appointments", accessToken)
+      .then()
+      .statusCode(200)
+      .extract()
+      .`as`(Array<AppointmentDtoOut>::class.java)
+
+    assertThat(appts.size).isEqualTo(1)
+    assertThat(appts[0].status).isEqualTo(AppointmentStatus.PAID)
   }
 
 }

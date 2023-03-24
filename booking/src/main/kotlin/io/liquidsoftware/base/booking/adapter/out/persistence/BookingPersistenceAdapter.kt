@@ -29,7 +29,8 @@ import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.Permission
 import io.liquidsoftware.common.types.ValidationErrors
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -63,22 +64,20 @@ internal class BookingPersistenceAdapter(
     findById(apptId)
       ?.let { if (it !is CompleteAppointment) null else it }
 
-  override suspend fun findByUserId(userId: String): List<Appointment> =
+  override suspend fun findByUserId(userId: String): Flow<Appointment> =
     withContext(Dispatchers.IO) {
       apptRepository.findByUserId(userId)
         .asFlow()
-        .toList()
         .map {
           it.toAppointment()
             .also { appt -> ac.checkPermission(appt.acl(), Permission.READ)}
         }
     }
 
-  override suspend fun findAll(date: LocalDate): List<Appointment> =
+  override suspend fun findAll(date: LocalDate): Flow<Appointment> =
     withContext(Dispatchers.IO) {
       apptRepository.findByScheduledTimeBetween(date.atStartOfDay(), date.atStartOfDay().plusDays(1))
         .asFlow()
-        .toList()
         .map {
           it.toAppointment()
             .also { appt -> ac.checkPermission(appt.acl(), Permission.READ)}

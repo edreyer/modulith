@@ -165,7 +165,7 @@ internal data class PaidAppointment(
       return with(completeAppointment) {
         PaidAppointment(
           PaymentId.of(paymentId), completeTime, AppointmentData(
-            id, userId , workOrder, scheduledTime, duration)
+            id, userId , PaidWorkOrder.of(workOrder as CompleteWorkOrder), scheduledTime, duration)
         )
       }
     }
@@ -186,7 +186,7 @@ internal data class CancelledAppointment(
         AppointmentData(
           AppointmentId.of(apptId),
           UserId.of(userId),
-          workOrder,
+          CancelledWorkOrder.of(workOrder.service.value, LocalDateTime.now()),
           startTime,
           Duration.of(durationValidator(duration), ChronoUnit.MINUTES)))
     }

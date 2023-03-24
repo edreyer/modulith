@@ -2,7 +2,9 @@ package io.liquidsoftware.base.booking.application.port.`in`
 
 import io.liquidsoftware.common.workflow.Command
 import io.liquidsoftware.common.workflow.Event
+import io.liquidsoftware.common.workflow.Query
 import io.liquidsoftware.common.workflow.WorkflowError
+import kotlinx.coroutines.flow.Flow
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 import java.time.LocalDateTime
@@ -35,6 +37,8 @@ data class PayAppointmentCommand(
   val paymentMethodId: String,
 ) : Command
 
+data class FetchUserAppointmentsQuery(val userId: String) : Query
+
 // events
 sealed interface AppointmentEvent {
   val appointmentDto: AppointmentDtoOut
@@ -53,6 +57,8 @@ data class AppointmentCancelledEvent(override val appointmentDto: AppointmentDto
 
 data class AppointmentPaidEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
   AppointmentEvent
+
+data class UserAppointmentsFetchedEvent(val appointments: Flow<AppointmentDtoOut>) : Event()
 
 // Errors
 sealed class AppointmentError(override val message: String) : WorkflowError(message)

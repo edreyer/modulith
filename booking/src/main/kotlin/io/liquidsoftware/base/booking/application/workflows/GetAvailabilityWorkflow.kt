@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component
 
 @Component
 internal class GetAvailabilityWorkflow(
-  private val findApptsPost: FindAppointmentPort,
+  private val findApptsPort: FindAppointmentPort,
   private val availabilityService: AvailabilityService
 ) : BaseSafeWorkflow<GetAvailabilityQuery, AvailabilityRetrievedEvent>() {
 
@@ -24,8 +24,8 @@ internal class GetAvailabilityWorkflow(
 
   context(EffectScope<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
-    val appts = findApptsPost.findAll(request.date)
-    val available = availabilityService.getAvailability(appts)
-    return AvailabilityRetrievedEvent(available)
+    return findApptsPort.findAll(request.date)
+      .let { availabilityService.getAvailability(it) }
+      .let { AvailabilityRetrievedEvent(it) }
   }
 }

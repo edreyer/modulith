@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.booking.adapter.`in`.web.api.v1
 
+import arrow.core.getOrElse
 import io.liquidsoftware.base.booking.adapter.`in`.web.V1BookingPaths
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedDtoIn
@@ -15,14 +16,19 @@ import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEv
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentCommand
+import io.liquidsoftware.base.booking.application.port.`in`.FetchUserAppointmentsQuery
 import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentCommand
+import io.liquidsoftware.base.booking.application.port.`in`.UserAppointmentsFetchedEvent
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.web.ControllerSupport
+import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowDispatcher.log
+import kotlinx.coroutines.flow.Flow
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
@@ -49,7 +55,7 @@ data class CancelApptErrorDto(val error: String) : CancelAppointmentOutputDto()
 
 @RestController
 class AppointmentController(
-  private val ex: ExecutionContext
+  private val ec: ExecutionContext
 ) : ControllerSupport {
 
   @PostMapping(value = [V1BookingPaths.SCHEDULE_APPT])
@@ -57,7 +63,7 @@ class AppointmentController(
     : ResponseEntity<ScheduledAppointmentOutputDto> {
     log.debug("AppointmentController.schedule()")
     return WorkflowDispatcher.dispatch<AppointmentScheduledEvent>(
-      ScheduleAppointmentCommand(ex.getCurrentUser().id, appt.scheduledTime, appt.duration, appt.workOrder)
+      ScheduleAppointmentCommand(ec.getCurrentUser().id, appt.scheduledTime, appt.duration, appt.workOrder)
     )
       .throwIfSpringError()
       .fold(
@@ -149,5 +155,15 @@ class AppointmentController(
         },
         { ResponseEntity.ok(CancelApptSuccessDto(it.appointmentDto)) }
       )
+
+  @GetMapping(value = [V1BookingPaths.GET_USER_APPTS])
+  suspend fun getUserAppointments(): Flow<AppointmentDtoOut> {
+    return WorkflowDispatcher.dispatch<UserAppointmentsFetchedEvent>(
+      FetchUserAppointmentsQuery(ec.getCurrentUser().id)
+    )
+      .throwIfSpringError()
+      .map { it.appointments }
+      .getOrElse { throw ServerError("Error fetching user appointments: ${it.message}") }
+  }
 
 }

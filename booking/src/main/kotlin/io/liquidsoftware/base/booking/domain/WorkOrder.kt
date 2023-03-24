@@ -102,7 +102,7 @@ internal data class CompleteWorkOrder(
 
 
 internal data class PaidWorkOrder(
-  private val startTime: LocalDateTime,
+  val startTime: LocalDateTime,
   val completeTime: LocalDateTime,
   val paymentTime: LocalDateTime,
   val notes: String?,

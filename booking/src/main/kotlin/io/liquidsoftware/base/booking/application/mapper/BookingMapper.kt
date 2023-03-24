@@ -28,8 +28,8 @@ internal fun Appointment.toDto(): AppointmentDtoOut =
       is ScheduledAppointment -> AppointmentStatus.SCHEDULED
       is InProgressAppointment -> AppointmentStatus.IN_PROGRESS
       is CompleteAppointment -> AppointmentStatus.COMPLETE
-      is CancelledAppointment -> AppointmentStatus.CANCELLED
       is PaidAppointment -> AppointmentStatus.PAID
+      is CancelledAppointment -> AppointmentStatus.CANCELLED
     },
     completeTime = when (this) {
       is CompleteAppointment -> this.completeTime
@@ -37,6 +37,10 @@ internal fun Appointment.toDto(): AppointmentDtoOut =
     },
     cancelTime = when (this) {
       is CancelledAppointment -> this.cancelTime
+      else -> null
+    },
+    paymentId = when (this) {
+      is PaidAppointment -> this.paymentId.value
       else -> null
     }
   )
@@ -54,16 +58,19 @@ internal fun WorkOrder.toDto() =
     notes = when (this) {
       is ReadyWorkOrder -> this.notes
       is CompleteWorkOrder -> this.notes
+      is PaidWorkOrder -> this.notes
       is CancelledWorkOrder -> this.notes
       else -> null
     },
     startTime = when (this) {
       is InProgressWorkOrder -> this.startTime
       is CompleteWorkOrder -> this.startTime
+      is PaidWorkOrder -> this.startTime
       else -> null
     },
     completeTime = when (this) {
       is CompleteWorkOrder -> this.completeTime
+      is PaidWorkOrder -> this.completeTime
       else -> null
     },
     paymentTime = when (this) {

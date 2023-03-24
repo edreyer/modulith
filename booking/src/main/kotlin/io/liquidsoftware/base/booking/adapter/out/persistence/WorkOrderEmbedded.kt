@@ -42,7 +42,7 @@ internal class WorkOrderEmbedded(
 
   private fun handle(event: AppointmentStartedEvent): WorkOrderEmbedded {
     startTime = event.appointmentDto.workOrderDto.startTime
-    status = event.appointmentDto.workOrderDto.status
+    status = WorkOrderStatus.IN_PROGRESS
     return this
   }
 
@@ -54,15 +54,15 @@ internal class WorkOrderEmbedded(
   }
 
   private fun handle(event: AppointmentPaidEvent): WorkOrderEmbedded {
-    status = WorkOrderStatus.CANCELLED
-    cancelTime = if (cancelTime == null) LocalDateTime.now() else cancelTime
+    status = WorkOrderStatus.PAID
     notes = event.appointmentDto.workOrderDto.notes
+    paymentTime = event.appointmentDto.workOrderDto.paymentTime
     return this
   }
 
   private fun handle(event: AppointmentCancelledEvent): WorkOrderEmbedded {
     status = WorkOrderStatus.CANCELLED
-    cancelTime = if (cancelTime == null) LocalDateTime.now() else cancelTime
+    cancelTime = cancelTime ?: LocalDateTime.now()
     notes = event.appointmentDto.workOrderDto.notes
     return this
   }

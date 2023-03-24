@@ -11,4 +11,6 @@ internal object V1BookingPaths {
   const val COMPLETE_APPT = "$V1/appointments/complete"
   const val CANCEL_APPT = "$V1/appointments/cancel"
   const val PAY_APPT = "$V1/appointments/pay"
+
+  const val GET_USER_APPTS = "$V1/appointments"
 }
