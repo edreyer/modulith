@@ -9,6 +9,7 @@ import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
 import jakarta.annotation.PostConstruct
+import kotlinx.coroutines.delay
 import org.springframework.stereotype.Component
 
 @Component
@@ -25,6 +26,10 @@ internal class GetAvailabilityWorkflow(
   context(EffectScope<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
     return findApptsPort.findAll(request.date)
+      .also {
+        // fake latency
+        delay(1000)
+      }
       .let { availabilityService.getAvailability(it) }
       .let { AvailabilityRetrievedEvent(it) }
   }
