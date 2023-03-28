@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.booking.adapter.out.persistence
 
+import org.springframework.data.domain.Pageable
 import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import org.springframework.stereotype.Repository
 import reactor.core.publisher.Flux
@@ -11,7 +12,7 @@ internal interface AppointmentRepository : ReactiveMongoRepository<AppointmentEn
 
   fun findByAppointmentId(appointmentId: String) : Mono<AppointmentEntity>
 
-  fun findByUserId(userId: String): Flux<AppointmentEntity>
+  fun findByUserId(userId: String, pageable: Pageable): Flux<AppointmentEntity>
 
   fun findByScheduledTimeBetween(start: LocalDateTime, end: LocalDateTime): Flux<AppointmentEntity>
 

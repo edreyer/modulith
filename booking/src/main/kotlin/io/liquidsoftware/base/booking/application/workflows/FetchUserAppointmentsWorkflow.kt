@@ -12,6 +12,7 @@ import io.liquidsoftware.common.workflow.WorkflowError
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 
 @Component
@@ -24,7 +25,7 @@ internal class FetchUserAppointmentsWorkflow(
 
   context(EffectScope<WorkflowError>)
   override suspend fun execute(request: FetchUserAppointmentsQuery): UserAppointmentsFetchedEvent =
-    findApptsPort.findByUserId(request.userId)
+    findApptsPort.findByUserId(request.userId, PageRequest.of(request.page, request.size))
       .filter { it !is CancelledAppointment }
       .map { it.toDto() }
       .let { UserAppointmentsFetchedEvent(it) }

@@ -31,6 +31,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 sealed class ScheduledAppointmentOutputDto
@@ -157,9 +158,11 @@ class AppointmentController(
       )
 
   @GetMapping(value = [V1BookingPaths.GET_USER_APPTS])
-  suspend fun getUserAppointments(): Flow<AppointmentDtoOut> {
+  suspend fun getUserAppointments(
+    @RequestParam("page", required = false, defaultValue = "0") page: Int,
+    @RequestParam("size", required = false, defaultValue = "20") size: Int): Flow<AppointmentDtoOut> {
     return WorkflowDispatcher.dispatch<UserAppointmentsFetchedEvent>(
-      FetchUserAppointmentsQuery(ec.getCurrentUser().id)
+      FetchUserAppointmentsQuery(ec.getCurrentUser().id, page, size)
     )
       .throwIfSpringError()
       .map { it.appointments }

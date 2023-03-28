@@ -37,7 +37,7 @@ data class PayAppointmentCommand(
   val paymentMethodId: String,
 ) : Command
 
-data class FetchUserAppointmentsQuery(val userId: String) : Query
+data class FetchUserAppointmentsQuery(val userId: String, val page: Int, val size: Int) : Query
 
 // events
 sealed interface AppointmentEvent {

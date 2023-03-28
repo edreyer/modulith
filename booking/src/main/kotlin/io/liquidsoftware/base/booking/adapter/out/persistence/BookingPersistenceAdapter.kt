@@ -35,6 +35,7 @@ import kotlinx.coroutines.reactive.asFlow
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.withContext
+import org.springframework.data.domain.Pageable
 import java.time.LocalDate
 
 internal class BookingPersistenceAdapter(
@@ -64,9 +65,9 @@ internal class BookingPersistenceAdapter(
     findById(apptId)
       ?.let { if (it !is CompleteAppointment) null else it }
 
-  override suspend fun findByUserId(userId: String): Flow<Appointment> =
+  override suspend fun findByUserId(userId: String, pageable: Pageable): Flow<Appointment> =
     withContext(Dispatchers.IO) {
-      apptRepository.findByUserId(userId)
+      apptRepository.findByUserId(userId, pageable)
         .asFlow()
         .map {
           it.toAppointment()
