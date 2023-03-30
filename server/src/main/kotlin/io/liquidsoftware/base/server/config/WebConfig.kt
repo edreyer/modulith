@@ -34,6 +34,7 @@ class WebConfig {
     val corsConfiguration = CorsConfiguration().apply {
         this.applyPermitDefaultValues()
         this.addAllowedMethod("PUT")
+        this.addAllowedMethod("OPTIONS")
       }
     val source: CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
       this.registerCorsConfiguration("/**", corsConfiguration)
