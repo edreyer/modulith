@@ -110,7 +110,7 @@ internal data class CompleteAppointment(
     context(EffectScope<ValidationErrors>)
     suspend fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: CompleteWorkOrder, completeTime: LocalDateTime):
       CompleteAppointment = CompleteAppointment(
-        completeTimeValidator(startTime, completeTime),
+        completeTime,
         AppointmentData(
           AppointmentId.of(apptId),
           UserId.of(userId),
@@ -150,7 +150,7 @@ internal data class PaidAppointment(
     suspend fun of(apptId: String, paymentId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: PaidWorkOrder, completeTime: LocalDateTime):
       PaidAppointment = PaidAppointment(
         PaymentId.of(paymentId),
-        completeTimeValidator(startTime, completeTime),
+        completeTime,
         AppointmentData(
           AppointmentId.of(apptId),
           UserId.of(userId),

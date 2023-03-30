@@ -29,17 +29,17 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 @EnableWebFluxSecurity
 class WebConfig {
 
-  @Bean
-  fun corsWebFilter() : CorsWebFilter {
-    val corsConfiguration = CorsConfiguration().apply {
-        this.applyPermitDefaultValues()
-        this.addAllowedMethod("PUT")
-      }
-    val source: CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
-      this.registerCorsConfiguration("/**", corsConfiguration)
-    }
-    return CorsWebFilter(source)
-  }
+//  @Bean
+//  fun corsWebFilter() : CorsWebFilter {
+//    val corsConfiguration = CorsConfiguration().apply {
+//        this.applyPermitDefaultValues()
+//        this.addAllowedMethod("PUT")
+//      }
+//    val source: CorsConfigurationSource = UrlBasedCorsConfigurationSource().apply {
+//      this.registerCorsConfiguration("/**", corsConfiguration)
+//    }
+//    return CorsWebFilter(source)
+//  }
 
   @Bean
   fun jwtTokenProvider(jwtProperties: JwtProperties) : JwtTokenProvider =
