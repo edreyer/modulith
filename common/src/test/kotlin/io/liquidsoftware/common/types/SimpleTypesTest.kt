@@ -1,6 +1,7 @@
 package io.liquidsoftware.common.types
 
-import arrow.core.continuations.effect
+import arrow.core.raise.effect
+import arrow.core.raise.toEither
 import io.kotest.common.runBlocking
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test

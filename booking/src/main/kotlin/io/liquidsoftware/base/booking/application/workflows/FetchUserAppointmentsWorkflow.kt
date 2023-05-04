@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.FetchUserAppointmentsQuery
 import io.liquidsoftware.base.booking.application.port.`in`.UserAppointmentsFetchedEvent
@@ -23,7 +23,7 @@ internal class FetchUserAppointmentsWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: FetchUserAppointmentsQuery): UserAppointmentsFetchedEvent =
     findApptsPort.findByUserId(request.userId, PageRequest.of(request.page, request.size))
       .filter { it !is CancelledAppointment }

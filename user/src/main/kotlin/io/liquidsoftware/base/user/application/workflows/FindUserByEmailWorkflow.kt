@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.user.application.workflows
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
@@ -20,10 +20,10 @@ internal class FindUserByEmailWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: FindUserByEmailQuery): UserFoundEvent =
     findUserPort.findUserByEmail(request.email)
       ?.let { UserFoundEvent(it.toUserDto()) }
-      ?: shift(UserNotFoundError(request.email))
+      ?: raise(UserNotFoundError(request.email))
 
 }

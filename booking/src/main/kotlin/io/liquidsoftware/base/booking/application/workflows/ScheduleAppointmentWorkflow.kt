@@ -1,7 +1,8 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.continuations.EffectScope
-import arrow.core.continuations.effect
+import arrow.core.raise.Raise
+import arrow.core.raise.either
+import arrow.core.raise.ensure
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
@@ -33,17 +34,19 @@ internal class ScheduleAppointmentWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent {
     // business invariant we must check
     val scheduledAppts = findAppointmentPort.findAll(request.scheduledTime.toLocalDate())
     val scheduledTime = request.scheduledTime.toLocalTime()
 
-    ensure(availabilityService.isTimeAvailable(scheduledAppts, scheduledTime)) {
-      DateTimeUnavailableError("'$scheduledTime' is no longer available.")
+    either<WorkflowError, Unit> {
+      ensure(availabilityService.isTimeAvailable(scheduledAppts, scheduledTime)) {
+        DateTimeUnavailableError("'$scheduledTime' is no longer available.")
+      }
     }
 
-    return effect<ValidationErrors, Appointment> {
+    return either<ValidationErrors, Appointment> {
       val wo = ReadyWorkOrder.of(
         service = request.workOrder.service,
         notes = request.workOrder.notes
@@ -57,7 +60,7 @@ internal class ScheduleAppointmentWorkflow(
       appt
     }
     .fold(
-      { shift(AppointmentValidationError(it.toErrString())) },
+      { raise(AppointmentValidationError(it.toErrString())) },
       { appointmentEventPort.handle(AppointmentScheduledEvent(it.toDto())) }
     )
   }

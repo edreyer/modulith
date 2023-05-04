@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityRetrievedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
@@ -23,7 +23,7 @@ internal class GetAvailabilityWorkflow(
     WorkflowDispatcher.registerQueryHandler(this)
   }
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
     return findApptsPort.findAll(request.date)
       .also {

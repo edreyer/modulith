@@ -1,11 +1,11 @@
 package io.liquidsoftware.common.types
 
+import arrow.core.EitherNel
 import arrow.core.Nel
-import arrow.core.ValidatedNel
-import arrow.core.continuations.EffectScope
-import arrow.core.invalid
+import arrow.core.left
+import arrow.core.raise.Raise
+import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
-import arrow.core.validNel
 import io.liquidsoftware.common.validation.MsisdnParser
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -25,7 +25,7 @@ value class ValidationError(val error: String)
 data class ValidationException(val errors: Nel<ValidationError>)
   : RuntimeException(errors.toErrString())
 
-typealias ValidationErrorNel<T> = ValidatedNel<ValidationError, T>
+typealias ValidationErrorNel<T> = EitherNel<ValidationError, T>
 typealias ValidationErrors = Nel<ValidationError>
 
 // Helpful extension functions
@@ -36,22 +36,22 @@ fun ValidationErrors.toErrString() =
   this.map { it.error }.joinToString { "$it\n" }
 
 // Returns the Validated value OR throws
-context(EffectScope<Throwable>)
-suspend fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrShift(): T = this.fold(
-  { shift(ValidationException(it)) },
+context(Raise<Throwable>)
+fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrRaise(): T = this.fold(
+  { raise(ValidationException(it)) },
   { it }
 )
 
 // Can be used as shortcuts to create simple types from Strings
 // Note that these throw,
-context(EffectScope<ValidationErrors>)
-suspend fun String.toNonEmptyString() = NonEmptyString.of(this)
-context(EffectScope<ValidationErrors>)
-suspend fun String.toEmailAddress() = EmailAddress.of(this)
-context(EffectScope<ValidationErrors>)
-suspend fun String.toMsisdn() = Msisdn.of(this)
-context(EffectScope<ValidationErrors>)
-suspend fun String.toPostalCode() = PostalCode.of(this)
+context(Raise<ValidationErrors>)
+fun String.toNonEmptyString() = NonEmptyString.of(this)
+context(Raise<ValidationErrors>)
+fun String.toEmailAddress() = EmailAddress.of(this)
+context(Raise<ValidationErrors>)
+fun String.toMsisdn() = Msisdn.of(this)
+context(Raise<ValidationErrors>)
+fun String.toPostalCode() = PostalCode.of(this)
 
 abstract class SimpleType<T> {
   abstract val value: T
@@ -61,8 +61,8 @@ abstract class SimpleType<T> {
 class NonEmptyString private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: String): NonEmptyString = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: String): NonEmptyString = ensure {
       validate(NonEmptyString(value)) {
         validate(NonEmptyString::value).isNotEmpty()
       }
@@ -73,8 +73,8 @@ class NonEmptyString private constructor(override val value: String)
 class PositiveInt private constructor(override val value: Int)
   : SimpleType<Int>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: Int): PositiveInt = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: Int): PositiveInt = ensure {
       validate(PositiveInt(value)) {
         validate(PositiveInt::value).isPositiveOrZero()
       }
@@ -85,8 +85,8 @@ class PositiveInt private constructor(override val value: Int)
 class PositiveLong private constructor(override val value: Long)
   : SimpleType<Long>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: Long): PositiveLong = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: Long): PositiveLong = ensure {
       validate(PositiveLong(value)) {
         validate(PositiveLong::value).isPositiveOrZero()
       }
@@ -96,8 +96,8 @@ class PositiveLong private constructor(override val value: Long)
 
 class EmailAddress private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: String): EmailAddress = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: String): EmailAddress = ensure {
       validate(EmailAddress(value)) {
         validate(EmailAddress::value).isNotEmpty()
         validate(EmailAddress::value).isEmail()
@@ -108,8 +108,8 @@ class EmailAddress private constructor(override val value: String): SimpleType<S
 
 class PostalCode private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: String): PostalCode = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: String): PostalCode = ensure {
       validate(PostalCode(value)) {
         validate(PostalCode::value).matches("""\d{5}""".toRegex())
       }
@@ -119,8 +119,8 @@ class PostalCode private constructor(override val value: String): SimpleType<Str
 
 class Msisdn private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: String): Msisdn = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: String): Msisdn = ensure {
       val msisdn = validate(Msisdn(value)) {
         validate(Msisdn::value).isValid { MsisdnParser.isValid(it) }
       }
@@ -130,7 +130,7 @@ class Msisdn private constructor(override val value: String): SimpleType<String>
 }
 
 inline fun <reified T> ensure(ensureFn: () -> T): ValidationErrorNel<T> = try {
-  ensureFn().validNel()
+  ensureFn().right()
 } catch (ex: ConstraintViolationException) {
   ex
     .constraintViolations
@@ -138,5 +138,5 @@ inline fun <reified T> ensure(ensureFn: () -> T): ValidationErrorNel<T> = try {
     .map { "'${it.value}' of ${T::class.simpleName}.${it.property}: ${it.message}" }
     .map { ValidationError(it) }
     .let { it.toNonEmptyListOrNull()!! }
-    .invalid()
+    .left()
 }

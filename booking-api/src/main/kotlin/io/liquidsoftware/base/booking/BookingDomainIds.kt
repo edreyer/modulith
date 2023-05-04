@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.booking
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.booking.BookingNamespaces.APPOINTMENT_NS
 import io.liquidsoftware.base.booking.BookingNamespaces.WORK_WORDER_NS
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
@@ -18,8 +18,8 @@ object BookingNamespaces {
 class AppointmentId private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: String): AppointmentId = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: String): AppointmentId = ensure {
       validate(AppointmentId(value)) {
         validate(AppointmentId::value).matches("${APPOINTMENT_NS}.*".toRegex())
       }
@@ -31,8 +31,8 @@ class AppointmentId private constructor(override val value: String)
 class WorkOrderId private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(value: String): WorkOrderId = ensure {
+    context(Raise<ValidationErrors>)
+    fun of(value: String): WorkOrderId = ensure {
       validate(WorkOrderId(value)) {
         validate(WorkOrderId::value).matches("${WORK_WORDER_NS}.*".toRegex())
       }

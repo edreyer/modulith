@@ -1,7 +1,8 @@
 package io.liquidsoftware.base.user.adapter.out.persistence
 
-import arrow.core.continuations.effect
 import arrow.core.identity
+import arrow.core.raise.effect
+import arrow.core.raise.fold
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent

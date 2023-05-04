@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.payment.domain
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.payment.PaymentId
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.PaymentNamespaces
@@ -18,8 +18,8 @@ data class Payment(
 ) {
   companion object {
 
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(id: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_NS),
+    context(Raise<ValidationErrors>)
+    fun of(id: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_NS),
            paymentMethodId: String, userId: String, amount: Long) : Payment {
       return Payment(PaymentId.of(id),
         PaymentMethodId.of(paymentMethodId),

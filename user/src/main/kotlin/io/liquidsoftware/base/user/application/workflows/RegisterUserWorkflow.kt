@@ -1,7 +1,9 @@
 package io.liquidsoftware.base.user.application.workflows
 
-import arrow.core.continuations.EffectScope
-import arrow.core.continuations.effect
+
+import arrow.core.raise.Raise
+import arrow.core.raise.effect
+import arrow.core.raise.fold
 import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
@@ -31,7 +33,7 @@ internal class RegisterUserWorkflow(
     WorkflowDispatcher.registerCommandHandler(this)
   }
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {
     val user = validateNewUser(request)
 
@@ -43,17 +45,17 @@ internal class RegisterUserWorkflow(
     return result
   }
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   private suspend fun validateNewUser(cmd: RegisterUserCommand) : UnregisteredUser =
     findUserPort.findUserByEmail(cmd.email)
-      ?.let { shift(UserExistsError("User ${cmd.msisdn} exists")) }
+      ?.let { raise(UserExistsError("User ${cmd.msisdn} exists")) }
       ?: effect { UnregisteredUser.of(
         msisdn = cmd.msisdn,
         email = cmd.email,
         encryptedPassword = passwordEncoder.encode(cmd.password),
         role = Role.valueOf(cmd.role)
       ) }.fold(
-        { shift(WorkflowValidationError(it)) },
+        { raise(WorkflowValidationError(it)) },
         { it }
       )
 

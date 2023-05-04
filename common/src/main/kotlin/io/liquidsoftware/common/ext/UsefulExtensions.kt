@@ -3,11 +3,10 @@ package io.liquidsoftware.common.ext
 import arrow.core.Either
 import arrow.core.Either.Left
 import arrow.core.Either.Right
-import arrow.core.Validated
-import arrow.core.continuations.Effect
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Effect
+import arrow.core.raise.Raise
+import arrow.core.raise.toEither
 import io.liquidsoftware.common.types.ValidationErrorNel
-import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
@@ -23,34 +22,28 @@ fun Any.className(): String = this::class.qualifiedName ?: this::class.java.name
 //  is Validated.Invalid -> Result.failure(ValidationException(this.value))
 //}
 
-context(EffectScope<WorkflowError>)
-suspend inline fun <reified T> ValidationErrorNel<T>.getOrShift(): T = when (this) {
-  is Validated.Valid -> this.value
-  is Validated.Invalid -> shift(WorkflowValidationError(this.value))
+context(Raise<WorkflowError>)
+inline fun <reified T> ValidationErrorNel<T>.getOrRaise(): T = when (this) {
+  is Right -> this.value
+  is Left -> raise(WorkflowValidationError(this.value))
 }
 
-context(EffectScope<WorkflowError>)
-suspend inline fun <reified T> Result<T>.getOrShift(): T = this.getOrElse {
-  shift(ServerError(it.message ?: ""))
-}
-
-context(EffectScope<WorkflowError>)
-suspend inline fun <reified T> Either<ValidationErrors, T>.getOrShift(): T = when (this) {
-  is Right<T> -> this.value
-  is Left<ValidationErrors> -> shift(WorkflowValidationError(this.value))
-}
-
-//context(EffectScope<WorkflowError>)
-//suspend inline fun <reified T> Either<WorkflowError, T>.getOrShift(): T = when (this) {
-//  is Right<T> -> this.value
-//  is Left<WorkflowError> -> shift(this.value)
+//context(Raise<WorkflowError>)
+//inline fun <reified E, reified T> Either<E, T>.getOrRaise(): T = when (this) {
+//  is Right -> this.value
+//  is Left -> raise(WorkflowValidationError(this.value))
 //}
 
-context(EffectScope<WorkflowError>)
-suspend inline fun <reified T> Effect<ValidationErrors, T>.getOrShift(): T =
-  this.handleError {
-    shift(WorkflowValidationError(it))
-  }.bind()
+context(Raise<WorkflowError>)
+inline fun <reified T> Result<T>.getOrRaise(): T = this.getOrElse {
+  raise(ServerError(it.message ?: ""))
+}
+
+//context(Raise<WorkflowError>)
+//suspend inline fun <reified T> Effect<ValidationErrors, T>.getOrShift(): T =
+//  this.handleError {
+//    raise(WorkflowValidationError(it))
+//  }.bind()
 
 fun Throwable.hasResponseStatus(): Boolean = this.javaClass.isAnnotationPresent(ResponseStatus::class.java)
 

@@ -1,7 +1,8 @@
 package io.liquidsoftware.common.workflow
 
-import arrow.core.continuations.EffectScope
-import arrow.core.continuations.effect
+import arrow.core.getOrElse
+import arrow.core.raise.Raise
+import arrow.core.raise.either
 import io.liquidsoftware.common.ext.className
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.types.ValidationException
@@ -24,32 +25,31 @@ abstract class Event {
 interface Workflow<E : Event>
 
 interface SafeWorkflow<R: Request, E : Event> : Workflow<E> {
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   suspend fun invoke(request: R): E
 }
 
 abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
   private val log by LoggerDelegate()
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   final override suspend fun invoke(request: R): E {
     log.debug("Executing workflow ${this.className()} with request $request")
-    return effect {
+    return either {
       try {
         execute(request)
       } catch(ex: ValidationException) {
         log.error("Workflow Error on request: $request", ex)
-        shift(WorkflowValidationError(ex.errors))
+        raise(WorkflowValidationError(ex.errors))
       }
     }
-      .handleError { err ->
-        log.error("Workflow Error on request: $request", err)
-        shift(err)
+      .getOrElse {
+        log.error("Workflow Error on request: $request", it)
+        raise(it)
       }
-      .bind()
   }
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   abstract suspend fun execute(request: R): E
 }
 

@@ -1,8 +1,8 @@
 package io.liquidsoftware.common.workflow
 
 import arrow.core.Either
-import arrow.core.continuations.effect
-import arrow.core.continuations.ensureNotNull
+import arrow.core.raise.either
+import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.common.logging.LoggerDelegate
 import kotlin.reflect.KClass
 
@@ -36,13 +36,13 @@ object WorkflowDispatcher {
 //    commandList.add(handler as SafeWorkflow<Command, *>)
 //  }
 
-  suspend fun <E: Event> dispatch(query: Query): Either<WorkflowError, E> = effect {
+  suspend fun <E: Event> dispatch(query: Query): Either<WorkflowError, E> = either {
     ensureNotNull(queryHandlers[query::class]) {
       MissingHandler("No handler for query $query")
     }.let {
       it.invoke(query) as E
     }
-  }.toEither()
+  }
 
   // Use this to support List of Events
 //  @Suppress("UNCHECKED_CAST")
@@ -50,17 +50,13 @@ object WorkflowDispatcher {
 //    commandHandlers[command::class]?.map { runAsync(it as SafeWorkflow<Command, E>, command) } ?: emptyList()
 
   suspend fun <E: Event> dispatch(command: Command): Either<WorkflowError, E> {
-    return effect {
+    return either {
       ensureNotNull(commandHandlers[command::class]) {
         MissingHandler("No handler for command $command")
       }.let {
         it.invoke(command) as E
       }
-    }.handleError { err ->
-      log.error("Workflow Error on command: $command", err)
-      throw err
     }
-      .toEither()
   }
 
 }

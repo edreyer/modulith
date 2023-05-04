@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.user.application.workflows
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.FindUserByMsisdnQuery
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
@@ -20,10 +20,10 @@ internal class FindUserByMsisdnWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: FindUserByMsisdnQuery): UserFoundEvent =
     findUserPort.findUserByMsisdn(request.msisdn)
       ?.let { UserFoundEvent(it.toUserDto()) }
-      ?: shift(UserNotFoundError(request.msisdn))
+      ?: raise(UserNotFoundError(request.msisdn))
 
 }

@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.booking.adapter.out.persistence
 
-import arrow.core.continuations.effect
 import arrow.core.identity
+import arrow.core.raise.either
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
@@ -113,26 +113,26 @@ internal class BookingPersistenceAdapter(
     }
   }
 
-  private suspend fun AppointmentEntity.toAppointment(): Appointment {
-    val entity = this;
+  private fun AppointmentEntity.toAppointment(): Appointment {
+    val entity = this
     return when (this.status) {
-      AppointmentStatus.SCHEDULED -> effect<ValidationErrors, Appointment> { ScheduledAppointment.of(
+      AppointmentStatus.SCHEDULED -> either<ValidationErrors, Appointment> { ScheduledAppointment.of(
         entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
         entity.workOrder.toWorkOrder() as ReadyWorkOrder
         )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.IN_PROGRESS -> effect<ValidationErrors, Appointment> { InProgressAppointment.of(
+      AppointmentStatus.IN_PROGRESS -> either<ValidationErrors, Appointment> { InProgressAppointment.of(
         entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
           workOrder.toWorkOrder() as InProgressWorkOrder
         )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.COMPLETE -> effect<ValidationErrors, Appointment> { CompleteAppointment.of(
+      AppointmentStatus.COMPLETE -> either<ValidationErrors, Appointment> { CompleteAppointment.of(
         entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
         workOrder.toWorkOrder() as CompleteWorkOrder, entity.completeTime!!
       )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.PAID -> effect<ValidationErrors, Appointment> { PaidAppointment.of(
+      AppointmentStatus.PAID -> either<ValidationErrors, Appointment> { PaidAppointment.of(
         entity.appointmentId, entity.paymentId!!, entity.userId, entity.scheduledTime, entity.duration,
         workOrder.toWorkOrder() as PaidWorkOrder, entity.completeTime!!
       )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.CANCELLED -> effect<ValidationErrors, Appointment> { CancelledAppointment.of(
+      AppointmentStatus.CANCELLED -> either<ValidationErrors, Appointment> { CancelledAppointment.of(
         entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration, workOrder.toWorkOrder(), entity.cancelTime!!
       )}.fold(ERROR_HANDLER, ::identity)
     }
@@ -152,21 +152,21 @@ internal class BookingPersistenceAdapter(
     )
 
 
-  private suspend fun WorkOrderEmbedded.toWorkOrder(): WorkOrder {
+  private fun WorkOrderEmbedded.toWorkOrder(): WorkOrder {
     val wo = this
     return when (this.status) {
-      WorkOrderStatus.READY -> effect { ReadyWorkOrder.of(wo.service, wo.notes) }
+      WorkOrderStatus.READY -> either { ReadyWorkOrder.of(wo.service, wo.notes) }
         .fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.IN_PROGRESS -> effect { InProgressWorkOrder.of(
+      WorkOrderStatus.IN_PROGRESS -> either { InProgressWorkOrder.of(
         wo.service, wo.startTime!!
       )}.fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.COMPLETE -> effect { CompleteWorkOrder.of(
+      WorkOrderStatus.COMPLETE -> either { CompleteWorkOrder.of(
         wo.service, wo.startTime!!, wo.completeTime!!, wo.notes!!
       )}.fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.PAID -> effect { PaidWorkOrder.of(
+      WorkOrderStatus.PAID -> either { PaidWorkOrder.of(
         wo.service, wo.startTime!!, wo.completeTime!!, wo.paymentTime!!, wo.notes!!
       )}.fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.CANCELLED -> effect { CancelledWorkOrder.of(
+      WorkOrderStatus.CANCELLED -> either { CancelledWorkOrder.of(
         wo.service, wo.cancelTime!!, wo.notes!!
       )}.fold(ERROR_HANDLER, ::identity)
     }

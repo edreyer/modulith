@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.continuations.EffectScope
-import arrow.core.continuations.ensureNotNull
+import arrow.core.raise.Raise
+import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentValidationError
@@ -24,7 +24,7 @@ internal class StartAppointmentWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: StartAppointmentCommand): AppointmentStartedEvent {
     // business invariant we must check
     return ensureNotNull(findAppointmentPort.findScheduledById(request.appointmentId)) {

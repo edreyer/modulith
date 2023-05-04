@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.booking.application.workflows
 
-import arrow.core.continuations.EffectScope
-import arrow.core.continuations.ensureNotNull
+import arrow.core.raise.Raise
+import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
@@ -25,7 +25,7 @@ internal class CompleteAppointmentWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: CompleteAppointmentCommand): AppointmentCompletedEvent {
     // business invariant we must check
     return ensureNotNull(findAppointmentPort.findStartedById(request.appointmentId)) {

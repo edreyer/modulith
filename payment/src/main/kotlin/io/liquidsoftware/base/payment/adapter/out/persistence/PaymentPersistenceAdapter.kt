@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.payment.adapter.out.persistence
 
-import arrow.core.continuations.effect
 import arrow.core.identity
+import arrow.core.raise.either
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDtoOut
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentEvent
@@ -17,7 +17,6 @@ import io.liquidsoftware.base.user.UserId
 import io.liquidsoftware.common.errors.ErrorHandling
 import io.liquidsoftware.common.ext.className
 import io.liquidsoftware.common.logging.LoggerDelegate
-import io.liquidsoftware.common.security.acl.AclChecker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
@@ -25,8 +24,7 @@ import kotlinx.coroutines.withContext
 
 internal class PaymentPersistenceAdapter(
   private val paymentMethodRepository: PaymentMethodRepository,
-  private val paymentRepository: PaymentRepository,
-  private val ac: AclChecker
+  private val paymentRepository: PaymentRepository
 ) : FindPaymentMethodPort, PaymentEventPort {
 
   private val log by LoggerDelegate()
@@ -74,9 +72,9 @@ internal class PaymentPersistenceAdapter(
     amount = this.amount
   )
 
-  private suspend fun PaymentMethodEntity.toPaymentMethod(): PaymentMethod {
+  private fun PaymentMethodEntity.toPaymentMethod(): PaymentMethod {
     val pmEntity = this
-    return effect {
+    return either {
       ActivePaymentMethod.of(
         pmEntity.id,
         pmEntity.userId,

@@ -1,14 +1,12 @@
 package io.liquidsoftware.base.user.domain
 
-import arrow.core.Nel
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.user.UserId
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.types.EmailAddress
 import io.liquidsoftware.common.types.Msisdn
 import io.liquidsoftware.common.types.NonEmptyString
-import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.toEmailAddress
 import io.liquidsoftware.common.types.toMsisdn
@@ -36,8 +34,8 @@ internal sealed class User: UserFields {
   fun acl() = Acl.of(id.value, id.value, AclRole.MANAGER)
 
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun newUserData(
+    context(Raise<ValidationErrors>)
+    fun newUserData(
       id: String,
       msisdn: String,
       email: String,
@@ -61,8 +59,8 @@ internal data class UnregisteredUser(
   val role: Role
 ) : User(), UserFields by data {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(msisdn: String, email: String, encryptedPassword: String, role: Role): UnregisteredUser =
+    context(Raise<ValidationErrors>)
+    fun of(msisdn: String, email: String, encryptedPassword: String, role: Role): UnregisteredUser =
       UnregisteredUser(
         UserData(
           UserId.create(),
@@ -78,8 +76,8 @@ internal data class ActiveUser(
   private val data: UserData
 ) : User(), UserFields by data {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(id: String, msisdn: String, email: String, encryptedPassword: String): ActiveUser =
+    context(Raise<ValidationErrors>)
+    fun of(id: String, msisdn: String, email: String, encryptedPassword: String): ActiveUser =
       ActiveUser(newUserData(id, msisdn, email, encryptedPassword))
   }
 }
@@ -88,8 +86,8 @@ internal data class AdminUser(
   private val data: UserData
 ) : User(), UserFields by data {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(id: String, msisdn: String, email: String, encryptedPassword: String): AdminUser =
+    context(Raise<ValidationErrors>)
+    fun of(id: String, msisdn: String, email: String, encryptedPassword: String): AdminUser =
       AdminUser(newUserData(id, msisdn, email, encryptedPassword))
   }
 }
@@ -99,43 +97,9 @@ internal data class AdminUser(
     val role: Role
   ) : User(), UserFields by data {
     companion object {
-      context(EffectScope<ValidationErrors>)
-      suspend fun of(id: String, msisdn: String, email: String, encryptedPassword: String, role: Role): DisabledUser =
+      context(Raise<ValidationErrors>)
+      fun of(id: String, msisdn: String, email: String, encryptedPassword: String, role: Role): DisabledUser =
         DisabledUser(newUserData(id, msisdn, email, encryptedPassword), role)
     }
-
-
-  // DRYs up object creation
-  context(EffectScope<ValidationErrors>)
-  private suspend fun <T> validateAndCreate(
-    id: String,
-    msisdn: String,
-    email: String,
-    encryptedPassword: String,
-    role: Role,
-    createFn: (id: UserId, m: Msisdn, em: EmailAddress, pa: NonEmptyString, ro: Role) -> T
-  ): T =
-    createFn(
-      UserId.of(id),
-      Msisdn.of(msisdn),
-      EmailAddress.of(email),
-      NonEmptyString.of(encryptedPassword),
-      role,
-    )
-
-  context(EffectScope<Nel<ValidationError>>)
-  private suspend fun <T> validateAndCreate(
-    id: String,
-    msisdn: String,
-    email: String,
-    encryptedPassword: String,
-    createFn: (id: UserId, m: Msisdn, em: EmailAddress, pa: NonEmptyString) -> T
-  ): T =
-    createFn(
-      UserId.of(id),
-      Msisdn.of(msisdn),
-      EmailAddress.of(email),
-      NonEmptyString.of(encryptedPassword)
-    )
 
 }

@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.user.application.workflows
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.DisableUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.UserDisabledEvent
@@ -22,10 +22,10 @@ internal class DisableUserWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: DisableUserCommand): UserDisabledEvent =
     findUserPort.findUserById(request.userId)
       ?.let { userEventPort.handle(UserDisabledEvent(it.toUserDto())) }
-      ?: shift(UserNotFoundError("User not found with ID ${request.userId}"))
+      ?: raise(UserNotFoundError("User not found with ID ${request.userId}"))
 
 }

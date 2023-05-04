@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.user.application.workflows
 
-import arrow.core.continuations.EffectScope
-import arrow.core.continuations.ensureNotNull
+import arrow.core.raise.Raise
+import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.SystemFindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.SystemUserFoundEvent
@@ -26,7 +26,7 @@ internal class SystemFindUserByEmailWorkflow(
   @PostConstruct
   fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
-  context(EffectScope<WorkflowError>)
+  context(Raise<WorkflowError>)
   override suspend fun execute(request: SystemFindUserByEmailQuery): SystemUserFoundEvent =
     ensureNotNull(findUserPort.findUserByEmail(request.email)) {
       UserNotFoundError(request.email)

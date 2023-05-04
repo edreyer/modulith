@@ -1,6 +1,6 @@
 package io.liquidsoftware.base.payment.domain
 
-import arrow.core.continuations.EffectScope
+import arrow.core.raise.Raise
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.PaymentNamespaces
 import io.liquidsoftware.base.user.UserId
@@ -32,8 +32,8 @@ internal data class ActivePaymentMethod(
   val data: PaymentMethodData
 ) : PaymentMethod(), PaymentMethodFields by data {
   companion object {
-    context(EffectScope<ValidationErrors>)
-    suspend fun of(paymentMethodId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_METHOD_NS),
+    context(Raise<ValidationErrors>)
+    fun of(paymentMethodId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_METHOD_NS),
            userId: String, stripePaymentMethodId: String, lastFour: String) : ActivePaymentMethod {
       return ActivePaymentMethod(PaymentMethodData(
         PaymentMethodId.of(paymentMethodId),
