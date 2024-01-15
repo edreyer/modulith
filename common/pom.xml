@@ -11,16 +11,11 @@
 
     <artifactId>common</artifactId>
 
-    <properties>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>31.1-jre</version>
+            <version>33.0.0-jre</version>
         </dependency>
         <dependency>
             <groupId>org.valiktor</groupId>

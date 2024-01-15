@@ -4,7 +4,7 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jws
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.Jwts.SIG.HS256
 import io.jsonwebtoken.security.Keys
 import io.liquidsoftware.common.logging.LoggerDelegate
 import jakarta.annotation.PostConstruct
@@ -36,7 +36,7 @@ open class JwtTokenProvider(
   }
 
   fun createToken(userId: String, authorities: Collection<GrantedAuthority>): String {
-    val claims: Claims = Jwts.claims().setSubject(userId)
+    val claims: Claims = Jwts.claims().subject(userId).build()
     claims[AUTHORITIES_KEY] = authorities.joinToString(",") {
         obj: GrantedAuthority -> obj.authority
     }
@@ -46,32 +46,33 @@ open class JwtTokenProvider(
       .setClaims(claims) //
       .setIssuedAt(now) //
       .setExpiration(validity) //
-      .signWith(secretKey, SignatureAlgorithm.HS256) //
+      .signWith(secretKey, HS256) //
       .compact()
   }
 
   fun createToken(authentication: Authentication): String {
     val userDto = authentication.principal as UserDetailsWithId
     val authorities: Collection<GrantedAuthority> = authentication.authorities
-    val claims: Claims = Jwts.claims().setSubject(userDto.id)
-    claims[AUTHORITIES_KEY] = authorities.joinToString(",") {
-        obj: GrantedAuthority -> obj.authority
-    }
+    val claims: Claims = Jwts.claims().subject(userDto.id)
+      .add(AUTHORITIES_KEY, authorities.joinToString(",") {
+          obj: GrantedAuthority -> obj.authority
+      })
+      .build()
     val now = Date()
     val validity = Date(now.time + jwtProperties.validityInMs)
     return Jwts.builder()
-      .setClaims(claims)
-      .setIssuedAt(now)
-      .setExpiration(validity)
-      .signWith(secretKey, SignatureAlgorithm.HS256)
+      .claims(claims)
+      .issuedAt(now)
+      .expiration(validity)
+      .signWith(secretKey, HS256)
       .compact()
   }
 
   fun getAuthentication(token: String): Authentication {
-    val claims: Claims = Jwts.parserBuilder()
-      .setSigningKey(secretKey)
+    val claims: Claims = Jwts.parser()
+      .verifyWith(secretKey)
       .build()
-      .parseClaimsJws(token)
+      .parseSignedClaims(token)
       .body
     val authorities: Collection<GrantedAuthority> = AuthorityUtils.commaSeparatedStringToAuthorityList(
       claims[AUTHORITIES_KEY].toString()
@@ -82,10 +83,10 @@ open class JwtTokenProvider(
 
   fun validateToken(token: String): Boolean {
     try {
-      val claims: Jws<Claims> = Jwts.parserBuilder()
-        .setSigningKey(secretKey)
+      val claims: Jws<Claims> = Jwts.parser()
+        .verifyWith(secretKey)
         .build()
-        .parseClaimsJws(token)
+        .parseSignedClaims(token)
       return !claims.body.expiration.before(Date())
     } catch (e: JwtException) {
       logger.info("Invalid JWT token.")
