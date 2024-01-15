@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.0.6</version>
+        <version>3.1.7</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -19,15 +19,14 @@
     <description>Hexagonal Architecture Base Project with Kotlin/Arrow</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <kotlin.version>1.8.21</kotlin.version>
+        <maven.compiler.release>21</maven.compiler.release>
+        <kotlin.version>1.9.21</kotlin.version>
         <kotlin.compiler.languageVersion>2.0</kotlin.compiler.languageVersion>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
-        <arrow.version>1.2.0-RC</arrow.version>
-        <jjwt.version>0.11.5</jjwt.version>
-        <assertk.version>0.25</assertk.version>
-        <kotest.version>5.5.5</kotest.version>
+        <arrow.version>1.2.0</arrow.version>
+        <jjwt.version>0.12.3</jjwt.version>
+        <assertk.version>0.28.0</assertk.version>
+        <kotest.version>5.8.0</kotest.version>
     </properties>
 
     <modules>
@@ -75,14 +74,17 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>1.8.0-RC2</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-reactive</artifactId>
+            <version>1.8.0-RC2</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-reactor</artifactId>
+            <version>1.8.0-RC2</version>
         </dependency>
         <dependency>
             <groupId>io.projectreactor.kotlin</groupId>
@@ -109,35 +111,30 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
-            <version>2.0.4</version>
+            <version>2.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-kotlin</artifactId>
-            <version>1.6.15</version>
+            <version>1.7.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>testcontainers</artifactId>
-            <version>1.17.6</version>
+            <version>1.19.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>1.17.6</version>
+            <version>1.19.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>mongodb</artifactId>
-            <version>1.17.6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
+            <version>1.19.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -166,13 +163,13 @@
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
-            <version>1.0.0</version>
+            <version>1.2.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.ninja-squad</groupId>
             <artifactId>springmockk</artifactId>
-            <version>4.0.0</version>
+            <version>4.0.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -321,8 +318,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <proc>none</proc>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
+                    <source>${maven.compiler.release}</source>
+                    <target>${maven.compiler.release}</target>
                 </configuration>
                 <executions>
                     <!-- Replacing default-compile as it is treated specially by maven -->

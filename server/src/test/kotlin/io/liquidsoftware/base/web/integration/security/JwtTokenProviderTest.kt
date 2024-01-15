@@ -1,17 +1,18 @@
 package io.liquidsoftware.base.web.integration.security
 
+import assertk.assertFailure
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.hasMessage
 import assertk.assertions.isEmpty
 import assertk.assertions.isEqualTo
-import assertk.assertions.isFailure
 import assertk.assertions.isFalse
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isTrue
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
-import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.Jwts.SIG.HS256
 import io.jsonwebtoken.security.Keys
 import io.liquidsoftware.common.security.JwtProperties
 import io.liquidsoftware.common.security.JwtTokenProvider
@@ -70,12 +71,11 @@ internal class JwtTokenProviderTest {
   @Test
   fun testParseTokenException() {
     val token = "anunknowtokencannotbeparsedbyjwtprovider"
-    assertThat {
+    assertFailure {
       jwtTokenProvider.getAuthentication(token)
     }
-      .isFailure()
       .isInstanceOf(JwtException::class.java)
-      .hasMessage("JWT strings must contain exactly 2 period characters. Found: 0")
+      .hasMessage("Invalid compact JWT string: Compact JWSs must contain exactly 2 period characters, and compact JWEs must contain exactly 4.  Found: 0")
   }
 
   @Test
@@ -88,14 +88,14 @@ internal class JwtTokenProviderTest {
   fun testValidateExpirationDate() {
     val secret = Base64.getEncoder().encodeToString(properties.secretKey.toByteArray())
     val secretKey = Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
-    val claims = Jwts.claims().setSubject(TEST_USER_ID)
+    val claims: Claims = Jwts.claims().subject(TEST_USER_ID).build()
     val now = Date()
     val validity = Date(now.time - 1)
     val expiredToken = Jwts.builder()
-      .setClaims(claims)
-      .setIssuedAt(now)
-      .setExpiration(validity)
-      .signWith(secretKey, SignatureAlgorithm.HS256)
+      .claims(claims)
+      .issuedAt(now)
+      .expiration(validity)
+      .signWith(secretKey, HS256)
       .compact()
     assertThat(jwtTokenProvider.validateToken(expiredToken)).isFalse()
   }
