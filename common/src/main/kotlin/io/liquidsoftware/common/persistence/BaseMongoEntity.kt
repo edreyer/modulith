@@ -47,7 +47,7 @@ abstract class BaseMongoEntity(
   }
 
   override fun toString(): String {
-    return "BaseEntity(id=$id, mongoId=$mongoId, version=$version, createdAt=$createdAt, updatedAt=$updatedAt, isNew=$isNew)"
+    return "BaseEntity(id=$id, mongoId=$mongoId, version=$version, createdAt=$createdAt, updatedAt=$updatedAt, createdBy=${createdByUser}, updatedBy=${modifiedByUser}, isNew=$isNew)"
   }
 
   override fun equals(other: Any?): Boolean {

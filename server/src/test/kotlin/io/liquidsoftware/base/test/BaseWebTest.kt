@@ -55,7 +55,7 @@ class BaseWebTest {
   lateinit var port: Integer
 
   companion object {
-    val mongoDBContainer = MongoDBContainer(DockerImageName.parse("mongo:5"))
+    val mongoDBContainer = MongoDBContainer(DockerImageName.parse("mongo:7.0.2"))
   }
 
   internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {

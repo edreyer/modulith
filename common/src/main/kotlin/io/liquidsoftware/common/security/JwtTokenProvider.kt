@@ -43,9 +43,9 @@ open class JwtTokenProvider(
     val now = Date()
     val validity = Date(now.time + jwtProperties.validityInMs)
     return Jwts.builder() //
-      .setClaims(claims) //
-      .setIssuedAt(now) //
-      .setExpiration(validity) //
+      .claims(claims) //
+      .issuedAt(now) //
+      .expiration(validity) //
       .signWith(secretKey, HS256) //
       .compact()
   }
@@ -73,7 +73,7 @@ open class JwtTokenProvider(
       .verifyWith(secretKey)
       .build()
       .parseSignedClaims(token)
-      .body
+      .payload
     val authorities: Collection<GrantedAuthority> = AuthorityUtils.commaSeparatedStringToAuthorityList(
       claims[AUTHORITIES_KEY].toString()
     )
@@ -87,7 +87,7 @@ open class JwtTokenProvider(
         .verifyWith(secretKey)
         .build()
         .parseSignedClaims(token)
-      return !claims.body.expiration.before(Date())
+      return !claims.payload.expiration.before(Date())
     } catch (e: JwtException) {
       logger.info("Invalid JWT token.")
       logger.trace("Invalid JWT token trace.", e)
