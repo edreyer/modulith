@@ -23,16 +23,14 @@ open class JwtTokenProvider(
 
   private val logger by LoggerDelegate()
 
-  private var secretKey: SecretKey? = null
+  private val secretKey: SecretKey
+    get() {
+      val secret: String = Base64.getEncoder().encodeToString(jwtProperties.secretKey.toByteArray())
+      return Keys.hmacShaKeyFor(secret.toByteArray())
+    }
 
   companion object {
     private const val AUTHORITIES_KEY = "roles"
-  }
-
-  @PostConstruct
-  fun init() {
-    val secret: String = Base64.getEncoder().encodeToString(jwtProperties.secretKey.toByteArray())
-    secretKey = Keys.hmacShaKeyFor(secret.toByteArray())
   }
 
   fun createToken(userId: String, authorities: Collection<GrantedAuthority>): String {
@@ -69,7 +67,8 @@ open class JwtTokenProvider(
   }
 
   fun getAuthentication(token: String): Authentication {
-    val claims: Claims = Jwts.parser()
+    val claims: Claims = Jwts
+      .parser()
       .verifyWith(secretKey)
       .build()
       .parseSignedClaims(token)

@@ -409,3 +409,13 @@ a sub-process.
 ## CQRS
 ### Commands, Queries, Events
 ## Arch Unit
+
+## Running locally
+
+1. To run locally, you need to connect to a MongoDB instance. The easiest way to do that is by running the following
+```
+docker run -d -p 27017:27017 --name modulith-mongo mongo:latest
+```
+
+2. To run in IntelliJ, create a Spring Boot run configuration with the main class: `io.liquidsoftware.base.server.ModulithApplication`
+3. Note, you'll need to run on Java 21 to take advantage of the virtual threads.

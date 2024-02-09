@@ -30,6 +30,10 @@ spring:
       date: yyyy-MM-dd
       date-time: yyyy-MM-dd HH:mm:ss
 
+  threads:
+    virtual:
+      enabled: true
+
 security:
   jwt:
     token:
