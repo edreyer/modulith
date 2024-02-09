@@ -7,10 +7,10 @@ import reactor.core.publisher.Mono
 @Repository
 internal interface UserRepository : ReactiveMongoRepository<UserEntity, String> {
 
-  suspend fun findByUserId(userId: String) : Mono<UserEntity>
+  fun findByUserId(userId: String) : Mono<UserEntity>
 
-  suspend fun findByEmail(email: String) : Mono<UserEntity>
+  fun findByEmail(email: String) : Mono<UserEntity>
 
-  suspend fun findByMsisdn(msisdn: String) : Mono<UserEntity>
+  fun findByMsisdn(msisdn: String) : Mono<UserEntity>
 
 }

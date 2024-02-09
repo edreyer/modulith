@@ -41,7 +41,6 @@ internal class JwtTokenProviderTest {
     log.debug("jwt properties::" + properties)
     jwtTokenProvider = JwtTokenProvider(properties)
     Assertions.assertNotNull(jwtTokenProvider)
-    jwtTokenProvider.init()
   }
 
   @Test
