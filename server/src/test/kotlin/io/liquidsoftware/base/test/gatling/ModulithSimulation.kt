@@ -16,7 +16,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
-class MonolithSimulation: Simulation() {
+class ModulithSimulation: Simulation() {
   val usersSingle = csv("gatling-users.csv")
   val usersCircular = csv("gatling-users.csv").circular()
 
