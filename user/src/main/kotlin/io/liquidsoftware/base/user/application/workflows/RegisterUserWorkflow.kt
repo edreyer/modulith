@@ -35,9 +35,9 @@ internal class RegisterUserWorkflow(
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {
-    val user = validateNewUser(request)
 
     val result = runAsSuperUser {
+      val user = validateNewUser(request)
       userRegisteredPort.handle(
         UserRegisteredEvent(user.toUserDto(), user.encryptedPassword.value)
       )
