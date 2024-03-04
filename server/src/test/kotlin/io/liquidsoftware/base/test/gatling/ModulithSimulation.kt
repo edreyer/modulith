@@ -70,7 +70,6 @@ class ModulithSimulation: Simulation() {
       ),
     // get availability
     doWhile{ session ->
-      println("""************ email = ${session.getString("email")}, available-time = ${session.getString("available_time")}""")
       session.getString("available_time") == null
     }.on(
       http("get appt times")
@@ -111,7 +110,7 @@ class ModulithSimulation: Simulation() {
     this.setUp(
       registerScenario.injectOpen(atOnceUsers(userCount))
         .andThen(bookAppointmentScenario.injectOpen(
-          constantUsersPerSec(100.0).during(10)
+          constantUsersPerSec(100.0).during(30)
         ))
     )
       .protocols(httpProtocol)
