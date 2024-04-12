@@ -1,18 +1,16 @@
 package io.liquidsoftware.common.persistence
 
-import org.springframework.data.domain.ReactiveAuditorAware
+import org.springframework.data.domain.AuditorAware
 import org.springframework.security.core.Authentication
-import org.springframework.security.core.context.ReactiveSecurityContextHolder
-import org.springframework.security.core.context.SecurityContext
-import reactor.core.publisher.Mono
+import org.springframework.security.core.context.SecurityContextHolder
+import java.util.Optional
 
 
-class AuditorAwareImpl : ReactiveAuditorAware<String> {
-  override fun getCurrentAuditor(): Mono<String> =
-    ReactiveSecurityContextHolder
-      .getContext()
-      .map { obj: SecurityContext -> obj.authentication }
-      .filter { obj: Authentication -> obj.isAuthenticated }
+class AuditorAwareImpl : AuditorAware<String> {
+  override fun getCurrentAuditor(): Optional<String> =
+    Optional.ofNullable(SecurityContextHolder.getContext())
+      .map { it.authentication }
+      .filter { it.isAuthenticated }
       .map(Authentication::getName)
 
 }

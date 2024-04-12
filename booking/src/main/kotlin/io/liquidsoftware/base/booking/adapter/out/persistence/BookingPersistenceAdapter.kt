@@ -22,19 +22,13 @@ import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
 import io.liquidsoftware.base.booking.domain.WorkOrder
 import io.liquidsoftware.common.errors.ErrorHandling.ERROR_HANDLER
+import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.Permission
 import io.liquidsoftware.common.types.ValidationErrors
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.reactive.asFlow
-import kotlinx.coroutines.reactor.awaitSingle
-import kotlinx.coroutines.reactor.awaitSingleOrNull
-import kotlinx.coroutines.withContext
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
 
@@ -46,11 +40,13 @@ internal class BookingPersistenceAdapter(
   private val logger by LoggerDelegate()
 
   override suspend fun findById(apptId: String): Appointment? =
-    withContext(Dispatchers.IO) {
-      apptRepository.findByAppointmentId(apptId)
-        .awaitSingleOrNull()
-        ?.toAppointment()
-    }?.also { ac.checkPermission(it.acl(), Permission.READ) }
+    withContextIO {
+      runCatching {
+        apptRepository.findByAppointmentId(apptId)
+          ?.toAppointment()
+          ?.also { ac.checkPermission(it.acl(), Permission.READ) }
+      }.getOrNull()
+    }
 
 
   override suspend fun findScheduledById(apptId: String): ScheduledAppointment? =
@@ -65,49 +61,47 @@ internal class BookingPersistenceAdapter(
     findById(apptId)
       ?.let { if (it !is CompleteAppointment) null else it }
 
-  override suspend fun findByUserId(userId: String, pageable: Pageable): Flow<Appointment> =
-    withContext(Dispatchers.IO) {
+  override suspend fun findByUserId(userId: String, pageable: Pageable): List<Appointment> =
+    withContextIO {
       apptRepository.findByUserId(userId, pageable)
-        .asFlow()
-        .map {
-          it.toAppointment()
-            .also { appt -> ac.checkPermission(appt.acl(), Permission.READ)}
+        .map { it.toAppointment() }
+        .filter { appt -> runCatching {
+          ac.checkPermission(appt.acl(), Permission.READ)
+        }
+          .fold({ true }, { false })
         }
     }
 
-  override suspend fun findAll(date: LocalDate): Flow<Appointment> =
-    withContext(Dispatchers.IO) {
+  override suspend fun findAll(date: LocalDate): List<Appointment> =
+    withContextIO {
       apptRepository.findByScheduledTimeBetween(date.atStartOfDay(), date.atStartOfDay().plusDays(1))
-        .asFlow()
         .map {
           it.toAppointment()
             .also { appt -> ac.checkPermission(appt.acl(), Permission.READ)}
         }
     }
 
-  override suspend fun <T: AppointmentEvent> handle(event: T): T = withContext(Dispatchers.IO) {
+  override suspend fun <T: AppointmentEvent> handle(event: T): T = withContextIO {
     when (event.appointmentDto.status) {
       AppointmentStatus.SCHEDULED,
       AppointmentStatus.IN_PROGRESS,
       AppointmentStatus.COMPLETE,
       AppointmentStatus.PAID -> {
         apptRepository.findByAppointmentId(event.appointmentDto.id)
-          .awaitSingleOrNull()
           ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
           ?.handle(event)
           ?.let {
-            apptRepository.save(it).awaitSingle()
+            apptRepository.save(it)
           }
-          ?: apptRepository.save(event.appointmentDto.toEntity()).awaitSingle() // New Entity
+          ?: apptRepository.save(event.appointmentDto.toEntity())
         event
       }
       else -> {
         // TODO: Do we need this 'else' branch? Delete if not
         apptRepository.findByAppointmentId(event.appointmentDto.id)
-          .awaitSingleOrNull()
           ?.also { ac.checkPermission(Acl.of(it.appointmentId, it.userId, AclRole.WRITER), Permission.WRITE) }
           ?.handle(event)
-          ?.let { apptRepository.save(it).awaitSingle() }
+          ?.let { apptRepository.save(it) }
         event
       }
     }

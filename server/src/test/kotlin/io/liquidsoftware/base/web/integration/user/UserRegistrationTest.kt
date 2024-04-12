@@ -9,7 +9,9 @@ import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.common.validation.MsisdnParser
 import io.restassured.path.json.JsonPath
+import io.restassured.response.Response
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 
 class UserRegistrationTest : BaseWebTest() {
@@ -27,6 +29,7 @@ class UserRegistrationTest : BaseWebTest() {
   }
 
   @Test
+  @Order(1)
   fun `register new user`() {
     val regReq = inputDto
     val actual = registerUser(regReq)
@@ -41,13 +44,21 @@ class UserRegistrationTest : BaseWebTest() {
   }
 
   @Test
-  fun `register invalid user`() {
-    val regReq = inputDto.copy(msisdn = "", email = "")
-    val json = post("/user/register", regReq).asString()
+  @Order(2)
+  fun `register existing user`() {
+    val regReq = inputDto
+    val response: Response = post("/user/register", regReq)
+    val json = response.asString()
     val jsonPath = JsonPath(json)
-    assertThat(jsonPath.getInt("status")).isEqualTo(400)
-    assertThat(jsonPath.getString("error")).isEqualTo("Bad Request")
+    assertThat(jsonPath.getString("errors")).isEqualTo("User 5125550002 exists")
+    assertThat(response.statusCode()).isEqualTo(400)
   }
 
+  @Test
+  fun `register blank user`() {
+    val regReq = inputDto.copy(msisdn = "", email = "")
+    val response: Response = post("/user/register", regReq)
+    assertThat(response.statusCode()).isEqualTo(403)
+  }
 
 }

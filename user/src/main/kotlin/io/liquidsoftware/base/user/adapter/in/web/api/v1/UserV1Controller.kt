@@ -28,7 +28,7 @@ data class RegisterUserErrorsDto(val errors: List<String>) : FindUserOutputDto()
 @RestController
 internal class UserV1Controller {
 
-  private suspend inline fun dispatchQuery(query: Query, msgOnError: String) : ResponseEntity<FindUserOutputDto> {
+  private fun dispatchQuery(query: Query, msgOnError: String) : ResponseEntity<FindUserOutputDto> {
     return WorkflowDispatcher.dispatch<UserFoundEvent>(query)
       .fold(
         {
@@ -42,20 +42,20 @@ internal class UserV1Controller {
   }
 
   @GetMapping(path = [V1UserPaths.USER_BY_ID])
-  suspend fun getUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<FindUserOutputDto> =
+  fun getUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<FindUserOutputDto> =
     dispatchQuery(FindUserByIdQuery(userId), "User not found with ID $userId")
 
   @GetMapping(path = [V1UserPaths.USER_BY_EMAIL])
-  suspend fun getUserByEmail(@PathVariable @Valid @NotBlank email: String) : ResponseEntity<FindUserOutputDto> =
+  fun getUserByEmail(@PathVariable @Valid @NotBlank email: String) : ResponseEntity<FindUserOutputDto> =
     dispatchQuery(FindUserByEmailQuery(email), "User not found with email $email")
 
   @GetMapping(path = [V1UserPaths.USER_BY_MSISDN])
-  suspend fun getUserByMsisdn(@PathVariable @Valid @NotBlank msisdn: String) : ResponseEntity<FindUserOutputDto> =
+  fun getUserByMsisdn(@PathVariable @Valid @NotBlank msisdn: String) : ResponseEntity<FindUserOutputDto> =
     dispatchQuery(FindUserByMsisdnQuery(msisdn), "User not found with msisdn $msisdn")
 
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping(path = [V1UserPaths.ENABLE_USER])
-  suspend fun enableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
+  fun enableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
     WorkflowDispatcher.dispatch<UserEnabledEvent>(EnableUserCommand(userId))
       .fold(
         { err -> ResponseEntity.badRequest().body(err.toString()) },
@@ -64,7 +64,7 @@ internal class UserV1Controller {
 
   @PreAuthorize("hasRole('ADMIN')")
   @GetMapping(path = [V1UserPaths.DISABLE_USER])
-  suspend fun disableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
+  fun disableUser(@PathVariable @Valid @NotBlank userId: String) : ResponseEntity<String> =
     WorkflowDispatcher.dispatch<UserDisabledEvent>(DisableUserCommand(userId))
       .fold(
         { err -> ResponseEntity.badRequest().body(err.toString()) },

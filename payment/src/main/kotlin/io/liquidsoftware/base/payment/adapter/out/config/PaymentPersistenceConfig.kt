@@ -5,10 +5,10 @@ import io.liquidsoftware.base.payment.adapter.out.persistence.PaymentPersistence
 import io.liquidsoftware.base.payment.adapter.out.persistence.PaymentRepository
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 
 @Configuration
-@EnableReactiveMongoRepositories("io.liquidsoftware.base.payment")
+@EnableMongoRepositories("io.liquidsoftware.base.payment")
 internal class PaymentPersistenceConfig {
 
   @Bean

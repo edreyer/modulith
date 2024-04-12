@@ -5,10 +5,10 @@ import io.liquidsoftware.base.booking.adapter.out.persistence.BookingPersistence
 import io.liquidsoftware.common.security.acl.AclChecker
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
 
 @Configuration
-@EnableReactiveMongoRepositories("io.liquidsoftware.base.booking")
+@EnableMongoRepositories("io.liquidsoftware.base.booking")
 internal class BookingPersistenceConfig {
 
   @Bean
