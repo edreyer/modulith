@@ -32,7 +32,7 @@ spring:
 
   threads:
     virtual:
-      enabled: false
+      enabled: true
 
 security:
   jwt:

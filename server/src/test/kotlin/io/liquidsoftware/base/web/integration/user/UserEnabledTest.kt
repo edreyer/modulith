@@ -23,7 +23,9 @@ class UserEnabledTest : BaseUserWebTest() {
     }
     assertThat(user.active).isTrue()
 
-    super.get("/api/v1/users/${user.id}/disable", accessToken)
+    val admin = authorizeAdminUser()
+
+    get("/api/v1/users/${user.id}/disable", admin.accessToken)
       .then()
       .statusCode(200)
 
@@ -34,7 +36,7 @@ class UserEnabledTest : BaseUserWebTest() {
     }
     assertThat(disabledUser.active).isFalse()
 
-    super.get("/api/v1/users/${user.id}/enable", accessToken)
+    super.get("/api/v1/users/${user.id}/enable", admin.accessToken)
       .then()
       .statusCode(200)
 

@@ -12,17 +12,21 @@ class FindUserTest : BaseWebTest() {
   val testEmail = "findUser@liquidsoftware.io"
   private lateinit var accessToken: String
 
+  val notAuthorizedEmail = "notAuthorized@liquidsoftware.io"
+
   @BeforeAll
   fun beforeAll() {
     accessToken = authorizeUser(testEmail, "5125550003").accessToken
+    // only needed to create user
+    createUser(notAuthorizedEmail, "5125550005")
   }
 
   @Test
-  fun testNotAuthorized() {
+  fun testNotAuthenticated() {
     // no auth token
     this.get("/api/v1/users/email/$testEmail")
       .then()
-      .statusCode(401)
+      .statusCode(403)
   }
 
   @Test

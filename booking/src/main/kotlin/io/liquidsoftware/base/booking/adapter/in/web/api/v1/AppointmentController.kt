@@ -26,7 +26,6 @@ import io.liquidsoftware.common.web.ControllerSupport
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowDispatcher.log
-import kotlinx.coroutines.flow.Flow
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -60,7 +59,7 @@ class AppointmentController(
 ) : ControllerSupport {
 
   @PostMapping(value = [V1BookingPaths.SCHEDULE_APPT])
-  suspend fun schedule(@RequestBody appt: AppointmentDtoIn)
+  fun schedule(@RequestBody appt: AppointmentDtoIn)
     : ResponseEntity<ScheduledAppointmentOutputDto> {
     log.debug("AppointmentController.schedule()")
     return WorkflowDispatcher.dispatch<AppointmentScheduledEvent>(
@@ -81,7 +80,7 @@ class AppointmentController(
   }
 
   @PostMapping(value = [V1BookingPaths.IN_PROGRESS_APPT])
-  suspend fun inProgress(@RequestBody appt: AppointmentIdDtoIn)
+  fun inProgress(@RequestBody appt: AppointmentIdDtoIn)
     : ResponseEntity<StartedAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentStartedEvent>(
       StartAppointmentCommand(appt.id)
@@ -100,7 +99,7 @@ class AppointmentController(
       )
 
   @PostMapping(value = [V1BookingPaths.COMPLETE_APPT])
-  suspend fun complete(@RequestBody appt: AppointmentCompletedDtoIn)
+  fun complete(@RequestBody appt: AppointmentCompletedDtoIn)
     : ResponseEntity<CompletedAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentCompletedEvent>(
       CompleteAppointmentCommand(appt.id, appt.notes)
@@ -119,7 +118,7 @@ class AppointmentController(
       )
 
   @PostMapping(value = [V1BookingPaths.PAY_APPT])
-  suspend fun pay(@RequestBody request: AppointmentPaymentDto)
+  fun pay(@RequestBody request: AppointmentPaymentDto)
     : ResponseEntity<PaidAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentPaidEvent>(
       PayAppointmentCommand(request.id, request.paymentMethodId)
@@ -139,7 +138,7 @@ class AppointmentController(
 
 
   @PostMapping(value = [V1BookingPaths.CANCEL_APPT])
-  suspend fun cancel(@RequestBody appt: AppointmentDtoIn)
+  fun cancel(@RequestBody appt: AppointmentDtoIn)
     : ResponseEntity<CancelAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentCancelledEvent>(
       CancelAppointmentCommand(appt.id!!, appt.workOrder.notes)
@@ -158,9 +157,9 @@ class AppointmentController(
       )
 
   @GetMapping(value = [V1BookingPaths.GET_USER_APPTS])
-  suspend fun getUserAppointments(
+  fun getUserAppointments(
     @RequestParam("page", required = false, defaultValue = "0") page: Int,
-    @RequestParam("size", required = false, defaultValue = "20") size: Int): Flow<AppointmentDtoOut> {
+    @RequestParam("size", required = false, defaultValue = "20") size: Int): List<AppointmentDtoOut> {
     return WorkflowDispatcher.dispatch<UserAppointmentsFetchedEvent>(
       FetchUserAppointmentsQuery(ec.getCurrentUser().id, page, size)
     )

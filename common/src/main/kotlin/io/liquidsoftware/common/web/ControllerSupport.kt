@@ -6,7 +6,7 @@ import io.liquidsoftware.common.workflow.WorkflowError
 
 interface ControllerSupport {
 
-  suspend fun <T> Either<WorkflowError, T>.throwIfSpringError(): Either<WorkflowError, T> {
+  fun <T> Either<WorkflowError, T>.throwIfSpringError(): Either<WorkflowError, T> {
     onLeft { if (it.hasResponseStatus()) throw it }
     return this
   }

@@ -19,7 +19,7 @@ class ModulithApplication
 fun main(args: Array<String>) {
   val parent = SpringApplicationBuilder()
     .parent(ModulithApplication::class.java, ServerConfig::class.java)
-    .web(WebApplicationType.REACTIVE)
+    .web(WebApplicationType.SERVLET)
 
   parent.run(*args)
 

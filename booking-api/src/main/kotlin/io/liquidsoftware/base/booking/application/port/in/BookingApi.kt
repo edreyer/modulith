@@ -4,7 +4,6 @@ import io.liquidsoftware.common.workflow.Command
 import io.liquidsoftware.common.workflow.Event
 import io.liquidsoftware.common.workflow.Query
 import io.liquidsoftware.common.workflow.WorkflowError
-import kotlinx.coroutines.flow.Flow
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 import java.time.LocalDateTime
@@ -58,7 +57,7 @@ data class AppointmentCancelledEvent(override val appointmentDto: AppointmentDto
 data class AppointmentPaidEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
   AppointmentEvent
 
-data class UserAppointmentsFetchedEvent(val appointments: Flow<AppointmentDtoOut>) : Event()
+data class UserAppointmentsFetchedEvent(val appointments: List<AppointmentDtoOut>) : Event()
 
 // Errors
 sealed class AppointmentError(override val message: String) : WorkflowError(message)
