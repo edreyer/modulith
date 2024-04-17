@@ -17,7 +17,7 @@ data class PaymentMethodError(val error:String)
 class PaymentMethodController() : ControllerSupport {
 
   @PostMapping(value = [V1PaymentPaths.PAYMENT_METHODS])
-  fun addPaymentMethod(@RequestBody paymentMethod: PaymentMethodDtoIn) =
+  suspend fun addPaymentMethod(@RequestBody paymentMethod: PaymentMethodDtoIn) =
     WorkflowDispatcher.dispatch<PaymentMethodAddedEvent>(
       AddPaymentMethodCommand(paymentMethod)
     )

@@ -63,7 +63,6 @@ class AppointmentTest : BaseUserWebTest() {
   @Test
   @Order(3)
   fun testInProgress() {
-    runBlocking { delay(3000) }
     val apptDto = AppointmentIdDtoIn(appt?.id!!)
     val outputDto = post("/api/v1/appointments/in-progress", apptDto, accessToken)
       .then()

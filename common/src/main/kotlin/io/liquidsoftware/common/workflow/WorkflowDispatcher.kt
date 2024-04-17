@@ -6,7 +6,7 @@ import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.SecurityCoroutineContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import kotlin.reflect.KClass
 
 /*
@@ -39,8 +39,8 @@ object WorkflowDispatcher {
 //    commandList.add(handler as SafeWorkflow<Command, *>)
 //  }
 
-  fun <E: Event> dispatch(query: Query): Either<WorkflowError, E> =
-    runBlocking(Dispatchers.Default + SecurityCoroutineContext()) {
+  suspend fun <E: Event> dispatch(query: Query): Either<WorkflowError, E> =
+    withContext(Dispatchers.Default + SecurityCoroutineContext()) {
       either {
         ensureNotNull(queryHandlers[query::class]) {
           MissingHandler("No handler for query $query")
@@ -55,8 +55,8 @@ object WorkflowDispatcher {
 //  suspend fun <E: Event> dispatch(command: Command): List<Result<E>> =
 //    commandHandlers[command::class]?.map { runAsync(it as SafeWorkflow<Command, E>, command) } ?: emptyList()
 
-  fun <E: Event> dispatch(command: Command): Either<WorkflowError, E> =
-    runBlocking(Dispatchers.Default + SecurityCoroutineContext()) {
+  suspend fun <E: Event> dispatch(command: Command): Either<WorkflowError, E> =
+    withContext(Dispatchers.Default + SecurityCoroutineContext()) {
       either {
         ensureNotNull(commandHandlers[command::class]) {
           MissingHandler("No handler for command $command")

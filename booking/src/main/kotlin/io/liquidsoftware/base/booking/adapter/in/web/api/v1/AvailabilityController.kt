@@ -21,7 +21,7 @@ class AvailabilityController {
 val log by LoggerDelegate()
 
   @GetMapping(value = [V1BookingPaths.AVAILABILITY])
-  fun availability(@PathVariable date: LocalDate)
+  suspend fun availability(@PathVariable date: LocalDate)
   : ResponseEntity<AvailabilityDto> {
     return WorkflowDispatcher.dispatch<AvailabilityRetrievedEvent>(GetAvailabilityQuery(date))
       .fold(

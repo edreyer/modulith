@@ -59,7 +59,7 @@ class AppointmentController(
 ) : ControllerSupport {
 
   @PostMapping(value = [V1BookingPaths.SCHEDULE_APPT])
-  fun schedule(@RequestBody appt: AppointmentDtoIn)
+  suspend fun schedule(@RequestBody appt: AppointmentDtoIn)
     : ResponseEntity<ScheduledAppointmentOutputDto> {
     log.debug("AppointmentController.schedule()")
     return WorkflowDispatcher.dispatch<AppointmentScheduledEvent>(
@@ -80,7 +80,7 @@ class AppointmentController(
   }
 
   @PostMapping(value = [V1BookingPaths.IN_PROGRESS_APPT])
-  fun inProgress(@RequestBody appt: AppointmentIdDtoIn)
+  suspend fun inProgress(@RequestBody appt: AppointmentIdDtoIn)
     : ResponseEntity<StartedAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentStartedEvent>(
       StartAppointmentCommand(appt.id)
@@ -99,7 +99,7 @@ class AppointmentController(
       )
 
   @PostMapping(value = [V1BookingPaths.COMPLETE_APPT])
-  fun complete(@RequestBody appt: AppointmentCompletedDtoIn)
+  suspend fun complete(@RequestBody appt: AppointmentCompletedDtoIn)
     : ResponseEntity<CompletedAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentCompletedEvent>(
       CompleteAppointmentCommand(appt.id, appt.notes)
@@ -118,7 +118,7 @@ class AppointmentController(
       )
 
   @PostMapping(value = [V1BookingPaths.PAY_APPT])
-  fun pay(@RequestBody request: AppointmentPaymentDto)
+  suspend fun pay(@RequestBody request: AppointmentPaymentDto)
     : ResponseEntity<PaidAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentPaidEvent>(
       PayAppointmentCommand(request.id, request.paymentMethodId)
@@ -138,7 +138,7 @@ class AppointmentController(
 
 
   @PostMapping(value = [V1BookingPaths.CANCEL_APPT])
-  fun cancel(@RequestBody appt: AppointmentDtoIn)
+  suspend fun cancel(@RequestBody appt: AppointmentDtoIn)
     : ResponseEntity<CancelAppointmentOutputDto> =
     WorkflowDispatcher.dispatch<AppointmentCancelledEvent>(
       CancelAppointmentCommand(appt.id!!, appt.workOrder.notes)
@@ -157,7 +157,7 @@ class AppointmentController(
       )
 
   @GetMapping(value = [V1BookingPaths.GET_USER_APPTS])
-  fun getUserAppointments(
+  suspend fun getUserAppointments(
     @RequestParam("page", required = false, defaultValue = "0") page: Int,
     @RequestParam("size", required = false, defaultValue = "20") size: Int): List<AppointmentDtoOut> {
     return WorkflowDispatcher.dispatch<UserAppointmentsFetchedEvent>(
