@@ -7,6 +7,7 @@ import io.liquidsoftware.common.security.JwtTokenAuthenticationFilter
 import io.liquidsoftware.common.security.JwtTokenService
 import io.liquidsoftware.common.security.runAsSuperUserBlocking
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
@@ -54,6 +55,7 @@ class SecurityConfig {
       .csrf { it.disable() }
       .httpBasic { it.disable() }
       .authorizeHttpRequests { it
+        .dispatcherTypeMatchers(DispatcherType.ASYNC).permitAll()
         .requestMatchers("/api/**").authenticated()
         .requestMatchers("/auth/login").permitAll()
         .requestMatchers("/user/register").permitAll()

@@ -31,7 +31,7 @@ class AuthController(
   val logger by LoggerDelegate()
 
   @PostMapping("/auth/login")
-  fun login(@Valid @RequestBody loginDto: UserLoginInputDto):
+  suspend fun login(@Valid @RequestBody loginDto: UserLoginInputDto):
     ResponseEntity<UserLoginOutputDto> {
     val auth =  authenticationManager
       .authenticate(UsernamePasswordAuthenticationToken(loginDto.username, loginDto.password))

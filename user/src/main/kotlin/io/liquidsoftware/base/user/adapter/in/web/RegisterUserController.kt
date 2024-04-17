@@ -34,7 +34,7 @@ data class RegisterUserErrorsDto(val errors: String) : RegisterUserOutputDto()
 internal class RegisterUserController {
 
   @PostMapping("/user/register")
-  fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
+  suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
     : ResponseEntity<RegisterUserOutputDto> {
 
     return WorkflowDispatcher.dispatch<UserRegisteredEvent>(registerUser.toCommand())
