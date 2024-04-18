@@ -4,7 +4,7 @@ A foundational project for any technology venture
 
 ## What is it?
 
-A kotlin-based Spring Boot application using Reactive webflux APIs. 
+A kotlin-based Spring Boot application. 
 The project uses a hexagonal architecture, along with 
 [DDD](https://en.wikipedia.org/wiki/Domain-driven_design) 
 principals to create a clean design that helps enforce good programming practice.
@@ -162,8 +162,8 @@ architecture. Here is a high level overview of each of the major the design elem
     - `Workflow` never throws exceptions. Instead, the result of the workflow execution is contained in a discriminated
    union type containing either the desired `Event` output, or an `Error` type.
     - FP concepts extend beyond just the `Workflow` concept, and are embodied throughout.
-7. [Asynchronous / Non-Blocking](https://blog.allegro.tech/2020/02/webflux-and-coroutines.html)
-    - This project makes use of Spring Webflux, elegantly combined with 
+7. Asynchronous / Non-Blocking
+    - This project makes use of 
    [Kotlin Coroutines](https://kotlinlang.org/docs/coroutines-guide.html).
     - A given server can handle a much higher request volume because requests aren't bound to threads, as they are in
    traditional servers.
