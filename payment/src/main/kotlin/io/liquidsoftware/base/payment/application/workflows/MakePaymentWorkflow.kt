@@ -28,8 +28,7 @@ internal class MakePaymentWorkflow(
 
 ) : BaseSafeWorkflow<MakePaymentCommand, PaymentMadeEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: MakePaymentCommand): PaymentMadeEvent {

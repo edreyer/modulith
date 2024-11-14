@@ -19,8 +19,7 @@ internal class EnableUserWorkflow(
   private val userEventPort: UserEventPort
 ) : BaseSafeWorkflow<EnableUserCommand, UserEnabledEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: EnableUserCommand): UserEnabledEvent =

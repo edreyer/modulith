@@ -17,8 +17,7 @@ internal class FindUserByIdWorkflow(
   private val findUserPort: FindUserPort
 ) : BaseSafeWorkflow<FindUserByIdQuery, UserFoundEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: FindUserByIdQuery): UserFoundEvent =

@@ -28,10 +28,7 @@ internal class RegisterUserWorkflow(
   private val userRegisteredPort: UserEventPort
 ) : BaseSafeWorkflow<RegisterUserCommand, UserRegisteredEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() {
-    WorkflowDispatcher.registerCommandHandler(this)
-  }
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {

@@ -17,8 +17,7 @@ internal class FindUserByEmailWorkflow(
   private val findUserPort: FindUserPort
 ) : BaseSafeWorkflow<FindUserByEmailQuery, UserFoundEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: FindUserByEmailQuery): UserFoundEvent =

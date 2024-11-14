@@ -30,8 +30,7 @@ internal class PayAppointmentWorkflow(
 
   private val log by LoggerDelegate()
 
-  @PostConstruct
-  fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: PayAppointmentCommand): AppointmentPaidEvent {
