@@ -31,8 +31,7 @@ internal class ScheduleAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<ScheduleAppointmentCommand, AppointmentScheduledEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent {

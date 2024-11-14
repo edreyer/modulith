@@ -17,10 +17,7 @@ internal class GetAvailabilityWorkflow(
   private val availabilityService: AvailabilityService
 ) : BaseSafeWorkflow<GetAvailabilityQuery, AvailabilityRetrievedEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() {
-    WorkflowDispatcher.registerQueryHandler(this)
-  }
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {

@@ -22,15 +22,21 @@ abstract class Event {
   val instant: Instant = Instant.now()
 }
 
-interface Workflow<E : Event>
+interface Workflow<out E : Event>
 
-interface SafeWorkflow<R: Request, E : Event> : Workflow<E> {
+interface SafeWorkflow<in R: Request, out E : Event> : Workflow<E> {
   context(Raise<WorkflowError>)
   suspend fun invoke(request: R): E
 }
 
 abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
   private val log by LoggerDelegate()
+
+  init {
+    registerWithDispatcher()
+  }
+
+  abstract fun registerWithDispatcher()
 
   context(Raise<WorkflowError>)
   final override suspend fun invoke(request: R): E {

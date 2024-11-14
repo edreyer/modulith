@@ -19,8 +19,7 @@ internal class AddPaymentMethodWorkflow(
   val paymentEventPort: PaymentEventPort
 ) : BaseSafeWorkflow<AddPaymentMethodCommand, PaymentMethodAddedEvent>() {
 
-  @PostConstruct
-  fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent {
