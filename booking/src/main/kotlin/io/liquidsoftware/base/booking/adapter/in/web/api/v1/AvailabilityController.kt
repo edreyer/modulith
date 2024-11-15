@@ -17,13 +17,16 @@ data class AvailabileTimesDto(val times: List<LocalTime>) : AvailabilityDto()
 data class AvailabilityErrors(val errors: String) : AvailabilityDto()
 
 @RestController
-class AvailabilityController {
-val log by LoggerDelegate()
+class AvailabilityController(
+  private val dispatcher: WorkflowDispatcher
+) {
+
+  val log by LoggerDelegate()
 
   @GetMapping(value = [V1BookingPaths.AVAILABILITY])
   suspend fun availability(@PathVariable date: LocalDate)
   : ResponseEntity<AvailabilityDto> {
-    return WorkflowDispatcher.dispatch<AvailabilityRetrievedEvent>(GetAvailabilityQuery(date))
+    return dispatcher.dispatch<AvailabilityRetrievedEvent>(GetAvailabilityQuery(date))
       .fold(
         { ResponseEntity.badRequest().body(AvailabilityErrors("Availability error: ${it.message}")) },
         { ResponseEntity.ok(AvailabileTimesDto(it.times)) }

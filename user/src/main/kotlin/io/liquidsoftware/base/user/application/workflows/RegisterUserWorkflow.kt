@@ -14,10 +14,9 @@ import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
 import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowRegistry
 import io.liquidsoftware.common.workflow.WorkflowValidationError
-import jakarta.annotation.PostConstruct
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Component
 
@@ -28,7 +27,7 @@ internal class RegisterUserWorkflow(
   private val userRegisteredPort: UserEventPort
 ) : BaseSafeWorkflow<RegisterUserCommand, UserRegisteredEvent>() {
 
-  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {

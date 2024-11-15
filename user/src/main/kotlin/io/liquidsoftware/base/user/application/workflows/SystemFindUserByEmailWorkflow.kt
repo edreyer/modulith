@@ -12,9 +12,8 @@ import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.User
 import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
-import jakarta.annotation.PostConstruct
+import io.liquidsoftware.common.workflow.WorkflowRegistry
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 
@@ -23,7 +22,7 @@ internal class SystemFindUserByEmailWorkflow(
   private val findUserPort: FindUserPort
 ) : BaseSafeWorkflow<SystemFindUserByEmailQuery, SystemUserFoundEvent>() {
 
-  override fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
+  override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: SystemFindUserByEmailQuery): SystemUserFoundEvent =

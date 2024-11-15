@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.RestController
 data class PaymentMethodError(val error:String)
 
 @RestController
-class PaymentMethodController() : ControllerSupport {
+class PaymentMethodController(
+  private val dispatcher: WorkflowDispatcher
+) : ControllerSupport {
 
   @PostMapping(value = [V1PaymentPaths.PAYMENT_METHODS])
   suspend fun addPaymentMethod(@RequestBody paymentMethod: PaymentMethodDtoIn) =
-    WorkflowDispatcher.dispatch<PaymentMethodAddedEvent>(
+    dispatcher.dispatch<PaymentMethodAddedEvent>(
       AddPaymentMethodCommand(paymentMethod)
     )
       .throwIfSpringError()

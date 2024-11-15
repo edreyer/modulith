@@ -12,9 +12,8 @@ import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AppointmentStateService
 import io.liquidsoftware.common.ext.getOrRaise
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
-import jakarta.annotation.PostConstruct
+import io.liquidsoftware.common.workflow.WorkflowRegistry
 import org.springframework.stereotype.Component
 
 @Component
@@ -24,7 +23,7 @@ internal class CancelAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<CancelAppointmentCommand, AppointmentCancelledEvent>() {
 
-  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: CancelAppointmentCommand): AppointmentCancelledEvent {
