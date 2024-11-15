@@ -7,11 +7,8 @@ import io.liquidsoftware.base.booking.application.port.`in`.UserAppointmentsFetc
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.CancelledAppointment
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
-import jakarta.annotation.PostConstruct
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.map
+import io.liquidsoftware.common.workflow.WorkflowRegistry
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Component
 
@@ -20,7 +17,7 @@ internal class FetchUserAppointmentsWorkflow(
   private val findApptsPort: FindAppointmentPort,
 ) : BaseSafeWorkflow<FetchUserAppointmentsQuery, UserAppointmentsFetchedEvent>() {
 
-  override fun registerWithDispatcher() = WorkflowDispatcher.registerQueryHandler(this)
+  override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: FetchUserAppointmentsQuery): UserAppointmentsFetchedEvent =

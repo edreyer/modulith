@@ -31,13 +31,13 @@ data class RegisteredUserDto(val user: UserDto) : RegisterUserOutputDto()
 data class RegisterUserErrorsDto(val errors: String) : RegisterUserOutputDto()
 
 @RestController
-internal class RegisterUserController {
+internal class RegisterUserController(val dispatcher: WorkflowDispatcher) {
 
   @PostMapping("/user/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
     : ResponseEntity<RegisterUserOutputDto> {
 
-    return WorkflowDispatcher.dispatch<UserRegisteredEvent>(registerUser.toCommand())
+    return dispatcher.dispatch<UserRegisteredEvent>(registerUser.toCommand())
       .fold(
         {
           when (it) {

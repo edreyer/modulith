@@ -17,20 +17,21 @@ import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowRegistry
 import io.liquidsoftware.common.workflow.WorkflowValidationError
-import jakarta.annotation.PostConstruct
 import org.springframework.stereotype.Component
 
 @Component
 internal class PayAppointmentWorkflow(
   private val ec: ExecutionContext,
+  private val dispatcher: WorkflowDispatcher,
   private val findAppointmentPort: FindAppointmentPort,
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<PayAppointmentCommand, AppointmentPaidEvent>() {
 
   private val log by LoggerDelegate()
 
-  override fun registerWithDispatcher() = WorkflowDispatcher.registerCommandHandler(this)
+  override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(Raise<WorkflowError>)
   override suspend fun execute(request: PayAppointmentCommand): AppointmentPaidEvent {
@@ -40,7 +41,7 @@ internal class PayAppointmentWorkflow(
     }
 
     // 2) attempt a payment on the appt
-    return WorkflowDispatcher.dispatch<PaymentMadeEvent>(MakePaymentCommand(
+    return dispatcher.dispatch<PaymentMadeEvent>(MakePaymentCommand(
       userId = ec.getCurrentUser().id,
       paymentMethodId = request.paymentMethodId,
       amount = completeAppt.totalDue()

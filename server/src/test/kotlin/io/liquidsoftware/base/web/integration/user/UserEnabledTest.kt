@@ -11,13 +11,16 @@ import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import org.springframework.beans.factory.annotation.Autowired
 
-class UserEnabledTest : BaseUserWebTest() {
+class UserEnabledTest(
+  @Autowired val dispatcher: WorkflowDispatcher
+) : BaseUserWebTest() {
 
   @Test
   fun testUserEnableDisable() = runBlocking {
     val user = runAsSuperUser {
-      WorkflowDispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
+      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
         .getOrElse { throw it }
         .userDto
     }
@@ -30,7 +33,7 @@ class UserEnabledTest : BaseUserWebTest() {
       .statusCode(200)
 
     val disabledUser = runAsSuperUser {
-      WorkflowDispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
+      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
         .getOrElse { throw it }
         .userDto
     }
@@ -41,7 +44,7 @@ class UserEnabledTest : BaseUserWebTest() {
       .statusCode(200)
 
     val enabledUser = runAsSuperUser {
-      WorkflowDispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail)).toResult()
+      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail)).toResult()
     }
       .getOrThrow().userDto
     assertThat(enabledUser.active).isTrue()
