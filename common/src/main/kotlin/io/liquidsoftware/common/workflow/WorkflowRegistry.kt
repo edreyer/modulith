@@ -8,6 +8,7 @@ object WorkflowRegistry {
 
   val queryHandlers = mutableMapOf<KClass<Query>, SafeWorkflow<Query, *>>()
   val commandHandlers = mutableMapOf<KClass<Command>, SafeWorkflow<Command, *>>()
+
 //  Use this to support List of Events
 //  val commandHandlers = mutableMapOf<KClass<Command>, MutableList<SafeWorkflow<Command, *>>>()
 

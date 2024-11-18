@@ -63,6 +63,7 @@ data class UserAppointmentsFetchedEvent(val appointments: List<AppointmentDtoOut
 sealed class AppointmentError(override val message: String) : WorkflowError(message)
 
 data class DateTimeUnavailableError(override val message: String): AppointmentError(message)
+data class DateInPastError(override val message: String): AppointmentError(message)
 
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
 data class AppointmentNotFoundError(override val message: String) : AppointmentError(message)
