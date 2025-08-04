@@ -6,6 +6,7 @@ import io.liquidsoftware.base.booking.AppointmentId
 import io.liquidsoftware.base.booking.BookingNamespaces
 import io.liquidsoftware.base.payment.PaymentId
 import io.liquidsoftware.base.user.UserId
+import io.liquidsoftware.common.ext.bind
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
@@ -37,21 +38,21 @@ internal sealed class Appointment : AppointmentFields {
   fun acl() = Acl.of(id.value, userId.value, AclRole.MANAGER)
 
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun scheduledTimeValidator(startTime: LocalDateTime): LocalDateTime = ensure {
       validate(Some(startTime)) {
         validate(Some<LocalDateTime>::value).isValid { it.isAfter(LocalDateTime.now()) }
       }
     }.bind().value
 
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun completeTimeValidator(startTime: LocalDateTime, completeTime: LocalDateTime): LocalDateTime = ensure {
       validate(Some(completeTime)) {
         validate(Some<LocalDateTime>::value).isValid { it.isAfter(startTime) }
       }
     }.bind().value
 
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun durationValidator(duration: Long): Long = ensure {
       validate(Some(duration)) {
         validate(Some<Long>::value).isValid { it > 0 }
@@ -65,7 +66,7 @@ internal data class ScheduledAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(apptId: String = NamespaceIdGenerator.nextId(BookingNamespaces.APPOINTMENT_NS),
            userId: String, scheduledTime: LocalDateTime, duration: Long, workOrder: ReadyWorkOrder): ScheduledAppointment =
       ScheduledAppointment(AppointmentData(
@@ -82,7 +83,7 @@ internal data class InProgressAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(apptId: String, userId: String, scheduledTime: LocalDateTime, duration: Long, workOrder: InProgressWorkOrder):
       InProgressAppointment = InProgressAppointment(AppointmentData(
         AppointmentId.of(apptId),
@@ -107,7 +108,7 @@ internal data class CompleteAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: CompleteWorkOrder, completeTime: LocalDateTime):
       CompleteAppointment = CompleteAppointment(
         completeTime,
@@ -146,7 +147,7 @@ internal data class PaidAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(apptId: String, paymentId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: PaidWorkOrder, completeTime: LocalDateTime):
       PaidAppointment = PaidAppointment(
         PaymentId.of(paymentId),
@@ -160,7 +161,7 @@ internal data class PaidAppointment(
         )
       )
 
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of (completeAppointment: CompleteAppointment, paymentId: String): PaidAppointment {
       return with(completeAppointment) {
         PaidAppointment(
@@ -178,7 +179,7 @@ internal data class CancelledAppointment(
   private val data: AppointmentData
 ) : Appointment(), AppointmentFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(apptId: String, userId: String, startTime: LocalDateTime, duration: Long, workOrder: WorkOrder, cancelDate: LocalDateTime):
       CancelledAppointment {
       return CancelledAppointment(

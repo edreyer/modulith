@@ -16,6 +16,7 @@ import io.liquidsoftware.base.booking.application.service.AvailabilityService
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
+import io.liquidsoftware.common.ext.raise
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.toErrString
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
@@ -32,7 +33,7 @@ internal class ScheduleAppointmentWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent {
     // business invariant we must check
     val scheduledAppts = findAppointmentPort.findAll(request.scheduledTime.toLocalDate())

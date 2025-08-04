@@ -6,6 +6,7 @@ import io.liquidsoftware.base.user.application.port.`in`.FindUserByIdQuery
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
+import io.liquidsoftware.common.ext.raise
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -18,7 +19,7 @@ internal class FindUserByIdWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: FindUserByIdQuery): UserFoundEvent =
     findUserPort.findUserById(request.userId)
       ?.let { UserFoundEvent(it.toUserDto()) }

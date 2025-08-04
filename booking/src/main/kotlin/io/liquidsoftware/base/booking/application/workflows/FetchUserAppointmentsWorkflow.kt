@@ -19,7 +19,7 @@ internal class FetchUserAppointmentsWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: FetchUserAppointmentsQuery): UserAppointmentsFetchedEvent =
     findApptsPort.findByUserId(request.userId, PageRequest.of(request.page, request.size))
       .filter { it !is CancelledAppointment }

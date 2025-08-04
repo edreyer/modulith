@@ -2,7 +2,6 @@ package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.raise.Raise
 import arrow.core.raise.either
-import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
@@ -12,6 +11,9 @@ import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
+import io.liquidsoftware.common.ext.bind
+import io.liquidsoftware.common.ext.ensureNotNull
+import io.liquidsoftware.common.ext.raise
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
@@ -33,7 +35,7 @@ internal class PayAppointmentWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: PayAppointmentCommand): AppointmentPaidEvent {
     // 1) Ensure appt is in correct state
     val completeAppt = ensureNotNull(findAppointmentPort.findCompletedById(request.appointmentId)) {

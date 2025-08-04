@@ -1,7 +1,6 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.raise.Raise
-import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
@@ -10,6 +9,7 @@ import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentC
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.CompleteAppointment
+import io.liquidsoftware.common.ext.ensureNotNull
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -23,7 +23,7 @@ internal class CompleteAppointmentWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: CompleteAppointmentCommand): AppointmentCompletedEvent {
     // business invariant we must check
     return ensureNotNull(findAppointmentPort.findStartedById(request.appointmentId)) {

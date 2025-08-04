@@ -20,7 +20,7 @@ internal class AddPaymentMethodWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent {
     return either {
       ActivePaymentMethod.of(

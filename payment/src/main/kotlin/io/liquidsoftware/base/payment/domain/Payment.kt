@@ -18,7 +18,7 @@ data class Payment(
 ) {
   companion object {
 
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(id: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_NS),
            paymentMethodId: String, userId: String, amount: Long) : Payment {
       return Payment(PaymentId.of(id),

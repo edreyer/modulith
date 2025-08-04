@@ -32,7 +32,7 @@ internal data class ActivePaymentMethod(
   val data: PaymentMethodData
 ) : PaymentMethod(), PaymentMethodFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(paymentMethodId: String = NamespaceIdGenerator.nextId(PaymentNamespaces.PAYMENT_METHOD_NS),
            userId: String, stripePaymentMethodId: String, lastFour: String) : ActivePaymentMethod {
       return ActivePaymentMethod(PaymentMethodData(

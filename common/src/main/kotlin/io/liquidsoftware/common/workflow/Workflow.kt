@@ -4,6 +4,7 @@ import arrow.core.getOrElse
 import arrow.core.raise.Raise
 import arrow.core.raise.either
 import io.liquidsoftware.common.ext.className
+import io.liquidsoftware.common.ext.raise
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.types.ValidationException
 import java.time.Instant
@@ -25,7 +26,7 @@ abstract class Event {
 interface Workflow<out E : Event>
 
 interface SafeWorkflow<in R: Request, out E : Event> : Workflow<E> {
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   suspend fun invoke(request: R): E
 }
 
@@ -38,7 +39,7 @@ abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
 
   abstract fun registerWithDispatcher()
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   final override suspend fun invoke(request: R): E {
     log.debug("Executing workflow ${this.className()} with request $request")
     return either {
@@ -55,7 +56,7 @@ abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
       }
   }
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   abstract suspend fun execute(request: R): E
 }
 

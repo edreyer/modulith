@@ -22,7 +22,7 @@ fun Any.className(): String = this::class.qualifiedName ?: this::class.java.name
 //  is Validated.Invalid -> Result.failure(ValidationException(this.value))
 //}
 
-context(Raise<WorkflowError>)
+context(_: Raise<WorkflowError>)
 inline fun <reified T> ValidationErrorNel<T>.getOrRaise(): T = when (this) {
   is Right -> this.value
   is Left -> raise(WorkflowValidationError(this.value))
@@ -34,7 +34,7 @@ inline fun <reified T> ValidationErrorNel<T>.getOrRaise(): T = when (this) {
 //  is Left -> raise(WorkflowValidationError(this.value))
 //}
 
-context(Raise<WorkflowError>)
+context(_: Raise<WorkflowError>)
 inline fun <reified T> Result<T>.getOrRaise(): T = this.getOrElse {
   raise(ServerError(it.message ?: ""))
 }

@@ -12,6 +12,7 @@ import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
+import io.liquidsoftware.common.ext.raise
 import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -29,7 +30,7 @@ internal class RegisterUserWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: RegisterUserCommand) : UserRegisteredEvent {
 
     val result = runAsSuperUser {
@@ -41,7 +42,7 @@ internal class RegisterUserWorkflow(
     return result
   }
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   private suspend fun validateNewUser(cmd: RegisterUserCommand) : UnregisteredUser =
     findUserPort.findUserByEmail(cmd.email)
       ?.let { raise(UserExistsError("User ${cmd.msisdn} exists")) }

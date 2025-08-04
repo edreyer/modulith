@@ -1,12 +1,12 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.raise.Raise
-import arrow.core.raise.ensure
 import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityRetrievedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.DateInPastError
 import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AvailabilityService
+import io.liquidsoftware.common.ext.ensure
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -21,7 +21,7 @@ internal class GetAvailabilityWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
     ensure(request.date.isAfter(LocalDate.now())) { DateInPastError("${request.date} is in the past") }
     return findApptsPort.findAll(request.date)

@@ -3,6 +3,7 @@ package io.liquidsoftware.base.payment
 import arrow.core.raise.Raise
 import io.liquidsoftware.base.payment.PaymentNamespaces.PAYMENT_METHOD_NS
 import io.liquidsoftware.base.payment.PaymentNamespaces.PAYMENT_NS
+import io.liquidsoftware.common.ext.bind
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.types.SimpleType
 import io.liquidsoftware.common.types.ValidationErrors
@@ -18,7 +19,7 @@ object PaymentNamespaces {
 class PaymentId private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: String): PaymentId = ensure {
       validate(PaymentId(value)) {
         validate(PaymentId::value).matches("${PAYMENT_NS}.*".toRegex())
@@ -31,7 +32,7 @@ class PaymentId private constructor(override val value: String)
 
 class PaymentMethodId private constructor(override val value: String) : SimpleType<String>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: String): PaymentMethodId = ensure {
       validate(PaymentMethodId(value)) {
         validate(PaymentMethodId::value).matches("${PAYMENT_METHOD_NS}.*".toRegex())

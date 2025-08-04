@@ -275,7 +275,7 @@
                 <configuration>
                     <args>
                         <arg>-Xjsr305=strict</arg>
-                        <arg>-Xcontext-receivers</arg>
+                        <arg>-Xcontext-parameters</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>

@@ -2,6 +2,7 @@ package io.liquidsoftware.base.user
 
 import arrow.core.raise.Raise
 import io.liquidsoftware.base.user.UserNamespace.NAMESPACE
+import io.liquidsoftware.common.ext.bind
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.types.SimpleType
 import io.liquidsoftware.common.types.ValidationErrors
@@ -16,14 +17,14 @@ object UserNamespace {
 class UserId private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: String): UserId = ensure {
       validate(UserId(value)) {
         validate(UserId::value).matches("$NAMESPACE.*".toRegex())
       }
     }.bind()
 
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun create() = of(NamespaceIdGenerator.nextId(NAMESPACE))
   }
 }

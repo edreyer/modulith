@@ -9,12 +9,13 @@ import io.liquidsoftware.base.booking.domain.CompleteAppointment
 import io.liquidsoftware.base.booking.domain.InProgressAppointment
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
+import io.liquidsoftware.common.ext.raise
 import org.springframework.stereotype.Service
 
 @Service
 internal class AppointmentStateService {
 
-  context(Raise<AppointmentError>)
+  context(_: Raise<AppointmentError>)
   suspend fun cancel(appt: Appointment): CancelledAppointment = when (appt) {
     is ScheduledAppointment -> CancelledAppointment.of(appt)
     is InProgressAppointment -> CancelledAppointment.of(appt)

@@ -1,7 +1,6 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.raise.Raise
-import arrow.core.raise.ensureNotNull
 import arrow.core.raise.result
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
@@ -10,6 +9,7 @@ import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCom
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AppointmentStateService
+import io.liquidsoftware.common.ext.ensureNotNull
 import io.liquidsoftware.common.ext.getOrRaise
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -25,7 +25,7 @@ internal class CancelAppointmentWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: CancelAppointmentCommand): AppointmentCancelledEvent {
     return ensureNotNull(findAppointmentPort.findById(request.appointmentId)) {
       AppointmentNotFoundError("Appointment(${request.appointmentId} not found")

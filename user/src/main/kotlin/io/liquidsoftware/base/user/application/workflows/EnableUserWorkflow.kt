@@ -7,6 +7,7 @@ import io.liquidsoftware.base.user.application.port.`in`.UserEnabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
+import io.liquidsoftware.common.ext.raise
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -20,7 +21,7 @@ internal class EnableUserWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: EnableUserCommand): UserEnabledEvent =
     findUserPort.findUserById(request.userId)
       ?.let {userEventPort.handle(UserEnabledEvent(it.toUserDto())) }

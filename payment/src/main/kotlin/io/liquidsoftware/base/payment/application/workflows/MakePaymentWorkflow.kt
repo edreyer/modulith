@@ -2,7 +2,6 @@ package io.liquidsoftware.base.payment.application.workflows
 
 import arrow.core.raise.Raise
 import arrow.core.raise.either
-import arrow.core.raise.ensureNotNull
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.application.mapper.toDto
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
@@ -13,6 +12,7 @@ import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.application.service.StripeService
 import io.liquidsoftware.base.payment.domain.Payment
 import io.liquidsoftware.base.user.UserId
+import io.liquidsoftware.common.ext.ensureNotNull
 import io.liquidsoftware.common.ext.getOrRaise
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -29,7 +29,7 @@ internal class MakePaymentWorkflow(
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
-  context(Raise<WorkflowError>)
+  context(_: Raise<WorkflowError>)
   override suspend fun execute(request: MakePaymentCommand): PaymentMadeEvent {
     val pmId = either { PaymentMethodId.of(request.paymentMethodId) }.getOrRaise()
     val userId = either { UserId.of(request.userId) }.getOrRaise()

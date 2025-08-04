@@ -34,7 +34,7 @@ internal sealed class User: UserFields {
   fun acl() = Acl.of(id.value, id.value, AclRole.MANAGER)
 
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun newUserData(
       id: String,
       msisdn: String,
@@ -59,7 +59,7 @@ internal data class UnregisteredUser(
   val role: Role
 ) : User(), UserFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(msisdn: String, email: String, encryptedPassword: String, role: Role): UnregisteredUser =
       UnregisteredUser(
         UserData(
@@ -76,7 +76,7 @@ internal data class ActiveUser(
   private val data: UserData
 ) : User(), UserFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(id: String, msisdn: String, email: String, encryptedPassword: String): ActiveUser =
       ActiveUser(newUserData(id, msisdn, email, encryptedPassword))
   }
@@ -86,7 +86,7 @@ internal data class AdminUser(
   private val data: UserData
 ) : User(), UserFields by data {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(id: String, msisdn: String, email: String, encryptedPassword: String): AdminUser =
       AdminUser(newUserData(id, msisdn, email, encryptedPassword))
   }
@@ -97,7 +97,7 @@ internal data class AdminUser(
     val role: Role
   ) : User(), UserFields by data {
     companion object {
-      context(Raise<ValidationErrors>)
+      context(_: Raise<ValidationErrors>)
       fun of(id: String, msisdn: String, email: String, encryptedPassword: String, role: Role): DisabledUser =
         DisabledUser(newUserData(id, msisdn, email, encryptedPassword), role)
     }

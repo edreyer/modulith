@@ -6,6 +6,8 @@ import arrow.core.left
 import arrow.core.raise.Raise
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
+import io.liquidsoftware.common.ext.bind
+import io.liquidsoftware.common.ext.raise
 import io.liquidsoftware.common.validation.MsisdnParser
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -36,7 +38,7 @@ fun ValidationErrors.toErrString() =
   this.map { it.error }.joinToString { "$it\n" }
 
 // Returns the Validated value OR throws
-context(Raise<Throwable>)
+context(r: Raise<Throwable>)
 fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrRaise(): T = this.fold(
   { raise(ValidationException(it)) },
   { it }
@@ -44,13 +46,13 @@ fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrRaise(): T = this.fold(
 
 // Can be used as shortcuts to create simple types from Strings
 // Note that these throw,
-context(Raise<ValidationErrors>)
+context(_: Raise<ValidationErrors>)
 fun String.toNonEmptyString() = NonEmptyString.of(this)
-context(Raise<ValidationErrors>)
+context(_: Raise<ValidationErrors>)
 fun String.toEmailAddress() = EmailAddress.of(this)
-context(Raise<ValidationErrors>)
+context(_: Raise<ValidationErrors>)
 fun String.toMsisdn() = Msisdn.of(this)
-context(Raise<ValidationErrors>)
+context(_: Raise<ValidationErrors>)
 fun String.toPostalCode() = PostalCode.of(this)
 
 abstract class SimpleType<T> {
@@ -61,7 +63,7 @@ abstract class SimpleType<T> {
 class NonEmptyString private constructor(override val value: String)
   : SimpleType<String>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: String): NonEmptyString = ensure {
       validate(NonEmptyString(value)) {
         validate(NonEmptyString::value).isNotEmpty()
@@ -73,7 +75,7 @@ class NonEmptyString private constructor(override val value: String)
 class PositiveInt private constructor(override val value: Int)
   : SimpleType<Int>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: Int): PositiveInt = ensure {
       validate(PositiveInt(value)) {
         validate(PositiveInt::value).isPositiveOrZero()
@@ -85,7 +87,7 @@ class PositiveInt private constructor(override val value: Int)
 class PositiveLong private constructor(override val value: Long)
   : SimpleType<Long>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: Long): PositiveLong = ensure {
       validate(PositiveLong(value)) {
         validate(PositiveLong::value).isPositiveOrZero()
@@ -96,7 +98,7 @@ class PositiveLong private constructor(override val value: Long)
 
 class EmailAddress private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: String): EmailAddress = ensure {
       validate(EmailAddress(value)) {
         validate(EmailAddress::value).isNotEmpty()
@@ -108,7 +110,7 @@ class EmailAddress private constructor(override val value: String): SimpleType<S
 
 class PostalCode private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: String): PostalCode = ensure {
       validate(PostalCode(value)) {
         validate(PostalCode::value).matches("""\d{5}""".toRegex())
@@ -119,7 +121,7 @@ class PostalCode private constructor(override val value: String): SimpleType<Str
 
 class Msisdn private constructor(override val value: String): SimpleType<String>() {
   companion object {
-    context(Raise<ValidationErrors>)
+    context(_: Raise<ValidationErrors>)
     fun of(value: String): Msisdn = ensure {
       val msisdn = validate(Msisdn(value)) {
         validate(Msisdn::value).isValid { MsisdnParser.isValid(it) }
