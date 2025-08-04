@@ -21,10 +21,11 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <kotlin.version>2.0.21</kotlin.version>
+        <kotlin.version>2.2.0</kotlin.version>
+<!--        <kotlin.compiler.languageVersion>2.2</kotlin.compiler.languageVersion>-->
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
-        <arrow.version>1.2.4</arrow.version>
+        <arrow.version>2.1.2</arrow.version>
         <jjwt.version>0.12.5</jjwt.version>
         <assertk.version>0.28.0</assertk.version>
         <kotest.version>5.8.0</kotest.version>
