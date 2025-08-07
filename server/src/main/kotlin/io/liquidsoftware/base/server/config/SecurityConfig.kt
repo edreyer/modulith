@@ -34,7 +34,7 @@ class SecurityConfig {
   val log by LoggerDelegate()
 
   @Bean
-  suspend fun userDetailsService(dispatcher: WorkflowDispatcher): UserDetailsService = UserDetailsService { username ->
+  fun userDetailsService(dispatcher: WorkflowDispatcher): UserDetailsService = UserDetailsService { username ->
     runAsSuperUserBlocking {
       val user = dispatcher.dispatch<SystemUserFoundEvent>(SystemFindUserByEmailQuery(username))
         .fold(
