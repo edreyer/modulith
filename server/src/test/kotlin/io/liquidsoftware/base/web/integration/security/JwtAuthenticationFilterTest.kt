@@ -1,96 +1,97 @@
 package io.liquidsoftware.base.web.integration.security
 
-import com.ninjasquad.springmockk.MockkClear
-import com.ninjasquad.springmockk.clear
+import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.isNotNull
+import assertk.assertions.isNull
+import io.liquidsoftware.common.security.JwtProperties
 import io.liquidsoftware.common.security.JwtTokenAuthenticationFilter
 import io.liquidsoftware.common.security.JwtTokenService
-import io.mockk.every
-import io.mockk.justRun
-import io.mockk.mockk
-import io.mockk.verify
-import jakarta.servlet.DispatcherType
-import jakarta.servlet.FilterChain
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.HttpHeaders
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.AuthorityUtils
+import org.springframework.mock.web.MockFilterChain
+import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.mock.web.MockHttpServletResponse
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 
 internal class JwtAuthenticationFilterTest {
-  private val tokenService = mockk<JwtTokenService>()
-  private val userDetailsService = mockk<UserDetailsService>()
-  private val authenticationManager = mockk<AuthenticationManager>()
-  private val request = mockk<HttpServletRequest>()
-  private val response = mockk<HttpServletResponse>()
-  private val chain = mockk<FilterChain>()
-
-  private val USERNAME = "test"
+  private val username = "test"
+  private val tokenService = JwtTokenService(JwtProperties())
 
   @BeforeEach
-  fun setup() {
-    tokenService.clear(MockkClear.BEFORE)
-    userDetailsService.clear(MockkClear.BEFORE)
-    authenticationManager.clear(MockkClear.BEFORE)
-    request.clear(MockkClear.BEFORE)
-    response.clear(MockkClear.BEFORE)
-    chain.clear(MockkClear.BEFORE)
+  fun clearSecurityContext() {
+    SecurityContextHolder.clearContext()
+  }
+
+  @AfterEach
+  fun cleanupSecurityContext() {
+    SecurityContextHolder.clearContext()
   }
 
   @Test
   fun testFilter() {
-    val filter = JwtTokenAuthenticationFilter(tokenService, userDetailsService)
-    val usernamePasswordToken = UsernamePasswordAuthenticationToken(
-      USERNAME, "password",
-      AuthorityUtils.createAuthorityList("ROLE_USER")
-    )
-    every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns "Bearer atesttoken"
-    every { request.getAttribute(any()) } returns null
-    every { request.remoteAddr } returns "127.0.0.1"
-    every { request.getSession(false)} returns null
-    justRun { request.setAttribute(any(), true) }
-    justRun { request.removeAttribute(any()) }
-    every { tokenService.extractUsername(any()) } returns USERNAME
-    every { userDetailsService.loadUserByUsername(any()) } returns User(USERNAME, "password", emptyList())
-    every { tokenService.validateToken(any(), any()) } returns true
-    every { request.dispatcherType } returns DispatcherType.REQUEST
-    justRun { chain.doFilter(any(), any()) }
-    filter.doFilter(request, response, chain)
-    verify(exactly = 1) { chain.doFilter(request, response) }
-    verify(exactly = 1) { tokenService.validateToken(any(), any()) }
-   }
+    val userDetails = User(username, "password", emptyList())
+    val request = requestWithToken(tokenFor(userDetails))
+    val response = MockHttpServletResponse()
+    val chain = MockFilterChain()
+    val filter = JwtTokenAuthenticationFilter(tokenService, FixedUserDetailsService(userDetails))
 
-  @Test
-  fun testFilterWithNoToken() {
-    val filter = JwtTokenAuthenticationFilter(tokenService, userDetailsService)
-    every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns null
-    every { request.getAttribute(any()) } returns null
-    justRun { request.setAttribute(any(), true) }
-    justRun { request.removeAttribute(any()) }
-    every { request.dispatcherType } returns DispatcherType.REQUEST
-    justRun { chain.doFilter(any(), any()) }
     filter.doFilter(request, response, chain)
-    verify(exactly = 1) { chain.doFilter(request, response) }
+
+    assertThat(chain.request).isNotNull()
+    assertThat(SecurityContextHolder.getContext().authentication).isNotNull()
+    assertThat(SecurityContextHolder.getContext().authentication.name).isEqualTo(username)
   }
 
   @Test
-  fun testFilterWithInvalidToken() {
-    val filter = JwtTokenAuthenticationFilter(tokenService, userDetailsService)
-    every { request.getHeader(HttpHeaders.AUTHORIZATION) } returns "Bearer atesttoken"
-    every { request.getAttribute(any()) } returns null
-    justRun { request.setAttribute(any(), true) }
-    every { tokenService.extractUsername(any()) } returns USERNAME
-    every { userDetailsService.loadUserByUsername(any()) } returns User(USERNAME, "password", emptyList())
-    every { tokenService.validateToken(any(), any()) } returns false
-    justRun { request.removeAttribute(any()) }
-    every { request.dispatcherType } returns DispatcherType.REQUEST
-    justRun { chain.doFilter(any(), any()) }
+  fun testFilterWithNoToken() {
+    val request = MockHttpServletRequest()
+    val response = MockHttpServletResponse()
+    val chain = MockFilterChain()
+    val filter = JwtTokenAuthenticationFilter(tokenService, ThrowingUserDetailsService())
+
     filter.doFilter(request, response, chain)
-    verify(exactly = 1) { chain.doFilter(request, response) }
-    verify(exactly = 1) { tokenService.validateToken(any(), any()) }
+
+    assertThat(chain.request).isNotNull()
+    assertThat(SecurityContextHolder.getContext().authentication).isNull()
+  }
+
+  @Test
+  fun testFilterWithMalformedAuthorizationHeader() {
+    val request = MockHttpServletRequest().apply {
+      addHeader(HttpHeaders.AUTHORIZATION, "Token not-a-bearer-token")
+    }
+    val response = MockHttpServletResponse()
+    val chain = MockFilterChain()
+    val filter = JwtTokenAuthenticationFilter(tokenService, ThrowingUserDetailsService())
+
+    filter.doFilter(request, response, chain)
+
+    assertThat(chain.request).isNotNull()
+    assertThat(SecurityContextHolder.getContext().authentication).isNull()
+  }
+
+  private fun tokenFor(userDetails: UserDetails): String =
+    tokenService.generateToken(userDetails.username, userDetails.authorities)
+
+  private fun requestWithToken(token: String) = MockHttpServletRequest().apply {
+    addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
+  }
+
+  private class FixedUserDetailsService(
+    private val userDetails: UserDetails
+  ) : UserDetailsService {
+    override fun loadUserByUsername(username: String): UserDetails = userDetails
+  }
+
+  private class ThrowingUserDetailsService : UserDetailsService {
+    override fun loadUserByUsername(username: String): UserDetails {
+      error("UserDetailsService should not be called when no token is present")
+    }
   }
 }

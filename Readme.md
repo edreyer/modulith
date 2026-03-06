@@ -35,6 +35,77 @@ runs in its own Spring Application Context.
 What this does is to give us an application architecture that attempts to combine the best of both
 monolithic and microservice architectures.
 
+## Testing
+
+Run all commands from the repository root.
+
+### What is covered
+
+The test suite currently includes:
+
+* Architecture tests for bounded-context isolation and package rules via ArchUnit
+* Unit tests for security and workflow support code
+* Full `server` integration tests that start the application and exercise HTTP endpoints
+* MongoDB-backed integration tests in `server` using Testcontainers
+
+### Prerequisites
+
+Before running the full suite, make sure:
+
+* Java 21 is installed and active
+* Maven is installed
+* Docker Desktop or another Docker Engine is running
+* The active Docker context is healthy (`docker context show`, `docker info`)
+
+The `server` integration tests start MongoDB with Testcontainers. The first run may take longer because Docker images such as `mongo` and `testcontainers/ryuk` may need to be pulled locally.
+
+### Run the full test suite
+
+```bash
+mvn test
+```
+
+This is the canonical command for validating the whole project. It builds every module and runs:
+
+* ArchUnit tests in bounded-context modules
+* Unit tests across the codebase
+* `server` integration tests with Testcontainers
+
+### Run only the server test suite
+
+```bash
+mvn -pl server -am test
+```
+
+Use `-am` (`--also-make`) when testing `server` in isolation. The `server` module depends on other local modules in the reactor, so `mvn -pl server test` is not the right command for a clean verification.
+
+### Run a focused test class
+
+```bash
+mvn -pl server -am -Dsurefire.failIfNoSpecifiedTests=false \
+  -Dtest=io.liquidsoftware.base.web.integration.booking.AppointmentTest test
+```
+
+This is useful when iterating on a single integration test or reproducing a failure quickly.
+
+### Typical verification flow
+
+For a normal change, the recommended progression is:
+
+1. Run a focused test class if you are changing one area.
+2. Run `mvn -pl server -am test` if your change touches the HTTP layer, security, wiring, or persistence integration.
+3. Run `mvn test` before considering the work complete.
+
+### Troubleshooting
+
+If `server` tests fail during container startup:
+
+* Verify Docker is running: `docker info`
+* Verify the active context: `docker context show`
+* Re-run the test after Docker is healthy
+
+If the full suite passes except for `server`, treat that as an integration-environment problem first, not necessarily a domain or module-boundary problem.
+
 ## Why?
 
 Writing high quality server-side software applications that stand the test of time
