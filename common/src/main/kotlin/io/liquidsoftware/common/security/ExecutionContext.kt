@@ -44,7 +44,7 @@ class ExecutionContext {
 
   fun getCurrentUser() =
     SecurityContextHolder.getContext().authentication
-      .also { log.debug("The current principal: {}", it.principal) }
+      .also { log.debug("The current principal: {}", it?.principal) }
       .let { when (it) {
         is UsernamePasswordAuthenticationToken -> (it.principal as UserDetailsWithId)
         else -> throw IllegalStateException("Unexpected Authentication type")
@@ -56,7 +56,7 @@ class ExecutionContext {
         is UsernamePasswordAuthenticationToken -> {
           val userId = (it.principal as UserDetailsWithId).id
           log.debug("The current principal: {}", it.principal)
-          listOf(userId) + it.authorities.map { auth -> auth.authority }
+          listOf(userId) + it.authorities.mapNotNull { authority -> authority.authority }
         }
         else -> listOf(ANONYMOUS_USER_ID)
       }}

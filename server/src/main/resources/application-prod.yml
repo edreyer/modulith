@@ -1,11 +1,8 @@
-
-server:
-  error:
-    include-message: never
-
 spring:
-  config:
-    import:
-      - classpath:common-prod.yml
+  web:
+    error:
+      include-message: never
 
+common:
+  mode: prod
 

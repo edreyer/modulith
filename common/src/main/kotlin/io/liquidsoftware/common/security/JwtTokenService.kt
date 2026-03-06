@@ -28,11 +28,13 @@ open class JwtTokenService(
   }
 
   fun generateToken(username: String, authorities: Collection<GrantedAuthority>): String {
+    val encodedAuthorities = authorities
+      .mapNotNull { authority -> authority.authority }
+      .joinToString(",")
+
     val claims: Claims = Jwts
       .claims()
-      .add(AUTHORITIES_KEY, authorities.joinToString(",") {
-          obj: GrantedAuthority -> obj.authority
-      })
+      .add(AUTHORITIES_KEY, encodedAuthorities)
       .subject(username)
       .build()
 

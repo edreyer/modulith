@@ -5,7 +5,6 @@ import io.liquidsoftware.common.security.JwtTokenService
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotEmpty
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -41,10 +40,11 @@ class AuthController(
         .let { tokenService.generateToken(loginDto.username, auth.authorities) }
         .let {
           logger.debug("Authenticated User: ${loginDto.username}")
-          val headers = HttpHeaders()
-          headers[HttpHeaders.AUTHORIZATION] = "Bearer $it"
           val tokenBody = SuccessfulLogin(it)
-          ResponseEntity(tokenBody, headers, HttpStatus.OK)
+          ResponseEntity
+            .ok()
+            .header(HttpHeaders.AUTHORIZATION, "Bearer $it")
+            .body(tokenBody)
         }
     } else {
       logger.debug("Failed to login with: {}", loginDto)

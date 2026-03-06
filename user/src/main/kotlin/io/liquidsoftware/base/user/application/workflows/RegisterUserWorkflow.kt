@@ -46,12 +46,18 @@ internal class RegisterUserWorkflow(
   private suspend fun validateNewUser(cmd: RegisterUserCommand) : UnregisteredUser =
     findUserPort.findUserByEmail(cmd.email)
       ?.let { raise(UserExistsError("User ${cmd.msisdn} exists")) }
-      ?: effect { UnregisteredUser.of(
-        msisdn = cmd.msisdn,
-        email = cmd.email,
-        encryptedPassword = passwordEncoder.encode(cmd.password),
-        role = Role.valueOf(cmd.role)
-      ) }.fold(
+      ?: effect {
+        val encodedPassword = checkNotNull(passwordEncoder.encode(cmd.password)) {
+          "Password encoder returned null"
+        }
+
+        UnregisteredUser.of(
+          msisdn = cmd.msisdn,
+          email = cmd.email,
+          encryptedPassword = encodedPassword,
+          role = Role.valueOf(cmd.role)
+        )
+      }.fold(
         { raise(WorkflowValidationError(it)) },
         { it }
       )

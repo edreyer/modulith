@@ -4,26 +4,20 @@ logging:
     org.springframework: INFO
     io.liquidsoftware: DEBUG
 
-server:
-  error:
-    include-message: always
-
 spring:
+  web:
+    error:
+      include-message: always
 
-  config:
-    import:
-      - classpath:common.yml
+common:
+  mode: dev
 
-  data:
-    mongodb:
-      database: modulith-mongo
-      uri: mongodb://localhost:27017/
+  mongodb:
+    database: modulith-mongo
+    uri: mongodb://localhost:27017/
 
   jackson:
 #    deserialization.UNWRAP_ROOT_VALUE: true
-    serialization:
-#      WRAP_ROOT_VALUE: true
-      WRITE_DATES_AS_TIMESTAMPS: false
 
   mvc:
     format:

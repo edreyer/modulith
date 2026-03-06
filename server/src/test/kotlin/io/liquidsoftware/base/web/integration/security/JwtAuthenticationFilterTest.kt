@@ -43,9 +43,10 @@ internal class JwtAuthenticationFilterTest {
 
     filter.doFilter(request, response, chain)
 
+    val authentication = SecurityContextHolder.getContext().authentication
     assertThat(chain.request).isNotNull()
-    assertThat(SecurityContextHolder.getContext().authentication).isNotNull()
-    assertThat(SecurityContextHolder.getContext().authentication.name).isEqualTo(username)
+    assertThat(authentication).isNotNull()
+    assertThat(authentication?.name).isEqualTo(username)
   }
 
   @Test

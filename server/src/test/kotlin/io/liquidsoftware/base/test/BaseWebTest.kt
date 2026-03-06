@@ -21,11 +21,9 @@ import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.util.TestPropertyValues
 import org.springframework.boot.test.web.server.LocalServerPort
-import org.springframework.context.ApplicationContextInitializer
-import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.test.context.ContextConfiguration
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.utility.DockerImageName
@@ -42,7 +40,6 @@ import org.testcontainers.utility.DockerImageName
   ],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-@ContextConfiguration(initializers = [BaseWebTest.Initializer::class])
 class BaseWebTest {
 
   val log by LoggerDelegate()
@@ -55,21 +52,15 @@ class BaseWebTest {
   lateinit var port: Integer
 
   companion object {
+    @JvmStatic
     val mongoDBContainer = MongoDBContainer(DockerImageName.parse("mongo:latest"))
-  }
 
-  internal class Initializer : ApplicationContextInitializer<ConfigurableApplicationContext> {
-
-    val log by LoggerDelegate()
-    override fun initialize(configurableApplicationContext: ConfigurableApplicationContext) {
-      mongoDBContainer.start();
-
-      log.debug("MONGODB: ${mongoDBContainer.replicaSetUrl}")
-
-      TestPropertyValues.of(
-        "spring.data.mongodb.database=test",
-        "spring.data.mongodb.uri=${mongoDBContainer.replicaSetUrl}",
-      ).applyTo(configurableApplicationContext.environment)
+    @JvmStatic
+    @DynamicPropertySource
+    fun registerMongoProperties(registry: DynamicPropertyRegistry) {
+      mongoDBContainer.start()
+      registry.add("spring.mongodb.database") { "test" }
+      registry.add("spring.mongodb.uri") { mongoDBContainer.replicaSetUrl }
     }
   }
 

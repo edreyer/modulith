@@ -1,11 +1,8 @@
+common:
+  mode: dev
 
 spring:
 
-  config:
-    import:
-      - classpath:common-dev.yml
-
-  data:
-    mongodb:
-      database: modulith-heroku
-      uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@modulith-heroku.y6njois.mongodb.net/?retryWrites=true&w=majority
+  mongodb:
+    database: modulith-heroku
+    uri: mongodb+srv://${MONGO_USERNAME}:${MONGO_PASSWORD}@modulith-heroku.y6njois.mongodb.net/?retryWrites=true&w=majority

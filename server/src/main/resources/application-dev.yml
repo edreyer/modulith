@@ -1,5 +1,2 @@
-
-spring:
-  config:
-    import:
-      - classpath:common-dev.yml
+common:
+  mode: dev
