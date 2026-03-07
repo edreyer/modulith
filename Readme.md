@@ -477,6 +477,59 @@ a sub-process.
 # TODO
 
 ## ACL system
+
+This project uses a small ACL library to keep authorization explicit, type-safe, and close to the domain model.
+The goal is to make permission checks easy to compose without pushing the codebase back toward stringly, exception-driven
+security logic.
+
+At a high level:
+
+* `acl-core` models resources, subjects, roles, and permission evaluation
+* `acl-arrow` adds `Raise`-based helpers for functional workflows
+* `acl-spring-security` resolves the current Spring Security subject
+* `acl-spring-security-arrow` bridges Spring Security and Arrow for ergonomic workflow/persistence checks
+
+### Core ACL example
+
+```kotlin
+val appointmentAcl = acl("appointment-123") {
+  manager("u_owner")
+  reader("u_service-advisor")
+  anonymousReader()
+}
+
+val subject = AccessSubject("u_owner", roles = emptySet())
+val allowed = AclChecker().hasPermission(appointmentAcl, subject, Permission.MANAGE)
+```
+
+### Arrow example
+
+```kotlin
+either<AuthorizationError, Unit> {
+  val checker = AclChecker()
+  checker.ensureCanWrite(
+    subject = AccessSubject("u_owner", emptySet()),
+    acl = appointmentAcl
+  )
+}
+```
+
+### Spring Security example
+
+```kotlin
+@Component
+class AppointmentPersistenceAdapter(
+  private val ac: SpringSecurityAclChecker,
+) {
+  context(_: Raise<AuthorizationError>)
+  suspend fun checkReadAccess(acl: Acl) {
+    ac.ensureCanRead(acl)
+  }
+}
+```
+
+The main benefit is consistency: authorization stays value-based in the core, integrates cleanly with Arrow-based
+workflows, and still feels natural in Spring Security-backed adapters.
 ## CQRS
 ### Commands, Queries, Events
 ## Arch Unit
