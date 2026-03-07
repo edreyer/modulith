@@ -81,6 +81,21 @@ class AclBuilder internal constructor(
 fun acl(resourceId: String, init: AclBuilder.() -> Unit): Acl =
   AclBuilder(resourceId).apply(init).build()
 
+context(ac: AclChecker, _: Raise<AuthorizationError>)
+suspend fun AccessSubject.ensureCanRead(acl: Acl) {
+  ac.ensureCanRead(this, acl)
+}
+
+context(ac: AclChecker, _: Raise<AuthorizationError>)
+suspend fun AccessSubject.ensureCanWrite(acl: Acl) {
+  ac.ensureCanWrite(this, acl)
+}
+
+context(ac: AclChecker, _: Raise<AuthorizationError>)
+suspend fun AccessSubject.ensureCanManage(acl: Acl) {
+  ac.ensureCanManage(this, acl)
+}
+
 @Component
 class AclChecker(
   val ec: ExecutionContext,
