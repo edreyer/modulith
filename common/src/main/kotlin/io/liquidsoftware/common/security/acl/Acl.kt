@@ -43,6 +43,44 @@ data class Acl(
   }
 }
 
+class AclBuilder internal constructor(
+  private val resourceId: String,
+) {
+  private val userRoleMap = linkedMapOf<String, AclRole>()
+
+  fun reader(userId: String) {
+    userRoleMap[userId] = AclRole.READER
+  }
+
+  fun writer(userId: String) {
+    userRoleMap[userId] = AclRole.WRITER
+  }
+
+  fun manager(userId: String) {
+    userRoleMap[userId] = AclRole.MANAGER
+  }
+
+  fun anonymousReader() {
+    reader(ExecutionContext.ANONYMOUS_USER_ID)
+  }
+
+  fun anonymousWriter() {
+    writer(ExecutionContext.ANONYMOUS_USER_ID)
+  }
+
+  fun anonymousManager() {
+    manager(ExecutionContext.ANONYMOUS_USER_ID)
+  }
+
+  internal fun build(): Acl = Acl(
+    resourceId = resourceId,
+    userRoleMap = userRoleMap.toMap(),
+  )
+}
+
+fun acl(resourceId: String, init: AclBuilder.() -> Unit): Acl =
+  AclBuilder(resourceId).apply(init).build()
+
 @Component
 class AclChecker(
   val ec: ExecutionContext,
@@ -85,6 +123,36 @@ class AclChecker(
   context(_: Raise<AuthorizationError>)
   suspend fun ensurePermission(acl: Acl, permission: Permission) {
     ensurePermission(currentSubject(), acl, permission)
+  }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensureCanRead(subject: AccessSubject, acl: Acl) {
+    ensurePermission(subject, acl, Permission.READ)
+  }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensureCanWrite(subject: AccessSubject, acl: Acl) {
+    ensurePermission(subject, acl, Permission.WRITE)
+  }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensureCanManage(subject: AccessSubject, acl: Acl) {
+    ensurePermission(subject, acl, Permission.MANAGE)
+  }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensureCanRead(acl: Acl) {
+    ensurePermission(acl, Permission.READ)
+  }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensureCanWrite(acl: Acl) {
+    ensurePermission(acl, Permission.WRITE)
+  }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensureCanManage(acl: Acl) {
+    ensurePermission(acl, Permission.MANAGE)
   }
 
   private fun AccessSubject.hasGlobalAccess(): Boolean =

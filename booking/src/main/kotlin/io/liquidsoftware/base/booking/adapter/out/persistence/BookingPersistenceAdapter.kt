@@ -32,7 +32,6 @@ import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.AclRole
-import io.liquidsoftware.common.security.acl.Permission
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -55,7 +54,7 @@ internal class BookingPersistenceAdapter(
           { raise(WorkflowValidationError(it)) },
           { it }
         )
-        ensureAuthorized(appointment.acl(), Permission.READ)
+        ensureCanRead(appointment.acl())
         appointment
       }
     }
@@ -106,7 +105,7 @@ internal class BookingPersistenceAdapter(
                 { it }
               )
           }
-          .onEach { appointment -> ensureAuthorized(appointment.acl(), Permission.READ) }
+          .onEach { appointment -> ensureCanRead(appointment.acl()) }
       }
     }
 
@@ -122,7 +121,7 @@ internal class BookingPersistenceAdapter(
                 { raise(WorkflowValidationError(it)) },
                 { it }
               )
-              .also { appointment -> ensureAuthorized(appointment.acl(), Permission.READ) }
+              .also { appointment -> ensureCanRead(appointment.acl()) }
           }
       }
     }
@@ -138,7 +137,7 @@ internal class BookingPersistenceAdapter(
             apptRepository.findByAppointmentId(event.appointmentDto.id)
           }
             ?.let {
-              ensureAuthorized(it.acl(), Permission.WRITE)
+              ensureCanWrite(it.acl())
               it.handle(event)
             }
             ?.let {
@@ -152,7 +151,7 @@ internal class BookingPersistenceAdapter(
             apptRepository.findByAppointmentId(event.appointmentDto.id)
           }
             ?.let {
-              ensureAuthorized(Acl.of(it.appointmentId, it.userId, AclRole.WRITER), Permission.WRITE)
+              ensureCanWrite(Acl.of(it.appointmentId, it.userId, AclRole.WRITER))
               it.handle(event)
             }
             ?.let {
@@ -165,12 +164,19 @@ internal class BookingPersistenceAdapter(
   }
 
   context(_: Raise<WorkflowError>)
-  private suspend fun ensureAuthorized(
-    acl: Acl,
-    permission: Permission,
-  ) {
+  private suspend fun ensureCanRead(acl: Acl) {
     either {
-      ac.ensurePermission(acl, permission)
+      ac.ensureCanRead(acl)
+    }.fold(
+      { raise(it.toWorkflowError()) },
+      {}
+    )
+  }
+
+  context(_: Raise<WorkflowError>)
+  private suspend fun ensureCanWrite(acl: Acl) {
+    either {
+      ac.ensureCanWrite(acl)
     }.fold(
       { raise(it.toWorkflowError()) },
       {}

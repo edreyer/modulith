@@ -21,8 +21,8 @@ import io.liquidsoftware.common.ext.toWorkflowError
 import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.logging.LoggerDelegate
+import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
-import io.liquidsoftware.common.security.acl.Permission
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -50,7 +50,7 @@ internal class UserPersistenceAdapter(
         { raise(WorkflowValidationError(it)) },
         { it }
       )
-      ensureAuthorized(domainUser.acl(), Permission.MANAGE)
+      ensureCanManage(domainUser.acl())
       workflowBoundary {
         userRepository.save(user)
       }
@@ -76,7 +76,7 @@ internal class UserPersistenceAdapter(
         userRepository.findByUserId(event.userDto.id)
       }
         ?.let {
-          ensureAuthorized(it.acl(), Permission.WRITE)
+          ensureCanWrite(it.acl())
           it.handle(event)
         }
         ?.let {
@@ -96,18 +96,35 @@ internal class UserPersistenceAdapter(
           { raise(WorkflowValidationError(it)) },
           { it }
         )
-        ensureAuthorized(user.acl(), Permission.READ)
+        ensureCanRead(user.acl())
         user
       }
     }
 
   context(_: Raise<WorkflowError>)
-  private suspend fun ensureAuthorized(
-    acl: io.liquidsoftware.common.security.acl.Acl,
-    permission: Permission,
-  ) {
+  private suspend fun ensureCanRead(acl: Acl) {
     either {
-      ac.ensurePermission(acl, permission)
+      ac.ensureCanRead(acl)
+    }.fold(
+      { raise(it.toWorkflowError()) },
+      {}
+    )
+  }
+
+  context(_: Raise<WorkflowError>)
+  private suspend fun ensureCanWrite(acl: Acl) {
+    either {
+      ac.ensureCanWrite(acl)
+    }.fold(
+      { raise(it.toWorkflowError()) },
+      {}
+    )
+  }
+
+  context(_: Raise<WorkflowError>)
+  private suspend fun ensureCanManage(acl: Acl) {
+    either {
+      ac.ensureCanManage(acl)
     }.fold(
       { raise(it.toWorkflowError()) },
       {}

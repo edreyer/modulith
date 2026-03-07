@@ -23,6 +23,35 @@ class AclCheckerTest {
   }
 
   @Test
+  fun `acl builder creates same acl as hand-built map`() {
+    val dslAcl = acl("appointment-1") {
+      manager("user-1")
+      reader("assistant-1")
+    }
+
+    val handBuiltAcl = Acl(
+      resourceId = "appointment-1",
+      userRoleMap = mapOf(
+        "user-1" to AclRole.MANAGER,
+        "assistant-1" to AclRole.READER,
+      ),
+    )
+
+    assertEquals(handBuiltAcl, dslAcl)
+  }
+
+  @Test
+  fun `acl builder supports anonymous access`() {
+    val acl = acl("appointment-1") {
+      manager("user-1")
+      anonymousReader()
+    }
+
+    assertEquals(AclRole.READER, acl.userRoleMap[ExecutionContext.ANONYMOUS_USER_ID])
+    assertEquals(AclRole.MANAGER, acl.userRoleMap["user-1"])
+  }
+
+  @Test
   fun `reader cannot write owned resource`() = runBlocking {
     val acl = Acl.of("appointment-1", "user-1", AclRole.READER)
     val subject = AccessSubject("user-1", emptySet())
@@ -50,12 +79,25 @@ class AclCheckerTest {
   }
 
   @Test
-  fun `ensurePermission raises PermissionDenied for denied access`() = runBlocking {
+  fun `ensureCanRead allows reader access`() = runBlocking {
     val acl = Acl.of("appointment-1", "user-1", AclRole.READER)
     val subject = AccessSubject("user-1", emptySet())
 
     val result = either<AuthorizationError, Unit> {
-      aclChecker.ensurePermission(subject, acl, Permission.WRITE)
+      aclChecker.ensureCanRead(subject, acl)
+    }
+
+    assertInstanceOf(Either.Right::class.java, result)
+    Unit
+  }
+
+  @Test
+  fun `ensureCanWrite raises PermissionDenied for denied access`() = runBlocking {
+    val acl = Acl.of("appointment-1", "user-1", AclRole.READER)
+    val subject = AccessSubject("user-1", emptySet())
+
+    val result = either<AuthorizationError, Unit> {
+      aclChecker.ensureCanWrite(subject, acl)
     }
 
     val error = (result as Either.Left).value
@@ -63,5 +105,18 @@ class AclCheckerTest {
     assertEquals("appointment-1", error.resourceId)
     assertEquals(Permission.WRITE, error.permission)
     assertEquals("user-1", error.subjectId)
+  }
+
+  @Test
+  fun `ensureCanManage allows manager access`() = runBlocking {
+    val acl = Acl.of("appointment-1", "user-1", AclRole.MANAGER)
+    val subject = AccessSubject("user-1", emptySet())
+
+    val result = either {
+      aclChecker.ensureCanManage(subject, acl)
+    }
+
+    assertInstanceOf(Either.Right::class.java, result)
+    Unit
   }
 }
