@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import io.liquidsoftware.base.test.BaseWebTest
 import io.liquidsoftware.base.user.adapter.`in`.web.api.v1.FoundUserUserOutputDto
+import io.liquidsoftware.base.user.adapter.`in`.web.api.v1.RegisterUserErrorsDto
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
@@ -39,10 +40,19 @@ class FindUserTest : BaseWebTest() {
   }
 
   @Test
-  fun testFindOtherExistingUserByEmailIsUnauthorized() {
-    this.get("/api/v1/users/email/$notAuthorizedEmail", accessToken)
+  fun testFindOtherExistingUserByEmailMatchesNotFoundContract() {
+    val existing = this.get("/api/v1/users/email/$notAuthorizedEmail", accessToken)
       .then()
-      .statusCode(401)
+      .statusCode(400)
+      .extract().`as`(RegisterUserErrorsDto::class.java)
+
+    val missing = this.get("/api/v1/users/email/notMyEmail@foo.com", accessToken)
+      .then()
+      .statusCode(400)
+      .extract().`as`(RegisterUserErrorsDto::class.java)
+
+    assertThat(existing.errors).isEqualTo(listOf("User not found with email $notAuthorizedEmail"))
+    assertThat(missing.errors).isEqualTo(listOf("User not found with email notMyEmail@foo.com"))
   }
 
   @Test
