@@ -37,6 +37,10 @@
     </properties>
 
     <modules>
+        <module>acl-core</module>
+        <module>acl-arrow</module>
+        <module>acl-spring-security</module>
+        <module>acl-spring-security-arrow</module>
         <module>common</module>
         <module>server</module>
         <module>user</module>
@@ -186,6 +190,26 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>liquidsoftware.io</groupId>
+                <artifactId>acl-core</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>liquidsoftware.io</groupId>
+                <artifactId>acl-arrow</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>liquidsoftware.io</groupId>
+                <artifactId>acl-spring-security</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>liquidsoftware.io</groupId>
+                <artifactId>acl-spring-security-arrow</artifactId>
+                <version>1.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>liquidsoftware.io</groupId>
                 <artifactId>common</artifactId>

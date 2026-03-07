@@ -3,9 +3,8 @@ package io.liquidsoftware.common.security.spring
 import assertk.assertThat
 import assertk.assertions.contains
 import assertk.assertions.isEqualTo
-import io.liquidsoftware.common.security.ExecutionContext
-import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.security.acl.ANONYMOUS_SUBJECT_ID
+import io.liquidsoftware.common.security.acl.AccessSubject
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.Permission
@@ -13,13 +12,16 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 
 class SpringSecurityAccessSubjectProviderTest {
 
-  private val provider = SpringSecurityAccessSubjectProvider(ExecutionContext())
+  private val provider = SpringSecurityAccessSubjectProvider(
+    AuthenticationAccessSubjectResolver(::resolveSubject),
+  )
 
   @AfterEach
   fun clearSecurityContext() {
@@ -57,11 +59,21 @@ class SpringSecurityAccessSubjectProviderTest {
 
   private fun authenticate(userId: String, vararg roles: String) {
     val authorities = roles.map(::SimpleGrantedAuthority)
-    val principal = UserDetailsWithId(
-      userId,
-      User("$userId@example.com", "", authorities)
-    )
+    val principal = User("$userId@example.com", "", authorities)
     SecurityContextHolder.getContext().authentication =
-      UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
+      UsernamePasswordAuthenticationToken(principal, userId, principal.authorities)
   }
+
+  private fun resolveSubject(authentication: Authentication?): AccessSubject =
+    when (authentication) {
+      is UsernamePasswordAuthenticationToken -> AccessSubject(
+        userId = authentication.credentials as? String ?: ANONYMOUS_SUBJECT_ID,
+        roles = authentication.authorities.mapNotNull { it.authority }.toSet(),
+      )
+
+      else -> AccessSubject(
+        userId = ANONYMOUS_SUBJECT_ID,
+        roles = emptySet(),
+      )
+    }
 }

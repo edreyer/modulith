@@ -5,13 +5,12 @@ import arrow.core.raise.either
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
-import io.liquidsoftware.common.security.ExecutionContext
-import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.AuthorizationError
 import io.liquidsoftware.common.security.acl.Permission
 import io.liquidsoftware.common.security.acl.PermissionDenied
+import io.liquidsoftware.common.security.spring.AuthenticationAccessSubjectResolver
 import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
@@ -23,7 +22,23 @@ import org.springframework.security.core.userdetails.User
 
 class SpringSecurityAclCheckerTest {
 
-  private val checker = SpringSecurityAclChecker(SpringSecurityAccessSubjectProvider(ExecutionContext()))
+  private val checker = SpringSecurityAclChecker(
+    SpringSecurityAccessSubjectProvider(
+      AuthenticationAccessSubjectResolver { authentication ->
+        when (authentication) {
+          is UsernamePasswordAuthenticationToken -> io.liquidsoftware.common.security.acl.AccessSubject(
+            userId = authentication.credentials as? String ?: "u_anonymous",
+            roles = authentication.authorities.mapNotNull { it.authority }.toSet(),
+          )
+
+          else -> io.liquidsoftware.common.security.acl.AccessSubject(
+            userId = "u_anonymous",
+            roles = emptySet(),
+          )
+        }
+      },
+    ),
+  )
 
   @AfterEach
   fun clearSecurityContext() {
@@ -60,11 +75,8 @@ class SpringSecurityAclCheckerTest {
 
   private fun authenticate(userId: String, vararg roles: String) {
     val authorities = roles.map(::SimpleGrantedAuthority)
-    val principal = UserDetailsWithId(
-      userId,
-      User("$userId@example.com", "", authorities)
-    )
+    val principal = User("$userId@example.com", "", authorities)
     SecurityContextHolder.getContext().authentication =
-      UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
+      UsernamePasswordAuthenticationToken(principal, userId, principal.authorities)
   }
 }

@@ -12,6 +12,7 @@ import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
+import io.liquidsoftware.common.security.spring.AuthenticationAccessSubjectResolver
 import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import io.liquidsoftware.common.workflow.ServerError
@@ -29,7 +30,11 @@ import java.lang.reflect.Proxy
 class UserPersistenceAdapterArrowContractTest {
 
   private fun aclChecker() =
-    SpringSecurityAclChecker(SpringSecurityAccessSubjectProvider(ExecutionContext()))
+    SpringSecurityAclChecker(
+      SpringSecurityAccessSubjectProvider(
+        AuthenticationAccessSubjectResolver { ExecutionContext().getAccessSubject() },
+      ),
+    )
 
   @AfterEach
   fun clearSecurityContext() {

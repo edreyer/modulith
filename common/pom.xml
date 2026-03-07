@@ -13,6 +13,18 @@
 
     <dependencies>
         <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>acl-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>acl-spring-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>liquidsoftware.io</groupId>
+            <artifactId>acl-spring-security-arrow</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>33.5.0-jre</version>

@@ -31,13 +31,10 @@ interface SecuredResource {
   fun acl(): Acl
 }
 
-/**
- * Attribute Based Access Control utility
- */
 data class Acl(
   val resourceId: String,
   val userRoleMap: Map<String, AclRole>,
-){
+) {
   companion object {
     fun of(resourceId: String, userId: String, role: AclRole) =
       Acl(resourceId, mapOf(userId to role))
@@ -90,7 +87,7 @@ class AclChecker(
   private val rolePermissions: Map<AclRole, Set<Permission>> = mapOf(
     AclRole.READER to setOf(Permission.READ),
     AclRole.WRITER to setOf(Permission.READ, Permission.WRITE),
-    AclRole.MANAGER to setOf(Permission.READ, Permission.WRITE, Permission.MANAGE)
+    AclRole.MANAGER to setOf(Permission.READ, Permission.WRITE, Permission.MANAGE),
   )
 
   companion object {

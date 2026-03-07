@@ -12,6 +12,7 @@ import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderStatus
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
+import io.liquidsoftware.common.security.spring.AuthenticationAccessSubjectResolver
 import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import io.liquidsoftware.common.workflow.ServerError
@@ -30,7 +31,11 @@ import java.time.LocalDateTime
 class BookingPersistenceAdapterArrowContractTest {
 
   private fun aclChecker() =
-    SpringSecurityAclChecker(SpringSecurityAccessSubjectProvider(ExecutionContext()))
+    SpringSecurityAclChecker(
+      SpringSecurityAccessSubjectProvider(
+        AuthenticationAccessSubjectResolver { ExecutionContext().getAccessSubject() },
+      ),
+    )
 
   @AfterEach
   fun clearSecurityContext() {
