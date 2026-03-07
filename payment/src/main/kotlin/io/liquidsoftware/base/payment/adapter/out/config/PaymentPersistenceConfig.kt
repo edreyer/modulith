@@ -3,6 +3,7 @@ package io.liquidsoftware.base.payment.adapter.out.config
 import io.liquidsoftware.base.payment.adapter.out.persistence.PaymentMethodRepository
 import io.liquidsoftware.base.payment.adapter.out.persistence.PaymentPersistenceAdapter
 import io.liquidsoftware.base.payment.adapter.out.persistence.PaymentRepository
+import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
@@ -14,9 +15,11 @@ internal class PaymentPersistenceConfig {
   @Bean
    fun paymentPersistenceAdapter(
     paymentMethodRepository: PaymentMethodRepository,
-    paymentRepository: PaymentRepository
+    paymentRepository: PaymentRepository,
+    ac: SpringSecurityAclChecker
   ): PaymentPersistenceAdapter = PaymentPersistenceAdapter(
     paymentMethodRepository,
-    paymentRepository)
+    paymentRepository,
+    ac)
 
 }

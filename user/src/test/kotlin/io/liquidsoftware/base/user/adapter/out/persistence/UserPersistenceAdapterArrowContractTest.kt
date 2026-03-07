@@ -12,7 +12,6 @@ import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
-import io.liquidsoftware.common.security.spring.AuthenticationAccessSubjectResolver
 import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import io.liquidsoftware.common.workflow.ServerError
@@ -22,8 +21,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.dao.DataAccessResourceFailureException
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.User
 import java.lang.reflect.Proxy
 
@@ -31,9 +30,7 @@ class UserPersistenceAdapterArrowContractTest {
 
   private fun aclChecker() =
     SpringSecurityAclChecker(
-      SpringSecurityAccessSubjectProvider(
-        AuthenticationAccessSubjectResolver { ExecutionContext().getAccessSubject() },
-      ),
+      SpringSecurityAccessSubjectProvider { ExecutionContext().getAccessSubject() },
     )
 
   @AfterEach

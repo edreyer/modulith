@@ -12,7 +12,6 @@ import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderStatus
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
-import io.liquidsoftware.common.security.spring.AuthenticationAccessSubjectResolver
 import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import io.liquidsoftware.common.workflow.ServerError
@@ -32,9 +31,7 @@ class BookingPersistenceAdapterArrowContractTest {
 
   private fun aclChecker() =
     SpringSecurityAclChecker(
-      SpringSecurityAccessSubjectProvider(
-        AuthenticationAccessSubjectResolver { ExecutionContext().getAccessSubject() },
-      ),
+      SpringSecurityAccessSubjectProvider { ExecutionContext().getAccessSubject() },
     )
 
   @AfterEach
@@ -112,7 +109,6 @@ class BookingPersistenceAdapterArrowContractTest {
     val error = (result as Either.Left).value
     assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
     assertThat(error.message).isEqualTo("No access to: ${entity.appointmentId} Permission: READ Subject: u_other-user")
-    Unit
   }
 
   @Test
@@ -159,7 +155,6 @@ class BookingPersistenceAdapterArrowContractTest {
     val error = (result as Either.Left).value
     assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
     assertThat(error.message).isEqualTo("No access to: ${entity.appointmentId} Permission: WRITE Subject: u_other-user")
-    Unit
   }
 
   @Test

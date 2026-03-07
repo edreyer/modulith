@@ -3,6 +3,7 @@ package io.liquidsoftware.base.payment.adapter.out.persistence
 import arrow.core.Either
 import arrow.core.raise.either
 import assertk.assertThat
+import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.assertions.isTrue
 import io.liquidsoftware.base.payment.PaymentMethodId
@@ -11,13 +12,33 @@ import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodDtoOut
 import io.liquidsoftware.base.user.UserId
+import io.liquidsoftware.common.security.ExecutionContext
+import io.liquidsoftware.common.security.UserDetailsWithId
+import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
+import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
+import io.liquidsoftware.common.workflow.ServerError
+import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.dao.DataAccessResourceFailureException
-import io.liquidsoftware.common.workflow.ServerError
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.core.userdetails.User
 import java.lang.reflect.Proxy
 
 class PaymentPersistenceAdapterArrowContractTest {
+
+  private fun aclChecker() =
+    SpringSecurityAclChecker(
+      SpringSecurityAccessSubjectProvider { ExecutionContext().getAccessSubject() },
+    )
+
+  @AfterEach
+  fun clearSecurityContext() {
+    SecurityContextHolder.clearContext()
+  }
 
   @Test
   fun `findByPaymentMethodId returns left for invalid persisted payment method`() = runBlocking {
@@ -34,7 +55,8 @@ class PaymentPersistenceAdapterArrowContractTest {
           )
         }
       ),
-      paymentRepository()
+      paymentRepository(),
+      aclChecker()
     )
 
     val result = adapter.findByPaymentMethodId(paymentMethodId, userId)
@@ -48,7 +70,8 @@ class PaymentPersistenceAdapterArrowContractTest {
     val userId = either { UserId.of("u_test-user") }.fold({ error("invalid test id") }, { it })
     val adapter = PaymentPersistenceAdapter(
       paymentMethodRepository(findByPaymentMethodIdAndUserId = { _, _ -> null }),
-      paymentRepository()
+      paymentRepository(),
+      aclChecker()
     )
 
     val result = adapter.findByPaymentMethodId(paymentMethodId, userId)
@@ -64,7 +87,8 @@ class PaymentPersistenceAdapterArrowContractTest {
       paymentMethodRepository(
         findByPaymentMethodIdAndUserId = { _, _ -> throw DataAccessResourceFailureException("db down") }
       ),
-      paymentRepository()
+      paymentRepository(),
+      aclChecker()
     )
 
     val result = adapter.findByPaymentMethodId(paymentMethodId, userId)
@@ -76,12 +100,14 @@ class PaymentPersistenceAdapterArrowContractTest {
 
   @Test
   fun `handle payment method event returns left when repository save fails`() = runBlocking {
+    authenticate("u_test-user")
     val adapter = PaymentPersistenceAdapter(
       paymentMethodRepository(
         findByPaymentMethodIdAndUserId = { _, _ -> null },
         save = { throw DataAccessResourceFailureException("db down") }
       ),
-      paymentRepository()
+      paymentRepository(),
+      aclChecker()
     )
 
     val result = adapter.handle(paymentMethodAddedEvent())
@@ -93,11 +119,13 @@ class PaymentPersistenceAdapterArrowContractTest {
 
   @Test
   fun `handle payment event returns left when repository save fails`() = runBlocking {
+    authenticate("u_test-user")
     val adapter = PaymentPersistenceAdapter(
       paymentMethodRepository(findByPaymentMethodIdAndUserId = { _, _ -> null }),
       paymentRepository(
         save = { throw DataAccessResourceFailureException("db down") }
-      )
+      ),
+      aclChecker()
     )
 
     val result = adapter.handle(paymentMadeEvent())
@@ -107,20 +135,90 @@ class PaymentPersistenceAdapterArrowContractTest {
     Unit
   }
 
-  private fun paymentMethodAddedEvent() = PaymentMethodAddedEvent(
+  @Test
+  fun `findByPaymentMethodId returns left when acl check fails`() = runBlocking {
+    val paymentMethodId = either { PaymentMethodId.of("pm_test-method") }.fold({ error("invalid test id") }, { it })
+    val userId = either { UserId.of("u_owner") }.fold({ error("invalid test id") }, { it })
+    val adapter = PaymentPersistenceAdapter(
+      paymentMethodRepository(
+        findByPaymentMethodIdAndUserId = { _, _ ->
+          PaymentMethodEntity(
+            paymentMethodId = "pm_test-method",
+            userId = "u_owner",
+            stripePaymentMethodId = "stripe-pm",
+            lastFour = "1234"
+          )
+        }
+      ),
+      paymentRepository(),
+      aclChecker()
+    )
+
+    authenticate("u_other-user")
+
+    val result = adapter.findByPaymentMethodId(paymentMethodId, userId)
+
+    assertThat(result is Either.Left).isTrue()
+    val error = (result as Either.Left).value
+    assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
+    assertThat(error.message).isEqualTo("No access to: pm_test-method Permission: READ Subject: u_other-user")
+  }
+
+  @Test
+  fun `handle payment method event returns left when acl check fails`() = runBlocking {
+    val adapter = PaymentPersistenceAdapter(
+      paymentMethodRepository(findByPaymentMethodIdAndUserId = { _, _ -> null }),
+      paymentRepository(),
+      aclChecker()
+    )
+
+    val result = adapter.handle(paymentMethodAddedEvent(userId = "u_owner"))
+
+    assertThat(result is Either.Left).isTrue()
+    val error = (result as Either.Left).value
+    assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
+    assertThat(error.message).isEqualTo("No access to: pm_test-method Permission: MANAGE Subject: u_anonymous")
+  }
+
+  @Test
+  fun `handle payment event returns left when acl check fails`() = runBlocking {
+    val adapter = PaymentPersistenceAdapter(
+      paymentMethodRepository(findByPaymentMethodIdAndUserId = { _, _ -> null }),
+      paymentRepository(),
+      aclChecker()
+    )
+
+    val result = adapter.handle(paymentMadeEvent(userId = "u_owner"))
+
+    assertThat(result is Either.Left).isTrue()
+    val error = (result as Either.Left).value
+    assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
+    assertThat(error.message).isEqualTo("No access to: p_test-payment Permission: MANAGE Subject: u_anonymous")
+  }
+
+  private fun authenticate(userId: String, role: String = "ROLE_USER") {
+    val principal = UserDetailsWithId(
+      userId,
+      User(userId, "password", listOf(SimpleGrantedAuthority(role)))
+    )
+    SecurityContextHolder.getContext().authentication =
+      UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
+  }
+
+  private fun paymentMethodAddedEvent(userId: String = "u_test-user") = PaymentMethodAddedEvent(
     paymentMethodDto = PaymentMethodDtoOut(
       paymentMethodId = "pm_test-method",
-      userId = "u_test-user",
+      userId = userId,
       stripePaymentMethodId = "stripe-pm",
       lastFour = "1234"
     )
   )
 
-  private fun paymentMadeEvent() = PaymentMadeEvent(
+  private fun paymentMadeEvent(userId: String = "u_test-user") = PaymentMadeEvent(
     paymentDto = PaymentDtoOut(
       paymentId = "p_test-payment",
       paymentMethodId = "pm_test-method",
-      userId = "u_test-user",
+      userId = userId,
       amount = 9000
     )
   )

@@ -1,6 +1,8 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.raise.Raise
+import arrow.core.raise.context.bind
+import arrow.core.raise.context.ensure
 import arrow.core.raise.either
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
@@ -15,10 +17,7 @@ import io.liquidsoftware.base.booking.application.service.AvailabilityService
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
-import arrow.core.raise.context.bind
 import io.liquidsoftware.common.ext.bindValidation
-import arrow.core.raise.context.ensure
-import arrow.core.raise.context.raise
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.toErrString
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow

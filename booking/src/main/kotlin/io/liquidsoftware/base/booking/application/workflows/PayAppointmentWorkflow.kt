@@ -1,6 +1,8 @@
 package io.liquidsoftware.base.booking.application.workflows
 
 import arrow.core.raise.Raise
+import arrow.core.raise.context.bind
+import arrow.core.raise.context.ensureNotNull
 import arrow.core.raise.either
 import io.liquidsoftware.base.booking.application.mapper.toDto
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentNotFoundError
@@ -11,10 +13,7 @@ import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
-import arrow.core.raise.context.bind
 import io.liquidsoftware.common.ext.bindValidation
-import arrow.core.raise.context.ensureNotNull
-import arrow.core.raise.context.raise
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
