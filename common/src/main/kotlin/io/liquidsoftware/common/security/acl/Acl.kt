@@ -30,6 +30,10 @@ data class AccessSubject(
   val roles: Set<String>,
 )
 
+interface SecuredResource {
+  fun acl(): Acl
+}
+
 /**
  * Attribute Based Access Control utility
  */
@@ -87,13 +91,28 @@ suspend fun AccessSubject.ensureCanRead(acl: Acl) {
 }
 
 context(ac: AclChecker, _: Raise<AuthorizationError>)
+suspend fun AccessSubject.ensureCanRead(resource: SecuredResource) {
+  ensureCanRead(resource.acl())
+}
+
+context(ac: AclChecker, _: Raise<AuthorizationError>)
 suspend fun AccessSubject.ensureCanWrite(acl: Acl) {
   ac.ensureCanWrite(this, acl)
 }
 
 context(ac: AclChecker, _: Raise<AuthorizationError>)
+suspend fun AccessSubject.ensureCanWrite(resource: SecuredResource) {
+  ensureCanWrite(resource.acl())
+}
+
+context(ac: AclChecker, _: Raise<AuthorizationError>)
 suspend fun AccessSubject.ensureCanManage(acl: Acl) {
   ac.ensureCanManage(this, acl)
+}
+
+context(ac: AclChecker, _: Raise<AuthorizationError>)
+suspend fun AccessSubject.ensureCanManage(resource: SecuredResource) {
+  ensureCanManage(resource.acl())
 }
 
 @Component

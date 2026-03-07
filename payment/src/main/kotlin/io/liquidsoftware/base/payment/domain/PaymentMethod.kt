@@ -7,6 +7,7 @@ import io.liquidsoftware.base.user.UserId
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
+import io.liquidsoftware.common.security.acl.SecuredResource
 import io.liquidsoftware.common.types.NonEmptyString
 import io.liquidsoftware.common.types.ValidationErrors
 
@@ -24,8 +25,8 @@ internal data class PaymentMethodData(
   override val lastFour: NonEmptyString
 ) : PaymentMethodFields
 
-internal sealed class PaymentMethod : PaymentMethodFields {
-  fun acl() = Acl.of(id.value, userId.value, AclRole.MANAGER)
+internal sealed class PaymentMethod : PaymentMethodFields, SecuredResource {
+  override fun acl() = Acl.of(id.value, userId.value, AclRole.MANAGER)
 }
 
 internal data class ActivePaymentMethod(

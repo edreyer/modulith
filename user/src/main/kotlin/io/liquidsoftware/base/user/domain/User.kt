@@ -4,6 +4,7 @@ import arrow.core.raise.Raise
 import io.liquidsoftware.base.user.UserId
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
+import io.liquidsoftware.common.security.acl.SecuredResource
 import io.liquidsoftware.common.types.EmailAddress
 import io.liquidsoftware.common.types.Msisdn
 import io.liquidsoftware.common.types.NonEmptyString
@@ -30,8 +31,8 @@ internal data class UserData(
   override val encryptedPassword: NonEmptyString
 ) : UserFields
 
-internal sealed class User: UserFields {
-  fun acl() = Acl.of(id.value, id.value, AclRole.MANAGER)
+internal sealed class User: UserFields, SecuredResource {
+  override fun acl() = Acl.of(id.value, id.value, AclRole.MANAGER)
 
   companion object {
     context(_: Raise<ValidationErrors>)

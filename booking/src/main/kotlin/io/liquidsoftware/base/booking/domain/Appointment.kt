@@ -10,6 +10,7 @@ import arrow.core.raise.context.bind
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
+import io.liquidsoftware.common.security.acl.SecuredResource
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.ensure
 import org.valiktor.functions.isValid
@@ -34,8 +35,8 @@ internal data class AppointmentData(
   override val duration: Duration,
 ) : AppointmentFields
 
-internal sealed class Appointment : AppointmentFields {
-  fun acl() = Acl.of(id.value, userId.value, AclRole.MANAGER)
+internal sealed class Appointment : AppointmentFields, SecuredResource {
+  override fun acl() = Acl.of(id.value, userId.value, AclRole.MANAGER)
 
   companion object {
     context(_: Raise<ValidationErrors>)

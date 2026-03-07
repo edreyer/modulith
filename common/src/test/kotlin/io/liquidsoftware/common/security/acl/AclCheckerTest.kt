@@ -14,6 +14,12 @@ class AclCheckerTest {
 
   private val aclChecker = AclChecker(ExecutionContext())
 
+  private data class TestResource(
+    private val resourceAcl: Acl,
+  ) : SecuredResource {
+    override fun acl(): Acl = resourceAcl
+  }
+
   @Test
   fun `manager can manage owned resource`() = runBlocking {
     val acl = Acl.of("appointment-1", "user-1", AclRole.MANAGER)
@@ -166,5 +172,38 @@ class AclCheckerTest {
 
     assertInstanceOf(Either.Right::class.java, result)
     Unit
+  }
+
+  @Test
+  fun `subject extension ensureCanRead supports secured resources`() = runBlocking {
+    val subject = AccessSubject("user-1", emptySet())
+    val resource = TestResource(Acl.of("appointment-1", "user-1", AclRole.READER))
+
+    val result = with(aclChecker) {
+      either {
+        subject.ensureCanRead(resource)
+      }
+    }
+
+    assertInstanceOf(Either.Right::class.java, result)
+    Unit
+  }
+
+  @Test
+  fun `subject extension ensureCanWrite raises PermissionDenied for secured resources`() = runBlocking {
+    val subject = AccessSubject("user-1", emptySet())
+    val resource = TestResource(Acl.of("appointment-1", "user-1", AclRole.READER))
+
+    val result = with(aclChecker) {
+      either {
+        subject.ensureCanWrite(resource)
+      }
+    }
+
+    val error = (result as Either.Left).value
+    assertInstanceOf(PermissionDenied::class.java, error)
+    assertEquals("appointment-1", error.resourceId)
+    assertEquals(Permission.WRITE, error.permission)
+    assertEquals("user-1", error.subjectId)
   }
 }
