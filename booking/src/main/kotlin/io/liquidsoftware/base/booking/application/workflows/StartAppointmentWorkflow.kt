@@ -30,7 +30,7 @@ internal class StartAppointmentWorkflow(
       AppointmentValidationError("Could not find ready Appointment to start")
     }
       .let { InProgressAppointment.of(it) }
-      .let { appointmentEventPort.handle(AppointmentStartedEvent(it.toDto())) }
+      .let { appointmentEventPort.handle(AppointmentStartedEvent(it.toDto())).bind() }
   }
 
 }

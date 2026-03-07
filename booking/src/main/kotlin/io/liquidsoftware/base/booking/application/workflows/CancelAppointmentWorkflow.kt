@@ -31,7 +31,7 @@ internal class CancelAppointmentWorkflow(
       AppointmentNotFoundError("Appointment(${request.appointmentId} not found")
     }
       .let { appointment -> either { apptStateService.cancel(appointment) }.bind() }
-      .let { appointmentEventPort.handle(AppointmentCancelledEvent(it.toDto()))}
+      .let { appointmentEventPort.handle(AppointmentCancelledEvent(it.toDto())).bind() }
   }
 
 }

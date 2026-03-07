@@ -2,8 +2,11 @@ package io.liquidsoftware.base.booking.adapter.out.persistence
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.raise.Raise
+import arrow.core.raise.context.raise
 import arrow.core.raise.either
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
@@ -23,9 +26,9 @@ import io.liquidsoftware.base.booking.domain.PaidWorkOrder
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
 import io.liquidsoftware.base.booking.domain.WorkOrder
-import arrow.core.raise.context.raise
-import io.liquidsoftware.common.ext.workflowBoundary
+import io.liquidsoftware.common.ext.toWorkflowError
 import io.liquidsoftware.common.ext.withContextIO
+import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.AclRole
@@ -36,7 +39,6 @@ import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
-import arrow.core.toNonEmptyListOrNull
 
 internal class BookingPersistenceAdapter(
   private val apptRepository: AppointmentRepository,
@@ -53,9 +55,7 @@ internal class BookingPersistenceAdapter(
           { raise(WorkflowValidationError(it)) },
           { it }
         )
-        workflowBoundary {
-          ac.checkPermission(appointment.acl(), Permission.READ)
-        }
+        ensureAuthorized(appointment.acl(), Permission.READ)
         appointment
       }
     }
@@ -106,11 +106,7 @@ internal class BookingPersistenceAdapter(
                 { it }
               )
           }
-          .onEach { appointment ->
-            workflowBoundary {
-              ac.checkPermission(appointment.acl(), Permission.READ)
-            }
-          }
+          .onEach { appointment -> ensureAuthorized(appointment.acl(), Permission.READ) }
       }
     }
 
@@ -126,36 +122,59 @@ internal class BookingPersistenceAdapter(
                 { raise(WorkflowValidationError(it)) },
                 { it }
               )
-              .also { appointment ->
-                workflowBoundary {
-                  ac.checkPermission(appointment.acl(), Permission.READ)
-                }
-              }
+              .also { appointment -> ensureAuthorized(appointment.acl(), Permission.READ) }
           }
       }
     }
 
-  override suspend fun <T : AppointmentEvent> handle(event: T): T = withContextIO {
-    when (event.appointmentDto.status) {
-      AppointmentStatus.SCHEDULED,
-      AppointmentStatus.IN_PROGRESS,
-      AppointmentStatus.COMPLETE,
-      AppointmentStatus.PAID -> {
-        apptRepository.findByAppointmentId(event.appointmentDto.id)
-          ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
-          ?.handle(event)
-          ?.let { apptRepository.save(it) }
-          ?: apptRepository.save(event.appointmentDto.toEntity())
-        event
-      }
-      AppointmentStatus.CANCELLED -> {
-        apptRepository.findByAppointmentId(event.appointmentDto.id)
-          ?.also { ac.checkPermission(Acl.of(it.appointmentId, it.userId, AclRole.WRITER), Permission.WRITE) }
-          ?.handle(event)
-          ?.let { apptRepository.save(it) }
-        event
+  override suspend fun <T : AppointmentEvent> handle(event: T): Either<WorkflowError, T> = withContextIO {
+    either {
+      when (event.appointmentDto.status) {
+        AppointmentStatus.SCHEDULED,
+        AppointmentStatus.IN_PROGRESS,
+        AppointmentStatus.COMPLETE,
+        AppointmentStatus.PAID -> {
+          workflowBoundary {
+            apptRepository.findByAppointmentId(event.appointmentDto.id)
+          }
+            ?.let {
+              ensureAuthorized(it.acl(), Permission.WRITE)
+              it.handle(event)
+            }
+            ?.let {
+              workflowBoundary { apptRepository.save(it) }
+            }
+            ?: workflowBoundary { apptRepository.save(event.appointmentDto.toEntity()) }
+          event
+        }
+        AppointmentStatus.CANCELLED -> {
+          workflowBoundary {
+            apptRepository.findByAppointmentId(event.appointmentDto.id)
+          }
+            ?.let {
+              ensureAuthorized(Acl.of(it.appointmentId, it.userId, AclRole.WRITER), Permission.WRITE)
+              it.handle(event)
+            }
+            ?.let {
+              workflowBoundary { apptRepository.save(it) }
+            }
+          event
+        }
       }
     }
+  }
+
+  context(_: Raise<WorkflowError>)
+  private suspend fun ensureAuthorized(
+    acl: Acl,
+    permission: Permission,
+  ) {
+    either {
+      ac.ensurePermission(acl, permission)
+    }.fold(
+      { raise(it.toWorkflowError()) },
+      {}
+    )
   }
 
   private fun AppointmentEntity.toAppointment(): Either<ValidationErrors, Appointment> {

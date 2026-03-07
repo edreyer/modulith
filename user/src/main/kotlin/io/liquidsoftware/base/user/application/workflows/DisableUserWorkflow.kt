@@ -25,7 +25,7 @@ internal class DisableUserWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: DisableUserCommand): UserDisabledEvent =
     findUserPort.findUserById(request.userId).bind()
-      ?.let { userEventPort.handle(UserDisabledEvent(it.toUserDto())) }
+      ?.let { userEventPort.handle(UserDisabledEvent(it.toUserDto())).bind() }
       ?: raise(UserNotFoundError("User not found with ID ${request.userId}"))
 
 }

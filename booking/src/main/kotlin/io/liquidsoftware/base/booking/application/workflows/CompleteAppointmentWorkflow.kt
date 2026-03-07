@@ -33,7 +33,7 @@ internal class CompleteAppointmentWorkflow(
       )
     }
       .let { CompleteAppointment.of(it, request.notes) }
-      .let { appointmentEventPort.handle(AppointmentCompletedEvent(it.toDto())) }
+      .let { appointmentEventPort.handle(AppointmentCompletedEvent(it.toDto())).bind() }
   }
 
 }

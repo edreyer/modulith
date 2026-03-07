@@ -50,4 +50,19 @@ class UserEnabledTest(
     assertThat(enabledUser.active).isTrue()
 
   }
+
+  @Test
+  fun nonAdminCannotDisableAnotherUser() {
+    runBlocking {
+      val user = runAsSuperUser {
+        dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
+          .getOrElse { throw it }
+          .userDto
+      }
+
+      get("/api/v1/users/${user.id}/disable", accessToken)
+        .then()
+        .statusCode(403)
+    }
+  }
 }

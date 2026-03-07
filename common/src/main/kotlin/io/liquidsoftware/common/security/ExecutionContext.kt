@@ -1,6 +1,7 @@
 package io.liquidsoftware.common.security
 
 import io.liquidsoftware.common.logging.LoggerDelegate
+import io.liquidsoftware.common.security.acl.AccessSubject
 import io.liquidsoftware.common.security.acl.AclChecker.Companion.ROLE_SYSTEM
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -59,5 +60,22 @@ class ExecutionContext {
           listOf(userId) + it.authorities.mapNotNull { authority -> authority.authority }
         }
         else -> listOf(ANONYMOUS_USER_ID)
+      }}
+
+  fun getAccessSubject(): AccessSubject =
+    SecurityContextHolder.getContext().authentication
+      .let { when (it) {
+        is UsernamePasswordAuthenticationToken -> {
+          val userId = (it.principal as UserDetailsWithId).id
+          log.debug("The current principal: {}", it.principal)
+          AccessSubject(
+            userId = userId,
+            roles = it.authorities.mapNotNull { authority -> authority.authority }.toSet(),
+          )
+        }
+        else -> AccessSubject(
+          userId = ANONYMOUS_USER_ID,
+          roles = emptySet(),
+        )
       }}
 }

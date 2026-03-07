@@ -1,5 +1,7 @@
 package io.liquidsoftware.common.security.acl
 
+import arrow.core.raise.Raise
+import arrow.core.raise.context.ensure
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UnauthorizedAccessException
 import org.springframework.stereotype.Component
@@ -11,6 +13,23 @@ enum class AclRole {
 enum class Permission {
   READ, WRITE, MANAGE
 }
+
+sealed interface AuthorizationError {
+  val resourceId: String
+  val permission: Permission
+  val subjectId: String
+}
+
+data class PermissionDenied(
+  override val resourceId: String,
+  override val permission: Permission,
+  override val subjectId: String,
+) : AuthorizationError
+
+data class AccessSubject(
+  val userId: String,
+  val roles: Set<String>,
+)
 
 /**
  * Attribute Based Access Control utility
@@ -41,6 +60,8 @@ class AclChecker(
     const val ROLE_ADMIN = "ROLE_ADMIN"
   }
 
+  fun currentSubject(): AccessSubject = ec.getAccessSubject()
+
   suspend fun checkPermission(acl: Acl, permission: Permission) {
     if (!hasPermission(acl, ec.getUserAccessKeys(), permission)) {
       throw UnauthorizedAccessException(
@@ -50,15 +71,39 @@ class AclChecker(
   }
 
   suspend fun hasPermission(acl: Acl, access: List<String>, permission: Permission): Boolean {
-    return if (access.contains(ROLE_ADMIN) || access.contains(ROLE_SYSTEM)) {
+    val subject = AccessSubject(
+      userId = access.firstOrNull() ?: ExecutionContext.ANONYMOUS_USER_ID,
+      roles = access.drop(1).toSet(),
+    )
+    return hasPermission(acl, subject, permission)
+  }
+
+  suspend fun hasPermission(acl: Acl, subject: AccessSubject, permission: Permission): Boolean {
+    return if (subject.hasGlobalAccess()) {
       true
     } else {
-      val role = acl.userRoleMap[access[0]]
+      val role = acl.userRoleMap[subject.userId]
         ?: acl.userRoleMap[ExecutionContext.ANONYMOUS_USER_ID]
-      val hasPermission: Boolean = role.let {
-        rolePermissions[it]?.contains(permission) ?: false
-      }
-      hasPermission
+      rolePermissions[role]?.contains(permission) ?: false
     }
   }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensurePermission(subject: AccessSubject, acl: Acl, permission: Permission) {
+    ensure (hasPermission(acl, subject, permission)) {
+      PermissionDenied(
+        resourceId = acl.resourceId,
+        permission = permission,
+        subjectId = subject.userId,
+      )
+    }
+  }
+
+  context(_: Raise<AuthorizationError>)
+  suspend fun ensurePermission(acl: Acl, permission: Permission) {
+    ensurePermission(currentSubject(), acl, permission)
+  }
+
+  private fun AccessSubject.hasGlobalAccess(): Boolean =
+    ROLE_ADMIN in roles || ROLE_SYSTEM in roles
 }

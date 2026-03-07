@@ -62,6 +62,17 @@ class AppointmentTest : BaseUserWebTest() {
 
   @Test
   @Order(3)
+  fun unauthorizedUserCannotStartAnotherUsersAppointment() {
+    val otherUserToken = authorizeUser("other.user@liquidsoftware.io", "5125550011").accessToken
+    val apptDto = AppointmentIdDtoIn(appt?.id!!)
+
+    post("/api/v1/appointments/in-progress", apptDto, otherUserToken)
+      .then()
+      .statusCode(401)
+  }
+
+  @Test
+  @Order(4)
   fun testInProgress() {
     val apptDto = AppointmentIdDtoIn(appt?.id!!)
     val outputDto = post("/api/v1/appointments/in-progress", apptDto, accessToken)
@@ -74,7 +85,7 @@ class AppointmentTest : BaseUserWebTest() {
   }
 
   @Test
-  @Order(4)
+  @Order(5)
   fun testComplete() {
     runBlocking { delay(1000) }
     val apptDto = AppointmentCompletedDtoIn(appt?.id!!, "Complete!")
@@ -89,7 +100,7 @@ class AppointmentTest : BaseUserWebTest() {
   }
 
   @Test
-  @Order(5)
+  @Order(6)
   fun testPayment() {
     val pmIn = PaymentMethodDtoIn(appt?.userId!!, "ABCD", "1234")
     val pmOut = post("/api/v1/payment-methods", pmIn, accessToken)
@@ -109,7 +120,7 @@ class AppointmentTest : BaseUserWebTest() {
   }
 
   @Test
-  @Order(6)
+  @Order(7)
   fun testFetchAppointments() {
     val appts = get("/api/v1/appointments", accessToken)
       .then()

@@ -2,8 +2,11 @@ package io.liquidsoftware.base.user.adapter.out.persistence
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.raise.Raise
+import arrow.core.raise.context.raise
 import arrow.core.raise.either
 import arrow.core.right
+import arrow.core.toNonEmptyListOrNull
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
@@ -14,10 +17,9 @@ import io.liquidsoftware.base.user.domain.AdminUser
 import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.User
-import arrow.core.raise.context.raise
 import io.liquidsoftware.common.ext.toWorkflowError
-import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.ext.withContextIO
+import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.Permission
@@ -25,7 +27,6 @@ import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
-import arrow.core.toNonEmptyListOrNull
 
 internal class UserPersistenceAdapter(
   private val userRepository: UserRepository,
@@ -49,9 +50,7 @@ internal class UserPersistenceAdapter(
         { raise(WorkflowValidationError(it)) },
         { it }
       )
-      workflowBoundary {
-        ac.checkPermission(domainUser.acl(), Permission.MANAGE)
-      }
+      ensureAuthorized(domainUser.acl(), Permission.MANAGE)
       workflowBoundary {
         userRepository.save(user)
       }
@@ -71,12 +70,20 @@ internal class UserPersistenceAdapter(
       )
     }
 
-  override suspend fun <T : UserEvent> handle(event: T): T = withContextIO {
-    userRepository.findByUserId(event.userDto.id)
-      ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
-      ?.handle(event)
-      ?.let { userRepository.save(it) }
-    event
+  override suspend fun <T : UserEvent> handle(event: T): Either<WorkflowError, T> = withContextIO {
+    either {
+      workflowBoundary {
+        userRepository.findByUserId(event.userDto.id)
+      }
+        ?.let {
+          ensureAuthorized(it.acl(), Permission.WRITE)
+          it.handle(event)
+        }
+        ?.let {
+          workflowBoundary { userRepository.save(it) }
+        }
+      event
+    }
   }
 
   private suspend fun findUser(load: () -> UserEntity?): Either<WorkflowError, User?> =
@@ -89,12 +96,23 @@ internal class UserPersistenceAdapter(
           { raise(WorkflowValidationError(it)) },
           { it }
         )
-        workflowBoundary {
-          ac.checkPermission(user.acl(), Permission.READ)
-        }
+        ensureAuthorized(user.acl(), Permission.READ)
         user
       }
     }
+
+  context(_: Raise<WorkflowError>)
+  private suspend fun ensureAuthorized(
+    acl: io.liquidsoftware.common.security.acl.Acl,
+    permission: Permission,
+  ) {
+    either {
+      ac.ensurePermission(acl, permission)
+    }.fold(
+      { raise(it.toWorkflowError()) },
+      {}
+    )
+  }
 
   private fun UserEntity.toUser(): Either<ValidationErrors, User> {
     val entity = this

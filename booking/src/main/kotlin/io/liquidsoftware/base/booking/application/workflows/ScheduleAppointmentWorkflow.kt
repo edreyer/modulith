@@ -63,7 +63,7 @@ internal class ScheduleAppointmentWorkflow(
       AppointmentScheduledEvent(
         appointment.bindValidation { AppointmentValidationError(it.toErrString()) }.toDto()
       )
-    )
+    ).bind()
   }
 
   suspend fun ScheduledAppointment.toDto(): AppointmentDtoOut =

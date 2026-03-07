@@ -57,7 +57,7 @@ internal class PayAppointmentWorkflow(
       PaidAppointment.of(completeAppt, paymentMade.paymentDto.paymentId)
     }.bindValidation()
 
-    return appointmentEventPort.handle(AppointmentPaidEvent(paidAppointment.toDto()))
+    return appointmentEventPort.handle(AppointmentPaidEvent(paidAppointment.toDto())).bind()
 
   }
 

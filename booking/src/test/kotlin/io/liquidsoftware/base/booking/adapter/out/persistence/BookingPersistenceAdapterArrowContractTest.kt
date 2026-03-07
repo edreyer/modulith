@@ -2,12 +2,19 @@ package io.liquidsoftware.base.booking.adapter.out.persistence
 
 import arrow.core.Either
 import assertk.assertThat
+import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import assertk.assertions.isTrue
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
+import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderStatus
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.security.acl.AclChecker
+import io.liquidsoftware.common.workflow.ServerError
+import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -53,6 +60,24 @@ class BookingPersistenceAdapterArrowContractTest {
   }
 
   @Test
+  fun `findById returns left when acl check fails`() = runBlocking {
+    val entity = readyScheduledAppointment(userId = "u_owner")
+    authenticate("u_other-user")
+    val adapter = BookingPersistenceAdapter(
+      appointmentRepository(findByAppointmentId = { apptId -> if (apptId == entity.appointmentId) entity else null }),
+      AclChecker(ExecutionContext())
+    )
+
+    val result = adapter.findById(entity.appointmentId)
+
+    assertThat(result is Either.Left).isTrue()
+    val error = (result as Either.Left).value
+    assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
+    assertThat(error.message).isEqualTo("No access to: ${entity.appointmentId} Permission: READ Subject: u_other-user")
+    Unit
+  }
+
+  @Test
   fun `findByUserId returns left when acl check fails`() = runBlocking {
     val entity = AppointmentEntity(
       appointmentId = "a_test-appointment",
@@ -75,6 +100,10 @@ class BookingPersistenceAdapterArrowContractTest {
     val result = adapter.findByUserId("u_other-user", Pageable.unpaged())
 
     assertThat(result is Either.Left).isTrue()
+    val error = (result as Either.Left).value
+    assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
+    assertThat(error.message).isEqualTo("No access to: ${entity.appointmentId} Permission: READ Subject: u_other-user")
+    Unit
   }
 
   @Test
@@ -87,6 +116,8 @@ class BookingPersistenceAdapterArrowContractTest {
     val result = adapter.findById("a_test-appointment")
 
     assertThat(result is Either.Left).isTrue()
+    assertThat((result as Either.Left).value).isInstanceOf(ServerError::class)
+    Unit
   }
 
   @Test
@@ -100,6 +131,45 @@ class BookingPersistenceAdapterArrowContractTest {
     val result = adapter.findByUserId("u_test-user", Pageable.unpaged())
 
     assertThat(result is Either.Left).isTrue()
+    assertThat((result as Either.Left).value).isInstanceOf(ServerError::class)
+    Unit
+  }
+
+  @Test
+  fun `handle appointment event returns left when acl check fails`() = runBlocking {
+    val entity = readyScheduledAppointment(userId = "u_owner")
+    authenticate("u_other-user")
+    val adapter = BookingPersistenceAdapter(
+      appointmentRepository(findByAppointmentId = { apptId -> if (apptId == entity.appointmentId) entity else null }),
+      AclChecker(ExecutionContext())
+    )
+
+    val result = adapter.handle(startedEvent(entity))
+
+    assertThat(result is Either.Left).isTrue()
+    val error = (result as Either.Left).value
+    assertThat(error).isInstanceOf(UnauthorizedWorkflowError::class)
+    assertThat(error.message).isEqualTo("No access to: ${entity.appointmentId} Permission: WRITE Subject: u_other-user")
+    Unit
+  }
+
+  @Test
+  fun `handle appointment event returns left when repository save fails`() = runBlocking {
+    val entity = readyScheduledAppointment(userId = "u_owner")
+    authenticate("u_owner")
+    val adapter = BookingPersistenceAdapter(
+      appointmentRepository(
+        findByAppointmentId = { apptId -> if (apptId == entity.appointmentId) entity else null },
+        save = { throw DataAccessResourceFailureException("db down") }
+      ),
+      AclChecker(ExecutionContext())
+    )
+
+    val result = adapter.handle(startedEvent(entity))
+
+    assertThat(result is Either.Left).isTrue()
+    assertThat((result as Either.Left).value).isInstanceOf(ServerError::class)
+    Unit
   }
 
   private fun authenticate(userId: String) {
@@ -111,9 +181,42 @@ class BookingPersistenceAdapterArrowContractTest {
       UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
   }
 
+  private fun readyScheduledAppointment(userId: String) = AppointmentEntity(
+    appointmentId = "a_test-appointment",
+    userId = userId,
+    workOrder = WorkOrderEmbedded(
+      service = "Oil Change",
+      status = WorkOrderStatus.READY,
+      notes = "ready"
+    ),
+    scheduledTime = LocalDateTime.now(),
+    duration = 30,
+    status = AppointmentStatus.SCHEDULED
+  )
+
+  private fun startedEvent(entity: AppointmentEntity) = AppointmentStartedEvent(
+    appointmentDto = AppointmentDtoOut(
+      id = entity.appointmentId,
+      userId = entity.userId,
+      duration = entity.duration,
+      scheduledTime = entity.scheduledTime,
+      workOrderDto = WorkOrderDtoOut(
+        service = entity.workOrder.service,
+        status = WorkOrderStatus.IN_PROGRESS,
+        notes = null,
+        startTime = LocalDateTime.now(),
+        completeTime = null,
+        paymentTime = null,
+        cancelTime = null,
+      ),
+      status = AppointmentStatus.IN_PROGRESS
+    )
+  )
+
   private fun appointmentRepository(
     findByUserId: (String, Pageable) -> List<AppointmentEntity> = { _, _ -> emptyList() },
-    findByAppointmentId: (String) -> AppointmentEntity? = { null }
+    findByAppointmentId: (String) -> AppointmentEntity? = { null },
+    save: (AppointmentEntity) -> AppointmentEntity = { it }
   ): AppointmentRepository =
     Proxy.newProxyInstance(
       AppointmentRepository::class.java.classLoader,
@@ -123,7 +226,7 @@ class BookingPersistenceAdapterArrowContractTest {
         "findByUserId" -> findByUserId(args[0] as String, args[1] as Pageable)
         "findByAppointmentId" -> findByAppointmentId(args[0] as String)
         "findByScheduledTimeBetween" -> emptyList<AppointmentEntity>()
-        "save" -> args[0]
+        "save" -> save(args[0] as AppointmentEntity)
         "toString" -> "AppointmentRepositoryProxy"
         "hashCode" -> System.identityHashCode(this)
         "equals" -> false

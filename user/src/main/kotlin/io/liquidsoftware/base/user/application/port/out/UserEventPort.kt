@@ -8,6 +8,6 @@ import io.liquidsoftware.common.workflow.WorkflowError
 interface UserEventPort {
 
   suspend fun handle(event: UserRegisteredEvent): Either<WorkflowError, UserRegisteredEvent>
-  suspend fun <T: UserEvent> handle(event: T): T
+  suspend fun <T: UserEvent> handle(event: T): Either<WorkflowError, T>
 
 }
