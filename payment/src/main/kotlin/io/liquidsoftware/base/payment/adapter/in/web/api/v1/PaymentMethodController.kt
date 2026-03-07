@@ -4,6 +4,7 @@ import io.liquidsoftware.base.payment.adapter.`in`.web.V1PaymentPaths
 import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodDtoIn
+import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.web.ControllerSupport
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import org.springframework.http.ResponseEntity
@@ -15,13 +16,18 @@ data class PaymentMethodError(val error:String)
 
 @RestController
 class PaymentMethodController(
+  private val ec: ExecutionContext,
   private val dispatcher: WorkflowDispatcher
 ) : ControllerSupport {
 
   @PostMapping(value = [V1PaymentPaths.PAYMENT_METHODS])
   suspend fun addPaymentMethod(@RequestBody paymentMethod: PaymentMethodDtoIn) =
     dispatcher.dispatch<PaymentMethodAddedEvent>(
-      AddPaymentMethodCommand(paymentMethod)
+      AddPaymentMethodCommand(
+        userId = ec.getCurrentUser().id,
+        stripePaymentMethodId = paymentMethod.stripePaymentMethodId,
+        lastFour = paymentMethod.lastFour
+      )
     )
       .throwIfSpringError()
       .fold(

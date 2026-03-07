@@ -25,9 +25,9 @@ internal class AddPaymentMethodWorkflow(
   override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent {
     val paymentMethod = either {
       ActivePaymentMethod.of(
-        userId = request.paymentMethod.userId,
-        stripePaymentMethodId = request.paymentMethod.stripePaymentMethodId,
-        lastFour = request.paymentMethod.lastFour
+        userId = request.userId,
+        stripePaymentMethodId = request.stripePaymentMethodId,
+        lastFour = request.lastFour
       )
     }.bindValidation()
 

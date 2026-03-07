@@ -1,7 +1,6 @@
 package io.liquidsoftware.base.payment.application.port.`in`
 
 data class PaymentMethodDtoIn(
-  val userId: String,
   val stripePaymentMethodId: String,
   val lastFour: String
 )

@@ -102,7 +102,7 @@ class AppointmentTest : BaseUserWebTest() {
   @Test
   @Order(6)
   fun testPayment() {
-    val pmIn = PaymentMethodDtoIn(appt?.userId!!, "ABCD", "1234")
+    val pmIn = PaymentMethodDtoIn("ABCD", "1234")
     val pmOut = post("/api/v1/payment-methods", pmIn, accessToken)
       .then()
       .statusCode(200)
