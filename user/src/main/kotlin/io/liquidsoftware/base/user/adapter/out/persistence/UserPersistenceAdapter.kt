@@ -1,8 +1,9 @@
 package io.liquidsoftware.base.user.adapter.out.persistence
 
-import arrow.core.identity
-import arrow.core.raise.effect
-import arrow.core.raise.fold
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.raise.either
+import arrow.core.right
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
@@ -13,11 +14,18 @@ import io.liquidsoftware.base.user.domain.AdminUser
 import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.User
-import io.liquidsoftware.common.errors.ErrorHandling.ERROR_HANDLER
+import arrow.core.raise.context.raise
+import io.liquidsoftware.common.ext.toWorkflowError
+import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.Permission
+import io.liquidsoftware.common.types.ValidationError
+import io.liquidsoftware.common.types.ValidationErrors
+import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowValidationError
+import arrow.core.toNonEmptyListOrNull
 
 internal class UserPersistenceAdapter(
   private val userRepository: UserRepository,
@@ -26,41 +34,42 @@ internal class UserPersistenceAdapter(
 
   private val logger by LoggerDelegate()
 
-  override suspend fun findUserById(userId: String): User? = withContextIO {
-    kotlin.runCatching {
-      userRepository.findByUserId(userId)
-        ?.toUser()
-        ?.also { ac.checkPermission(it.acl(), Permission.READ)}
-    }.getOrNull()
-  }
+  override suspend fun findUserById(userId: String): Either<WorkflowError, User?> =
+    findUser { userRepository.findByUserId(userId) }
 
-  override suspend fun findUserByMsisdn(msisdn: String) : User? = withContextIO {
-    runCatching {
-      userRepository.findByMsisdn(msisdn)
-        ?.toUser()
-        ?.also { ac.checkPermission(it.acl(), Permission.READ)}
-    }.getOrNull()
-  }
+  override suspend fun findUserByMsisdn(msisdn: String): Either<WorkflowError, User?> =
+    findUser { userRepository.findByMsisdn(msisdn) }
 
-  override suspend fun findUserByEmail(email: String) : User? = withContextIO {
-    runCatching {
-      userRepository.findByEmail(email)
-        ?.toUser()
-        ?.also { ac.checkPermission(it.acl(), Permission.READ)}
+  override suspend fun findUserByEmail(email: String): Either<WorkflowError, User?> =
+    findUser { userRepository.findByEmail(email) }
+
+  private suspend fun saveNewUser(user: UserEntity): Either<WorkflowError, User> = withContextIO {
+    either {
+      val domainUser = user.toUser().fold(
+        { raise(WorkflowValidationError(it)) },
+        { it }
+      )
+      workflowBoundary {
+        ac.checkPermission(domainUser.acl(), Permission.MANAGE)
+      }
+      workflowBoundary {
+        userRepository.save(user)
+      }
+        .toUser()
+        .fold(
+          { raise(WorkflowValidationError(it)) },
+          { it }
+        )
     }
-      .getOrNull()
   }
 
-  private suspend fun saveNewUser(user: UserEntity): User = withContextIO {
-    ac.checkPermission(user.toUser().acl(), Permission.MANAGE)
-    userRepository.save(user)
-      .toUser()
-  }
-
-  override suspend fun handle(event: UserRegisteredEvent): UserRegisteredEvent = withContextIO {
-    saveNewUser(event.toEntity())
-    event
-  }
+  override suspend fun handle(event: UserRegisteredEvent): Either<WorkflowError, UserRegisteredEvent> =
+    withContextIO {
+      saveNewUser(event.toEntity()).fold(
+        { it.left() },
+        { event.right() }
+      )
+    }
 
   override suspend fun <T : UserEvent> handle(event: T): T = withContextIO {
     userRepository.findByUserId(event.userDto.id)
@@ -70,26 +79,50 @@ internal class UserPersistenceAdapter(
     event
   }
 
-  private suspend fun UserEntity.toUser() : User {
+  private suspend fun findUser(load: () -> UserEntity?): Either<WorkflowError, User?> =
+    withContextIO {
+      either {
+        val entity = workflowBoundary {
+          load()
+        } ?: return@either null
+        val user = entity.toUser().fold(
+          { raise(WorkflowValidationError(it)) },
+          { it }
+        )
+        workflowBoundary {
+          ac.checkPermission(user.acl(), Permission.READ)
+        }
+        user
+      }
+    }
+
+  private fun UserEntity.toUser(): Either<ValidationErrors, User> {
     val entity = this
     return when {
 
-      !this.active -> effect {
-        DisabledUser.of(entity.userId, entity.msisdn, entity.email, entity.password, entity.roles.first())
-      }.fold(ERROR_HANDLER, ::identity)
+      !this.active -> either {
+        DisabledUser.of(
+          entity.userId,
+          entity.msisdn,
+          entity.email,
+          entity.password,
+          entity.roles.firstOrNull()
+            ?: raise(validationErrors("Disabled user ${entity.userId} is missing a role"))
+        )
+      }
 
-      Role.ROLE_USER in this.roles -> effect {
+      Role.ROLE_USER in this.roles -> either {
         ActiveUser.of(entity.userId, entity.msisdn, entity.email, entity.password)
-      }.fold(ERROR_HANDLER, ::identity)
+      }
 
-      Role.ROLE_ADMIN in this.roles -> effect {
+      Role.ROLE_ADMIN in this.roles -> either {
         AdminUser.of(entity.userId, entity.msisdn, entity.email, entity.password)
-      }.fold(ERROR_HANDLER, ::identity)
+      }
 
       else -> {
         val err = "Unknown User Type. roles=${this.roles}"
         logger.error(err)
-        throw IllegalStateException(err)
+        validationErrors(err).left()
       }
     }
   }
@@ -105,5 +138,8 @@ internal class UserPersistenceAdapter(
       roles = this.userDto.roles.map { it.toRole() }.toMutableList()
     )
   }
+
+  private fun validationErrors(message: String): ValidationErrors =
+    listOf(ValidationError(message)).toNonEmptyListOrNull()!!
 
 }

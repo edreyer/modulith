@@ -2,7 +2,7 @@ package io.liquidsoftware.base.booking.domain
 
 import arrow.core.Some
 import arrow.core.raise.Raise
-import io.liquidsoftware.common.ext.bind
+import arrow.core.raise.context.bind
 import io.liquidsoftware.common.types.NonEmptyString
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.types.ensure

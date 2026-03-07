@@ -12,8 +12,9 @@ import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.application.service.StripeService
 import io.liquidsoftware.base.payment.domain.Payment
 import io.liquidsoftware.base.user.UserId
-import io.liquidsoftware.common.ext.ensureNotNull
-import io.liquidsoftware.common.ext.getOrRaise
+import arrow.core.raise.context.bind
+import io.liquidsoftware.common.ext.bindValidation
+import arrow.core.raise.context.ensureNotNull
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -31,13 +32,13 @@ internal class MakePaymentWorkflow(
 
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: MakePaymentCommand): PaymentMadeEvent {
-    val pmId = either { PaymentMethodId.of(request.paymentMethodId) }.getOrRaise()
-    val userId = either { UserId.of(request.userId) }.getOrRaise()
-    val pm = ensureNotNull(findPaymentMethodPort.findByPaymentMethodId(pmId, userId)) {
+    val pmId = either { PaymentMethodId.of(request.paymentMethodId) }.bindValidation()
+    val userId = either { UserId.of(request.userId) }.bindValidation()
+    val pm = ensureNotNull(findPaymentMethodPort.findByPaymentMethodId(pmId, userId).bind()) {
       PaymentMethodNotFoundError(request.paymentMethodId)
     }
 
-    return stripeService.makePayment(pm, request.amount)
+    val payment = stripeService.makePayment(pm, request.amount)
       .let {
         either {
           Payment.of(
@@ -45,8 +46,9 @@ internal class MakePaymentWorkflow(
             userId = request.userId,
             amount = it.amount
           )
-        }.getOrRaise()
+        }.bindValidation()
       }
-      .let { paymentEventPort.handle(PaymentMadeEvent(it.toDto())) }
+
+    return paymentEventPort.handle(PaymentMadeEvent(payment.toDto()))
   }
 }

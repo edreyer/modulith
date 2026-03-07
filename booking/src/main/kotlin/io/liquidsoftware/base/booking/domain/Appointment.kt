@@ -6,7 +6,7 @@ import io.liquidsoftware.base.booking.AppointmentId
 import io.liquidsoftware.base.booking.BookingNamespaces
 import io.liquidsoftware.base.payment.PaymentId
 import io.liquidsoftware.base.user.UserId
-import io.liquidsoftware.common.ext.bind
+import arrow.core.raise.context.bind
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole

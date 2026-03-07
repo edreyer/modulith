@@ -11,16 +11,16 @@ import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
-import io.liquidsoftware.common.ext.bind
-import io.liquidsoftware.common.ext.ensureNotNull
-import io.liquidsoftware.common.ext.raise
+import arrow.core.raise.context.bind
+import io.liquidsoftware.common.ext.bindValidation
+import arrow.core.raise.context.ensureNotNull
+import arrow.core.raise.context.raise
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
-import io.liquidsoftware.common.workflow.WorkflowValidationError
 import org.springframework.stereotype.Component
 
 @Component
@@ -38,24 +38,26 @@ internal class PayAppointmentWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: PayAppointmentCommand): AppointmentPaidEvent {
     // 1) Ensure appt is in correct state
-    val completeAppt = ensureNotNull(findAppointmentPort.findCompletedById(request.appointmentId)) {
+    val completeAppt = ensureNotNull(findAppointmentPort.findCompletedById(request.appointmentId).bind()) {
       AppointmentNotFoundError("Appointment(${request.appointmentId} must be Completed")
     }
 
     // 2) attempt a payment on the appt
-    return dispatcher.dispatch<PaymentMadeEvent>(MakePaymentCommand(
+    val paymentMade = dispatcher.dispatch<PaymentMadeEvent>(MakePaymentCommand(
       userId = ec.getCurrentUser().id,
       paymentMethodId = request.paymentMethodId,
       amount = completeAppt.totalDue()
     ))
-      .map { either { PaidAppointment.of(completeAppt, it.paymentDto.paymentId) }.fold(
-        { raise(WorkflowValidationError(it)) },
-        { it }
-      )}
-      .map { appointmentEventPort.handle(AppointmentPaidEvent(it.toDto())) }
       .onLeft { ex ->
         log.error("Failed to make payment on appt ${request.appointmentId}", ex)
-      }.bind()
+      }
+      .bind()
+
+    val paidAppointment = either {
+      PaidAppointment.of(completeAppt, paymentMade.paymentDto.paymentId)
+    }.bindValidation()
+
+    return appointmentEventPort.handle(AppointmentPaidEvent(paidAppointment.toDto()))
 
   }
 

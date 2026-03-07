@@ -21,11 +21,10 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <kotlin.version>2.2.0</kotlin.version>
-<!--        <kotlin.compiler.languageVersion>2.2</kotlin.compiler.languageVersion>-->
+        <kotlin.version>2.3.10</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
-        <arrow.version>2.1.2</arrow.version>
+        <arrow.version>2.2.2</arrow.version>
         <jjwt.version>0.12.5</jjwt.version>
         <assertk.version>0.28.0</assertk.version>
         <kotest.version>5.8.0</kotest.version>
@@ -277,6 +276,7 @@
                     <args>
                         <arg>-Xjsr305=strict</arg>
                         <arg>-Xcontext-parameters</arg>
+                        <arg>-Xannotation-default-target=param-property</arg>
                     </args>
                     <compilerPlugins>
                         <plugin>spring</plugin>

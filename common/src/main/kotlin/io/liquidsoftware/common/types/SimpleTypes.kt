@@ -6,11 +6,8 @@ import arrow.core.left
 import arrow.core.raise.Raise
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
-import io.liquidsoftware.common.ext.bind
-import io.liquidsoftware.common.ext.raise
+import arrow.core.raise.context.bind
 import io.liquidsoftware.common.validation.MsisdnParser
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.valiktor.ConstraintViolationException
 import org.valiktor.functions.isEmail
 import org.valiktor.functions.isNotEmpty
@@ -23,10 +20,6 @@ import org.valiktor.validate
 @JvmInline
 value class ValidationError(val error: String)
 
-@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class ValidationException(val errors: Nel<ValidationError>)
-  : RuntimeException(errors.toErrString())
-
 typealias ValidationErrorNel<T> = EitherNel<ValidationError, T>
 typealias ValidationErrors = Nel<ValidationError>
 
@@ -36,13 +29,6 @@ fun ValidationErrors.toErrStrings() =
   this.map { it.error }.toList()
 fun ValidationErrors.toErrString() =
   this.map { it.error }.joinToString { "$it\n" }
-
-// Returns the Validated value OR throws
-context(r: Raise<Throwable>)
-fun <T:SimpleType<*>> ValidationErrorNel<T>.getOrRaise(): T = this.fold(
-  { raise(ValidationException(it)) },
-  { it }
-)
 
 // Can be used as shortcuts to create simple types from Strings
 // Note that these throw,

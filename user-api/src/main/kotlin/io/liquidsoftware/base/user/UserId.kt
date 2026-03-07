@@ -2,7 +2,7 @@ package io.liquidsoftware.base.user
 
 import arrow.core.raise.Raise
 import io.liquidsoftware.base.user.UserNamespace.NAMESPACE
-import io.liquidsoftware.common.ext.bind
+import arrow.core.raise.context.bind
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.types.SimpleType
 import io.liquidsoftware.common.types.ValidationErrors

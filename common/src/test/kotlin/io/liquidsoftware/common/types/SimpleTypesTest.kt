@@ -1,8 +1,6 @@
 package io.liquidsoftware.common.types
 
-import arrow.core.raise.effect
-import arrow.core.raise.toEither
-import io.kotest.common.runBlocking
+import arrow.core.raise.either
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
@@ -11,37 +9,29 @@ class SimpleTypesTest {
 
   @Test
   fun `Test NonEmptyString`() {
-    runBlocking {
-      effect { NonEmptyString.of("good") }.toEither().isRight() shouldBe true
-      effect { NonEmptyString.of("") }.toEither().isRight() shouldBe false
-    }
+    either { NonEmptyString.of("good") }.isRight() shouldBe true
+    either { NonEmptyString.of("") }.isRight() shouldBe false
   }
 
   @Test
   fun `Test EmailAddress`() {
-    runBlocking {
-      effect { EmailAddress.of("erik@curbee.com") }.toEither().isRight() shouldBe true
-      effect { EmailAddress.of("erik@curbee") }.toEither().isRight() shouldBe false
-      effect { EmailAddress.of("") }.toEither().isRight() shouldBe false
-    }
+    either { EmailAddress.of("erik@liquidsoftware.io") }.isRight() shouldBe true
+    either { EmailAddress.of("erik@liquidsoftware") }.isRight() shouldBe false
+    either { EmailAddress.of("") }.isRight() shouldBe false
   }
 
   @Test
   fun `Test PostalCode`() {
-    runBlocking {
-      effect { PostalCode.of("12345") }.toEither().isRight() shouldBe true
-      effect { PostalCode.of("123") }.toEither().isRight() shouldBe false
-      effect { PostalCode.of("") }.toEither().isRight() shouldBe false
-    }
+    either { PostalCode.of("12345") }.isRight() shouldBe true
+    either { PostalCode.of("123") }.isRight() shouldBe false
+    either { PostalCode.of("") }.isRight() shouldBe false
   }
 
   @Test
   fun `Test Msisdn`() {
-    runBlocking {
-      effect { Msisdn.of("+15125551212") }.toEither().isRight() shouldBe true
-      effect { Msisdn.of("5125551212") }.toEither().isRight() shouldBe true
-      effect { Msisdn.of("5551212") }.toEither().isRight() shouldBe false
-    }
+    either { Msisdn.of("+15125551212") }.isRight() shouldBe true
+    either { Msisdn.of("5125551212") }.isRight() shouldBe true
+    either { Msisdn.of("5551212") }.isRight() shouldBe false
   }
 
 }

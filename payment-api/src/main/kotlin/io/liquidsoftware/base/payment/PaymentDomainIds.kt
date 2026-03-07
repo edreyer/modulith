@@ -3,7 +3,7 @@ package io.liquidsoftware.base.payment
 import arrow.core.raise.Raise
 import io.liquidsoftware.base.payment.PaymentNamespaces.PAYMENT_METHOD_NS
 import io.liquidsoftware.base.payment.PaymentNamespaces.PAYMENT_NS
-import io.liquidsoftware.common.ext.bind
+import arrow.core.raise.context.bind
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.types.SimpleType
 import io.liquidsoftware.common.types.ValidationErrors

@@ -6,6 +6,7 @@ import io.liquidsoftware.base.booking.application.port.`in`.FetchUserAppointment
 import io.liquidsoftware.base.booking.application.port.`in`.UserAppointmentsFetchedEvent
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.CancelledAppointment
+import arrow.core.raise.context.bind
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -21,7 +22,7 @@ internal class FetchUserAppointmentsWorkflow(
 
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: FetchUserAppointmentsQuery): UserAppointmentsFetchedEvent =
-    findApptsPort.findByUserId(request.userId, PageRequest.of(request.page, request.size))
+    findApptsPort.findByUserId(request.userId, PageRequest.of(request.page, request.size)).bind()
       .filter { it !is CancelledAppointment }
       .map { it.toDto() }
       .let { UserAppointmentsFetchedEvent(it) }

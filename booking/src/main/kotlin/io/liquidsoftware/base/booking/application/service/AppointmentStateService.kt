@@ -9,7 +9,7 @@ import io.liquidsoftware.base.booking.domain.CompleteAppointment
 import io.liquidsoftware.base.booking.domain.InProgressAppointment
 import io.liquidsoftware.base.booking.domain.PaidAppointment
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
-import io.liquidsoftware.common.ext.raise
+import arrow.core.raise.context.raise
 import org.springframework.stereotype.Service
 
 @Service

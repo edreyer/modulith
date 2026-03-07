@@ -8,7 +8,8 @@ import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentComm
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.InProgressAppointment
-import io.liquidsoftware.common.ext.ensureNotNull
+import arrow.core.raise.context.bind
+import arrow.core.raise.context.ensureNotNull
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -25,7 +26,7 @@ internal class StartAppointmentWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: StartAppointmentCommand): AppointmentStartedEvent {
     // business invariant we must check
-    return ensureNotNull(findAppointmentPort.findScheduledById(request.appointmentId)) {
+    return ensureNotNull(findAppointmentPort.findScheduledById(request.appointmentId).bind()) {
       AppointmentValidationError("Could not find ready Appointment to start")
     }
       .let { InProgressAppointment.of(it) }

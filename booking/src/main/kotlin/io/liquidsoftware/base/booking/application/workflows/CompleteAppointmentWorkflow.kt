@@ -9,7 +9,8 @@ import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentC
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.CompleteAppointment
-import io.liquidsoftware.common.ext.ensureNotNull
+import arrow.core.raise.context.bind
+import arrow.core.raise.context.ensureNotNull
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -26,7 +27,7 @@ internal class CompleteAppointmentWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: CompleteAppointmentCommand): AppointmentCompletedEvent {
     // business invariant we must check
-    return ensureNotNull(findAppointmentPort.findStartedById(request.appointmentId)) {
+    return ensureNotNull(findAppointmentPort.findStartedById(request.appointmentId).bind()) {
       AppointmentNotFoundError(
         "Appointment Not Found. id=${request.appointmentId}, status=${AppointmentStatus.IN_PROGRESS}"
       )

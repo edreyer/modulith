@@ -3,7 +3,7 @@ package io.liquidsoftware.base.payment.application.service
 import arrow.core.raise.Raise
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDeclinedError
 import io.liquidsoftware.base.payment.domain.PaymentMethod
-import io.liquidsoftware.common.ext.raise
+import arrow.core.raise.context.raise
 import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.stereotype.Service
 

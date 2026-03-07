@@ -39,6 +39,13 @@ class FindUserTest : BaseWebTest() {
   }
 
   @Test
+  fun testFindOtherExistingUserByEmailIsUnauthorized() {
+    this.get("/api/v1/users/email/$notAuthorizedEmail", accessToken)
+      .then()
+      .statusCode(401)
+  }
+
+  @Test
   fun testFindNotMyUserByEmail() {
     this.get("/api/v1/users/email/notMyEmail@foo.com", accessToken)
       .then()

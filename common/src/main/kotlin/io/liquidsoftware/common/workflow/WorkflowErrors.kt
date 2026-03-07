@@ -7,6 +7,9 @@ import org.springframework.web.bind.annotation.ResponseStatus
 
 data class MissingHandler(override val message: String) : WorkflowError(message)
 
+@ResponseStatus(code = HttpStatus.UNAUTHORIZED)
+data class UnauthorizedWorkflowError(override val message: String) : WorkflowError(message)
+
 @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
 data class ServerError(val msg: String) : WorkflowError(msg) {
   override val message = "Server Error: $msg"

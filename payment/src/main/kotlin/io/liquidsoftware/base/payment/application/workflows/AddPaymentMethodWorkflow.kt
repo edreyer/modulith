@@ -7,7 +7,7 @@ import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodComm
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
-import io.liquidsoftware.common.ext.getOrRaise
+import io.liquidsoftware.common.ext.bindValidation
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -22,15 +22,14 @@ internal class AddPaymentMethodWorkflow(
 
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent {
-    return either {
+    val paymentMethod = either {
       ActivePaymentMethod.of(
         userId = request.paymentMethod.userId,
         stripePaymentMethodId = request.paymentMethod.stripePaymentMethodId,
         lastFour = request.paymentMethod.lastFour
       )
-    }
-      .getOrRaise()
-      .let { paymentEventPort.handle(PaymentMethodAddedEvent(it.toDto())) }
-    }
-}
+    }.bindValidation()
 
+    return paymentEventPort.handle(PaymentMethodAddedEvent(paymentMethod.toDto()))
+  }
+}

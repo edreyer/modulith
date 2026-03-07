@@ -6,7 +6,6 @@ import assertk.assertions.isFalse
 import assertk.assertions.isTrue
 import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
-import io.liquidsoftware.common.ext.toResult
 import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import kotlinx.coroutines.runBlocking
@@ -44,9 +43,10 @@ class UserEnabledTest(
       .statusCode(200)
 
     val enabledUser = runAsSuperUser {
-      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail)).toResult()
+      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
+        .getOrElse { throw it }
+        .userDto
     }
-      .getOrThrow().userDto
     assertThat(enabledUser.active).isTrue()
 
   }

@@ -1,7 +1,9 @@
 package io.liquidsoftware.base.payment.adapter.out.persistence
 
-import arrow.core.identity
+import arrow.core.Either
+import arrow.core.left
 import arrow.core.raise.either
+import arrow.core.right
 import io.liquidsoftware.base.payment.PaymentMethodId
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDtoOut
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentEvent
@@ -14,24 +16,29 @@ import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
 import io.liquidsoftware.base.payment.domain.PaymentMethod
 import io.liquidsoftware.base.user.UserId
-import io.liquidsoftware.common.errors.ErrorHandling
-import io.liquidsoftware.common.ext.className
 import io.liquidsoftware.common.ext.withContextIO
-import io.liquidsoftware.common.logging.LoggerDelegate
+import io.liquidsoftware.common.types.ValidationErrors
+import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowValidationError
 
 internal class PaymentPersistenceAdapter(
   private val paymentMethodRepository: PaymentMethodRepository,
   private val paymentRepository: PaymentRepository
 ) : FindPaymentMethodPort, PaymentEventPort {
 
-  private val log by LoggerDelegate()
-
   override suspend fun findByPaymentMethodId(
-    paymentMethodId: PaymentMethodId, userId: UserId): PaymentMethod? =
+    paymentMethodId: PaymentMethodId,
+    userId: UserId
+  ): Either<WorkflowError, PaymentMethod?> =
     withContextIO {
-     paymentMethodRepository
-       .findByPaymentMethodIdAndUserId(paymentMethodId.value, userId.value)
-       ?.toPaymentMethod()
+      paymentMethodRepository
+        .findByPaymentMethodIdAndUserId(paymentMethodId.value, userId.value)
+        ?.toPaymentMethod()
+        ?.fold(
+          { WorkflowValidationError(it).left() },
+          { it.right() }
+        )
+        ?: null.right()
     }
 
   override suspend fun <T : PaymentMethodEvent> handle(event: T): T = withContextIO {
@@ -40,7 +47,6 @@ internal class PaymentPersistenceAdapter(
         paymentMethodRepository.save(event.paymentMethodDto.toEntity())
         event
       }
-      else -> throw IllegalStateException("Unknown event type: ${event.className()}")
     }
   }
 
@@ -50,7 +56,6 @@ internal class PaymentPersistenceAdapter(
         paymentRepository.save(event.paymentDto.toEntity())
         event
       }
-      else -> throw IllegalStateException("Unknown event type: ${event.className()}")
     }
   }
 
@@ -68,7 +73,7 @@ internal class PaymentPersistenceAdapter(
     amount = this.amount
   )
 
-  private fun PaymentMethodEntity.toPaymentMethod(): PaymentMethod {
+  private fun PaymentMethodEntity.toPaymentMethod(): Either<ValidationErrors, PaymentMethod> {
     val pmEntity = this
     return either {
       ActivePaymentMethod.of(
@@ -78,7 +83,6 @@ internal class PaymentPersistenceAdapter(
         pmEntity.lastFour
       )
     }
-      .fold(ErrorHandling.ERROR_HANDLER, ::identity)
   }
 
 }

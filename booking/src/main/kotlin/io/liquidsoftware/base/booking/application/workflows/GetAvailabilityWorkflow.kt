@@ -6,7 +6,8 @@ import io.liquidsoftware.base.booking.application.port.`in`.DateInPastError
 import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AvailabilityService
-import io.liquidsoftware.common.ext.ensure
+import arrow.core.raise.context.bind
+import arrow.core.raise.context.ensure
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -24,7 +25,7 @@ internal class GetAvailabilityWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
     ensure(request.date.isAfter(LocalDate.now())) { DateInPastError("${request.date} is in the past") }
-    return findApptsPort.findAll(request.date)
+    return findApptsPort.findAll(request.date).bind()
       .let { availabilityService.getAvailability(it) }
       .let { AvailabilityRetrievedEvent(it) }
   }

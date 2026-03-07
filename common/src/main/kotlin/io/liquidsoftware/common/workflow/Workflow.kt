@@ -4,9 +4,8 @@ import arrow.core.getOrElse
 import arrow.core.raise.Raise
 import arrow.core.raise.either
 import io.liquidsoftware.common.ext.className
-import io.liquidsoftware.common.ext.raise
+import arrow.core.raise.context.raise
 import io.liquidsoftware.common.logging.LoggerDelegate
-import io.liquidsoftware.common.types.ValidationException
 import java.time.Instant
 import java.util.UUID
 
@@ -43,12 +42,7 @@ abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
   final override suspend fun invoke(request: R): E {
     log.debug("Executing workflow ${this.className()} with request $request")
     return either {
-      try {
-        execute(request)
-      } catch(ex: ValidationException) {
-        log.error("Workflow Error on request: $request", ex)
-        raise(WorkflowValidationError(ex.errors))
-      }
+      execute(request)
     }
       .getOrElse {
         log.error("Workflow Error on request: $request", it)
@@ -59,5 +53,4 @@ abstract class BaseSafeWorkflow<R: Request, E : Event> : SafeWorkflow<R, E> {
   context(_: Raise<WorkflowError>)
   abstract suspend fun execute(request: R): E
 }
-
 

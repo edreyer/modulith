@@ -6,7 +6,8 @@ import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
-import io.liquidsoftware.common.ext.raise
+import arrow.core.raise.context.bind
+import arrow.core.raise.context.raise
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -21,7 +22,7 @@ internal class FindUserByEmailWorkflow(
 
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: FindUserByEmailQuery): UserFoundEvent =
-    findUserPort.findUserByEmail(request.email)
+    findUserPort.findUserByEmail(request.email).bind()
       ?.let { UserFoundEvent(it.toUserDto()) }
       ?: raise(UserNotFoundError(request.email))
 

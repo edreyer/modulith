@@ -1,7 +1,9 @@
 package io.liquidsoftware.base.booking.adapter.out.persistence
 
-import arrow.core.identity
+import arrow.core.Either
+import arrow.core.left
 import arrow.core.raise.either
+import arrow.core.right
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStatus
@@ -21,67 +23,119 @@ import io.liquidsoftware.base.booking.domain.PaidWorkOrder
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
 import io.liquidsoftware.base.booking.domain.WorkOrder
-import io.liquidsoftware.common.errors.ErrorHandling.ERROR_HANDLER
+import arrow.core.raise.context.raise
+import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.ext.withContextIO
-import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.AclRole
 import io.liquidsoftware.common.security.acl.Permission
+import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
+import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.workflow.WorkflowValidationError
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
+import arrow.core.toNonEmptyListOrNull
 
 internal class BookingPersistenceAdapter(
   private val apptRepository: AppointmentRepository,
   private val ac: AclChecker
 ) : FindAppointmentPort, AppointmentEventPort {
 
-  private val logger by LoggerDelegate()
-
-  override suspend fun findById(apptId: String): Appointment? =
+  override suspend fun findById(apptId: String): Either<WorkflowError, Appointment?> =
     withContextIO {
-      runCatching {
-        apptRepository.findByAppointmentId(apptId)
-          ?.toAppointment()
-          ?.also { ac.checkPermission(it.acl(), Permission.READ) }
-      }.getOrNull()
+      either {
+        val entity = workflowBoundary {
+          apptRepository.findByAppointmentId(apptId)
+        } ?: return@either null
+        val appointment = entity.toAppointment().fold(
+          { raise(WorkflowValidationError(it)) },
+          { it }
+        )
+        workflowBoundary {
+          ac.checkPermission(appointment.acl(), Permission.READ)
+        }
+        appointment
+      }
     }
 
+  override suspend fun findScheduledById(apptId: String): Either<WorkflowError, ScheduledAppointment?> =
+    findById(apptId).fold(
+      { it.left() },
+      { appointment ->
+        appointment
+          ?.let { if (it is ScheduledAppointment) it else null }
+          .right()
+      }
+    )
 
-  override suspend fun findScheduledById(apptId: String): ScheduledAppointment? =
-    findById(apptId)
-      ?.let { if (it !is ScheduledAppointment) null else it }
+  override suspend fun findStartedById(apptId: String): Either<WorkflowError, InProgressAppointment?> =
+    findById(apptId).fold(
+      { it.left() },
+      { appointment ->
+        appointment
+          ?.let { if (it is InProgressAppointment) it else null }
+          .right()
+      }
+    )
 
-  override suspend fun findStartedById(apptId: String): InProgressAppointment? =
-    findById(apptId)
-      ?.let { if (it !is InProgressAppointment) null else it }
+  override suspend fun findCompletedById(apptId: String): Either<WorkflowError, CompleteAppointment?> =
+    findById(apptId).fold(
+      { it.left() },
+      { appointment ->
+        appointment
+          ?.let { if (it is CompleteAppointment) it else null }
+          .right()
+      }
+    )
 
-  override suspend fun findCompletedById(apptId: String): CompleteAppointment? =
-    findById(apptId)
-      ?.let { if (it !is CompleteAppointment) null else it }
-
-  override suspend fun findByUserId(userId: String, pageable: Pageable): List<Appointment> =
+  override suspend fun findByUserId(
+    userId: String,
+    pageable: Pageable
+  ): Either<WorkflowError, List<Appointment>> =
     withContextIO {
-      apptRepository.findByUserId(userId, pageable)
-        .map { it.toAppointment() }
-        .filter { appt -> runCatching {
-          ac.checkPermission(appt.acl(), Permission.READ)
+      either {
+        workflowBoundary {
+          apptRepository.findByUserId(userId, pageable)
         }
-          .fold({ true }, { false })
-        }
+          .map { entity ->
+            entity.toAppointment()
+              .fold(
+                { raise(WorkflowValidationError(it)) },
+                { it }
+              )
+          }
+          .onEach { appointment ->
+            workflowBoundary {
+              ac.checkPermission(appointment.acl(), Permission.READ)
+            }
+          }
+      }
     }
 
-  override suspend fun findAll(date: LocalDate): List<Appointment> =
+  override suspend fun findAll(date: LocalDate): Either<WorkflowError, List<Appointment>> =
     withContextIO {
-      apptRepository.findByScheduledTimeBetween(date.atStartOfDay(), date.atStartOfDay().plusDays(1))
-        .map {
-          it.toAppointment()
-            .also { appt -> ac.checkPermission(appt.acl(), Permission.READ)}
+      either {
+        workflowBoundary {
+          apptRepository.findByScheduledTimeBetween(date.atStartOfDay(), date.atStartOfDay().plusDays(1))
         }
+          .map { entity ->
+            entity.toAppointment()
+              .fold(
+                { raise(WorkflowValidationError(it)) },
+                { it }
+              )
+              .also { appointment ->
+                workflowBoundary {
+                  ac.checkPermission(appointment.acl(), Permission.READ)
+                }
+              }
+          }
+      }
     }
 
-  override suspend fun <T: AppointmentEvent> handle(event: T): T = withContextIO {
+  override suspend fun <T : AppointmentEvent> handle(event: T): T = withContextIO {
     when (event.appointmentDto.status) {
       AppointmentStatus.SCHEDULED,
       AppointmentStatus.IN_PROGRESS,
@@ -90,14 +144,11 @@ internal class BookingPersistenceAdapter(
         apptRepository.findByAppointmentId(event.appointmentDto.id)
           ?.also { ac.checkPermission(it.acl(), Permission.WRITE) }
           ?.handle(event)
-          ?.let {
-            apptRepository.save(it)
-          }
+          ?.let { apptRepository.save(it) }
           ?: apptRepository.save(event.appointmentDto.toEntity())
         event
       }
-      else -> {
-        // TODO: Do we need this 'else' branch? Delete if not
+      AppointmentStatus.CANCELLED -> {
         apptRepository.findByAppointmentId(event.appointmentDto.id)
           ?.also { ac.checkPermission(Acl.of(it.appointmentId, it.userId, AclRole.WRITER), Permission.WRITE) }
           ?.handle(event)
@@ -107,62 +158,107 @@ internal class BookingPersistenceAdapter(
     }
   }
 
-  private fun AppointmentEntity.toAppointment(): Appointment {
+  private fun AppointmentEntity.toAppointment(): Either<ValidationErrors, Appointment> {
     val entity = this
-    return when (this.status) {
-      AppointmentStatus.SCHEDULED -> either<ValidationErrors, Appointment> { ScheduledAppointment.of(
-        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
-        entity.workOrder.toWorkOrder() as ReadyWorkOrder
-        )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.IN_PROGRESS -> either<ValidationErrors, Appointment> { InProgressAppointment.of(
-        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
-          workOrder.toWorkOrder() as InProgressWorkOrder
-        )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.COMPLETE -> either<ValidationErrors, Appointment> { CompleteAppointment.of(
-        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration,
-        workOrder.toWorkOrder() as CompleteWorkOrder, entity.completeTime!!
-      )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.PAID -> either<ValidationErrors, Appointment> { PaidAppointment.of(
-        entity.appointmentId, entity.paymentId!!, entity.userId, entity.scheduledTime, entity.duration,
-        workOrder.toWorkOrder() as PaidWorkOrder, entity.completeTime!!
-      )}.fold(ERROR_HANDLER, ::identity)
-      AppointmentStatus.CANCELLED -> either<ValidationErrors, Appointment> { CancelledAppointment.of(
-        entity.appointmentId, entity.userId, entity.scheduledTime, entity.duration, workOrder.toWorkOrder(), entity.cancelTime!!
-      )}.fold(ERROR_HANDLER, ::identity)
+    return when (status) {
+      AppointmentStatus.SCHEDULED -> either<ValidationErrors, Appointment> {
+        ScheduledAppointment.of(
+          entity.appointmentId,
+          entity.userId,
+          entity.scheduledTime,
+          entity.duration,
+          entity.workOrder.toWorkOrder().bind().asReadyWorkOrder(entity).bind()
+        )
+      }
+      AppointmentStatus.IN_PROGRESS -> either<ValidationErrors, Appointment> {
+        InProgressAppointment.of(
+          entity.appointmentId,
+          entity.userId,
+          entity.scheduledTime,
+          entity.duration,
+          entity.workOrder.toWorkOrder().bind().asInProgressWorkOrder(entity).bind()
+        )
+      }
+      AppointmentStatus.COMPLETE -> either<ValidationErrors, Appointment> {
+        CompleteAppointment.of(
+          entity.appointmentId,
+          entity.userId,
+          entity.scheduledTime,
+          entity.duration,
+          entity.workOrder.toWorkOrder().bind().asCompleteWorkOrder(entity).bind(),
+          entity.requiredCompleteTime().bind()
+        )
+      }
+      AppointmentStatus.PAID -> either<ValidationErrors, Appointment> {
+        PaidAppointment.of(
+          entity.appointmentId,
+          entity.requiredPaymentId().bind(),
+          entity.userId,
+          entity.scheduledTime,
+          entity.duration,
+          entity.workOrder.toWorkOrder().bind().asPaidWorkOrder(entity).bind(),
+          entity.requiredCompleteTime().bind()
+        )
+      }
+      AppointmentStatus.CANCELLED -> either<ValidationErrors, Appointment> {
+        CancelledAppointment.of(
+          entity.appointmentId,
+          entity.userId,
+          entity.scheduledTime,
+          entity.duration,
+          entity.workOrder.toWorkOrder().bind(),
+          entity.requiredCancelTime().bind()
+        )
+      }
     }
   }
 
   private fun AppointmentDtoOut.toEntity(): AppointmentEntity =
     AppointmentEntity(
-        appointmentId = id,
-        userId = this.userId,
-        duration = this.duration,
-        workOrder = this.workOrderDto.toEntity(),
-        status = this.status,
-        scheduledTime = this.scheduledTime,
-        completeTime = this.completeTime,
-        paymentId = this.paymentId,
-        cancelTime = this.cancelTime
+      appointmentId = id,
+      userId = this.userId,
+      duration = this.duration,
+      workOrder = this.workOrderDto.toEntity(),
+      status = this.status,
+      scheduledTime = this.scheduledTime,
+      completeTime = this.completeTime,
+      paymentId = this.paymentId,
+      cancelTime = this.cancelTime
     )
 
-
-  private fun WorkOrderEmbedded.toWorkOrder(): WorkOrder {
+  private fun WorkOrderEmbedded.toWorkOrder(): Either<ValidationErrors, WorkOrder> {
     val wo = this
-    return when (this.status) {
-      WorkOrderStatus.READY -> either { ReadyWorkOrder.of(wo.service, wo.notes) }
-        .fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.IN_PROGRESS -> either { InProgressWorkOrder.of(
-        wo.service, wo.startTime!!
-      )}.fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.COMPLETE -> either { CompleteWorkOrder.of(
-        wo.service, wo.startTime!!, wo.completeTime!!, wo.notes!!
-      )}.fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.PAID -> either { PaidWorkOrder.of(
-        wo.service, wo.startTime!!, wo.completeTime!!, wo.paymentTime!!, wo.notes!!
-      )}.fold(ERROR_HANDLER, ::identity)
-      WorkOrderStatus.CANCELLED -> either { CancelledWorkOrder.of(
-        wo.service, wo.cancelTime!!, wo.notes!!
-      )}.fold(ERROR_HANDLER, ::identity)
+    return when (status) {
+      WorkOrderStatus.READY -> either<ValidationErrors, WorkOrder> {
+        ReadyWorkOrder.of(wo.service, wo.notes)
+      }
+      WorkOrderStatus.IN_PROGRESS -> either<ValidationErrors, WorkOrder> {
+        InProgressWorkOrder.of(wo.service, wo.requiredStartTime().bind())
+      }
+      WorkOrderStatus.COMPLETE -> either<ValidationErrors, WorkOrder> {
+        CompleteWorkOrder.of(
+          wo.service,
+          wo.requiredStartTime().bind(),
+          wo.requiredCompleteTime().bind(),
+          wo.requiredNotes().bind()
+        )
+      }
+      WorkOrderStatus.PAID -> either<ValidationErrors, WorkOrder> {
+        PaidWorkOrder.of(
+          wo.service,
+          wo.requiredStartTime().bind(),
+          wo.requiredCompleteTime().bind(),
+          wo.requiredPaymentTime().bind(),
+          wo.requiredNotes().bind()
+        )
+      }
+      WorkOrderStatus.CANCELLED -> either<ValidationErrors, WorkOrder> {
+        CancelledWorkOrder.of(
+          wo.service,
+          wo.requiredCancelTime().bind(),
+          wo.requiredNotes().bind()
+        )
+      }
     }
   }
 
@@ -176,4 +272,57 @@ internal class BookingPersistenceAdapter(
     cancelTime = this.cancelTime
   )
 
+  private fun AppointmentEntity.requiredCompleteTime() =
+    completeTime.required("completeTime", "Appointment($appointmentId) is $status")
+
+  private fun AppointmentEntity.requiredPaymentId() =
+    paymentId.required("paymentId", "Appointment($appointmentId) is $status")
+
+  private fun AppointmentEntity.requiredCancelTime() =
+    cancelTime.required("cancelTime", "Appointment($appointmentId) is $status")
+
+  private fun WorkOrderEmbedded.requiredStartTime() =
+    startTime.required("startTime", "WorkOrder($service) is $status")
+
+  private fun WorkOrderEmbedded.requiredCompleteTime() =
+    completeTime.required("completeTime", "WorkOrder($service) is $status")
+
+  private fun WorkOrderEmbedded.requiredPaymentTime() =
+    paymentTime.required("paymentTime", "WorkOrder($service) is $status")
+
+  private fun WorkOrderEmbedded.requiredCancelTime() =
+    cancelTime.required("cancelTime", "WorkOrder($service) is $status")
+
+  private fun WorkOrderEmbedded.requiredNotes() =
+    notes.required("notes", "WorkOrder($service) is $status")
+
+  private fun WorkOrder.asReadyWorkOrder(entity: AppointmentEntity): Either<ValidationErrors, ReadyWorkOrder> =
+    when (this) {
+      is ReadyWorkOrder -> right()
+      else -> invalidState("Appointment(${entity.appointmentId}) is ${entity.status} but work order is ${this::class.simpleName}").left()
+    }
+
+  private fun WorkOrder.asInProgressWorkOrder(entity: AppointmentEntity): Either<ValidationErrors, InProgressWorkOrder> =
+    when (this) {
+      is InProgressWorkOrder -> right()
+      else -> invalidState("Appointment(${entity.appointmentId}) is ${entity.status} but work order is ${this::class.simpleName}").left()
+    }
+
+  private fun WorkOrder.asCompleteWorkOrder(entity: AppointmentEntity): Either<ValidationErrors, CompleteWorkOrder> =
+    when (this) {
+      is CompleteWorkOrder -> right()
+      else -> invalidState("Appointment(${entity.appointmentId}) is ${entity.status} but work order is ${this::class.simpleName}").left()
+    }
+
+  private fun WorkOrder.asPaidWorkOrder(entity: AppointmentEntity): Either<ValidationErrors, PaidWorkOrder> =
+    when (this) {
+      is PaidWorkOrder -> right()
+      else -> invalidState("Appointment(${entity.appointmentId}) is ${entity.status} but work order is ${this::class.simpleName}").left()
+    }
+
+  private fun <T> T?.required(field: String, context: String): Either<ValidationErrors, T> =
+    this?.right() ?: invalidState("$context but $field is missing").left()
+
+  private fun invalidState(message: String): ValidationErrors =
+    listOf(ValidationError(message)).toNonEmptyListOrNull()!!
 }

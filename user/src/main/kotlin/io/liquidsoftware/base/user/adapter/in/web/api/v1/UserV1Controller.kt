@@ -11,6 +11,7 @@ import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEnabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
+import io.liquidsoftware.common.web.ControllerSupport
 import io.liquidsoftware.common.workflow.Query
 import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import jakarta.validation.Valid
@@ -28,10 +29,11 @@ data class RegisterUserErrorsDto(val errors: List<String>) : FindUserOutputDto()
 @RestController
 internal class UserV1Controller(
   private val dispatcher: WorkflowDispatcher
-) {
+) : ControllerSupport {
 
   private suspend fun dispatchQuery(query: Query, msgOnError: String) : ResponseEntity<FindUserOutputDto> {
     return dispatcher.dispatch<UserFoundEvent>(query)
+      .throwIfSpringError()
       .fold(
         {
           when (it) {
