@@ -49,6 +49,6 @@ internal class MakePaymentWorkflow(
         }.bindValidation()
       }
 
-    return paymentEventPort.handle(PaymentMadeEvent(payment.toDto()))
+    return paymentEventPort.handle(PaymentMadeEvent(payment.toDto())).bind()
   }
 }

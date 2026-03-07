@@ -3,7 +3,8 @@ package io.liquidsoftware.common.ext
 import arrow.core.Either
 import arrow.core.raise.either
 import com.mongodb.MongoException
-import io.liquidsoftware.common.security.UnauthorizedAccessException
+import io.liquidsoftware.common.security.acl.Permission
+import io.liquidsoftware.common.security.acl.PermissionDenied
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -18,14 +19,18 @@ import org.springframework.dao.DataAccessResourceFailureException
 class UsefulExtensionsTest {
 
   @Test
-  fun `workflowBoundary maps unauthorized exceptions to UnauthorizedWorkflowError`() = runBlocking {
-    val result = either<WorkflowError, Unit> {
-      workflowBoundary { throw UnauthorizedAccessException("denied") }
-    }
+  fun `permission denied maps to UnauthorizedWorkflowError`() {
+    val error = PermissionDenied(
+      resourceId = "appointment-1",
+      permission = Permission.WRITE,
+      subjectId = "user-1",
+    ).toWorkflowError()
 
-    val error = (result as Either.Left).value
     assertInstanceOf(UnauthorizedWorkflowError::class.java, error)
-    assertEquals("denied", error.message)
+    assertEquals(
+      "No access to: appointment-1 Permission: WRITE Subject: user-1",
+      error.message
+    )
   }
 
   @Test

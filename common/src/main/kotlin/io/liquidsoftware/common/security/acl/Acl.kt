@@ -3,7 +3,6 @@ package io.liquidsoftware.common.security.acl
 import arrow.core.raise.Raise
 import arrow.core.raise.context.ensure
 import io.liquidsoftware.common.security.ExecutionContext
-import io.liquidsoftware.common.security.UnauthorizedAccessException
 import org.springframework.stereotype.Component
 
 enum class AclRole {
@@ -61,22 +60,6 @@ class AclChecker(
   }
 
   fun currentSubject(): AccessSubject = ec.getAccessSubject()
-
-  suspend fun checkPermission(acl: Acl, permission: Permission) {
-    if (!hasPermission(acl, ec.getUserAccessKeys(), permission)) {
-      throw UnauthorizedAccessException(
-        "No access to: ${acl.resourceId} Permission: $permission"
-      )
-    }
-  }
-
-  suspend fun hasPermission(acl: Acl, access: List<String>, permission: Permission): Boolean {
-    val subject = AccessSubject(
-      userId = access.firstOrNull() ?: ExecutionContext.ANONYMOUS_USER_ID,
-      roles = access.drop(1).toSet(),
-    )
-    return hasPermission(acl, subject, permission)
-  }
 
   suspend fun hasPermission(acl: Acl, subject: AccessSubject, permission: Permission): Boolean {
     return if (subject.hasGlobalAccess()) {

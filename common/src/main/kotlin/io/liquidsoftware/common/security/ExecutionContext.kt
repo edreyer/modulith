@@ -51,17 +51,6 @@ class ExecutionContext {
         else -> throw IllegalStateException("Unexpected Authentication type")
       }}
 
-  fun getUserAccessKeys(): List<String> =
-    SecurityContextHolder.getContext().authentication
-      .let { when (it) {
-        is UsernamePasswordAuthenticationToken -> {
-          val userId = (it.principal as UserDetailsWithId).id
-          log.debug("The current principal: {}", it.principal)
-          listOf(userId) + it.authorities.mapNotNull { authority -> authority.authority }
-        }
-        else -> listOf(ANONYMOUS_USER_ID)
-      }}
-
   fun getAccessSubject(): AccessSubject =
     SecurityContextHolder.getContext().authentication
       .let { when (it) {

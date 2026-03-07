@@ -5,7 +5,6 @@ import arrow.core.raise.context.raise
 import com.mongodb.MongoException
 import io.liquidsoftware.common.security.acl.AuthorizationError
 import io.liquidsoftware.common.security.acl.PermissionDenied
-import io.liquidsoftware.common.security.UnauthorizedAccessException
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -20,7 +19,6 @@ fun Throwable.hasResponseStatus(): Boolean = this.javaClass.isAnnotationPresent(
 
 fun Throwable.toWorkflowError(): WorkflowError = when (this) {
   is WorkflowError -> this
-  is UnauthorizedAccessException -> UnauthorizedWorkflowError(message ?: "Unauthorized")
   else -> ServerError(message ?: "Unexpected error")
 }
 
@@ -35,8 +33,6 @@ suspend fun <T> workflowBoundary(block: suspend () -> T): T = try {
   block()
 } catch (ex: CancellationException) {
   throw ex
-} catch (ex: UnauthorizedAccessException) {
-  raise(ex.toWorkflowError())
 } catch (ex: DataAccessException) {
   raise(ex.toWorkflowError())
 } catch (ex: MongoException) {

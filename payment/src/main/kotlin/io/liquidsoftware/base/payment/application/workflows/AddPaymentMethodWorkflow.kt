@@ -2,6 +2,7 @@ package io.liquidsoftware.base.payment.application.workflows
 
 import arrow.core.raise.Raise
 import arrow.core.raise.either
+import arrow.core.raise.context.bind
 import io.liquidsoftware.base.payment.application.mapper.toDto
 import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
@@ -30,6 +31,6 @@ internal class AddPaymentMethodWorkflow(
       )
     }.bindValidation()
 
-    return paymentEventPort.handle(PaymentMethodAddedEvent(paymentMethod.toDto()))
+    return paymentEventPort.handle(PaymentMethodAddedEvent(paymentMethod.toDto())).bind()
   }
 }
