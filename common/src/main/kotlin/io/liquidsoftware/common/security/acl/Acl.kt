@@ -2,8 +2,6 @@ package io.liquidsoftware.common.security.acl
 
 import arrow.core.raise.Raise
 import arrow.core.raise.context.ensure
-import io.liquidsoftware.common.security.ExecutionContext
-import org.springframework.stereotype.Component
 
 enum class AclRole {
   READER, WRITER, MANAGER
@@ -29,6 +27,8 @@ data class AccessSubject(
   val userId: String,
   val roles: Set<String>,
 )
+
+const val ANONYMOUS_SUBJECT_ID = "u_anonymous"
 
 interface SecuredResource {
   fun acl(): Acl
@@ -65,15 +65,15 @@ class AclBuilder internal constructor(
   }
 
   fun anonymousReader() {
-    reader(ExecutionContext.ANONYMOUS_USER_ID)
+    reader(ANONYMOUS_SUBJECT_ID)
   }
 
   fun anonymousWriter() {
-    writer(ExecutionContext.ANONYMOUS_USER_ID)
+    writer(ANONYMOUS_SUBJECT_ID)
   }
 
   fun anonymousManager() {
-    manager(ExecutionContext.ANONYMOUS_USER_ID)
+    manager(ANONYMOUS_SUBJECT_ID)
   }
 
   internal fun build(): Acl = Acl(
@@ -115,9 +115,9 @@ suspend fun AccessSubject.ensureCanManage(resource: SecuredResource) {
   ensureCanManage(resource.acl())
 }
 
-@Component
 class AclChecker(
-  val ec: ExecutionContext,
+  private val anonymousSubjectId: String = ANONYMOUS_SUBJECT_ID,
+  private val globalRoles: Set<String> = setOf(ROLE_ADMIN, ROLE_SYSTEM),
 ) {
 
   private val rolePermissions: Map<AclRole, Set<Permission>> = mapOf(
@@ -131,14 +131,12 @@ class AclChecker(
     const val ROLE_ADMIN = "ROLE_ADMIN"
   }
 
-  fun currentSubject(): AccessSubject = ec.getAccessSubject()
-
   suspend fun hasPermission(acl: Acl, subject: AccessSubject, permission: Permission): Boolean {
     return if (subject.hasGlobalAccess()) {
       true
     } else {
       val role = acl.userRoleMap[subject.userId]
-        ?: acl.userRoleMap[ExecutionContext.ANONYMOUS_USER_ID]
+        ?: acl.userRoleMap[anonymousSubjectId]
       rolePermissions[role]?.contains(permission) ?: false
     }
   }
@@ -152,11 +150,6 @@ class AclChecker(
         subjectId = subject.userId,
       )
     }
-  }
-
-  context(_: Raise<AuthorizationError>)
-  suspend fun ensurePermission(acl: Acl, permission: Permission) {
-    ensurePermission(currentSubject(), acl, permission)
   }
 
   context(_: Raise<AuthorizationError>)
@@ -174,21 +167,6 @@ class AclChecker(
     ensurePermission(subject, acl, Permission.MANAGE)
   }
 
-  context(_: Raise<AuthorizationError>)
-  suspend fun ensureCanRead(acl: Acl) {
-    ensurePermission(acl, Permission.READ)
-  }
-
-  context(_: Raise<AuthorizationError>)
-  suspend fun ensureCanWrite(acl: Acl) {
-    ensurePermission(acl, Permission.WRITE)
-  }
-
-  context(_: Raise<AuthorizationError>)
-  suspend fun ensureCanManage(acl: Acl) {
-    ensurePermission(acl, Permission.MANAGE)
-  }
-
   private fun AccessSubject.hasGlobalAccess(): Boolean =
-    ROLE_ADMIN in roles || ROLE_SYSTEM in roles
+    roles.any(globalRoles::contains)
 }

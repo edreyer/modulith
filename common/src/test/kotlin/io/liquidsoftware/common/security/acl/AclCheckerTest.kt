@@ -2,7 +2,6 @@ package io.liquidsoftware.common.security.acl
 
 import arrow.core.Either
 import arrow.core.raise.either
-import io.liquidsoftware.common.security.ExecutionContext
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
@@ -12,7 +11,7 @@ import org.junit.jupiter.api.Test
 
 class AclCheckerTest {
 
-  private val aclChecker = AclChecker(ExecutionContext())
+  private val aclChecker = AclChecker()
 
   private data class TestResource(
     private val resourceAcl: Acl,
@@ -53,7 +52,7 @@ class AclCheckerTest {
       anonymousReader()
     }
 
-    assertEquals(AclRole.READER, acl.userRoleMap[ExecutionContext.ANONYMOUS_USER_ID])
+    assertEquals(AclRole.READER, acl.userRoleMap[ANONYMOUS_SUBJECT_ID])
     assertEquals(AclRole.MANAGER, acl.userRoleMap["user-1"])
   }
 
@@ -69,9 +68,9 @@ class AclCheckerTest {
   fun `anonymous subject can read resource with anonymous reader access`() = runBlocking {
     val acl = Acl(
       resourceId = "appointment-1",
-      userRoleMap = mapOf(ExecutionContext.ANONYMOUS_USER_ID to AclRole.READER),
+      userRoleMap = mapOf(ANONYMOUS_SUBJECT_ID to AclRole.READER),
     )
-    val subject = AccessSubject(ExecutionContext.ANONYMOUS_USER_ID, emptySet())
+    val subject = AccessSubject(ANONYMOUS_SUBJECT_ID, emptySet())
 
     assertTrue(aclChecker.hasPermission(acl, subject, Permission.READ))
   }

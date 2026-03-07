@@ -1,6 +1,7 @@
 package io.liquidsoftware.common.security
 
 import io.liquidsoftware.common.logging.LoggerDelegate
+import io.liquidsoftware.common.security.acl.ANONYMOUS_SUBJECT_ID
 import io.liquidsoftware.common.security.acl.AccessSubject
 import io.liquidsoftware.common.security.acl.AclChecker.Companion.ROLE_SYSTEM
 import kotlinx.coroutines.Dispatchers
@@ -39,10 +40,6 @@ fun <T> runAsSuperUserBlocking(block: suspend () -> T): T =
 class ExecutionContext {
   val log by LoggerDelegate()
 
-  companion object {
-    const val ANONYMOUS_USER_ID = "u_anonymous"
-  }
-
   fun getCurrentUser() =
     SecurityContextHolder.getContext().authentication
       .also { log.debug("The current principal: {}", it?.principal) }
@@ -63,7 +60,7 @@ class ExecutionContext {
           )
         }
         else -> AccessSubject(
-          userId = ANONYMOUS_USER_ID,
+          userId = ANONYMOUS_SUBJECT_ID,
           roles = emptySet(),
         )
       }}

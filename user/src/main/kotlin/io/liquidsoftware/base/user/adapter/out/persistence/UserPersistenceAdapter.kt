@@ -22,7 +22,7 @@ import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.Acl
-import io.liquidsoftware.common.security.acl.AclChecker
+import io.liquidsoftware.common.security.spring.SpringSecurityAclChecker
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -30,7 +30,7 @@ import io.liquidsoftware.common.workflow.WorkflowValidationError
 
 internal class UserPersistenceAdapter(
   private val userRepository: UserRepository,
-  private val ac: AclChecker
+  private val ac: SpringSecurityAclChecker
 ) : FindUserPort, UserEventPort {
 
   private val logger by LoggerDelegate()

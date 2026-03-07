@@ -12,7 +12,7 @@ import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
-import io.liquidsoftware.common.security.acl.AclChecker
+import io.liquidsoftware.common.security.spring.SpringSecurityAclChecker
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import kotlinx.coroutines.runBlocking
@@ -43,7 +43,7 @@ class UserPersistenceAdapterArrowContractTest {
     )
     val adapter = UserPersistenceAdapter(
       userRepository(findByUserId = { userId -> if (userId == entity.userId) entity else null }),
-      AclChecker(ExecutionContext())
+      SpringSecurityAclChecker(ExecutionContext())
     )
 
     val result = adapter.findUserById(entity.userId)
@@ -58,7 +58,7 @@ class UserPersistenceAdapterArrowContractTest {
   fun `findUserById returns left when repository fails`() = runBlocking {
     val adapter = UserPersistenceAdapter(
       userRepository(findByUserId = { throw DataAccessResourceFailureException("db down") }),
-      AclChecker(ExecutionContext())
+      SpringSecurityAclChecker(ExecutionContext())
     )
 
     val result = adapter.findUserById("u_test-user")
@@ -75,7 +75,7 @@ class UserPersistenceAdapterArrowContractTest {
         findByUserId = { null },
         save = { it }
       ),
-      AclChecker(ExecutionContext())
+      SpringSecurityAclChecker(ExecutionContext())
     )
 
     val result = adapter.handle(registeredUserEvent())
@@ -94,7 +94,7 @@ class UserPersistenceAdapterArrowContractTest {
         findByUserId = { null },
         save = { throw DataAccessResourceFailureException("db down") }
       ),
-      AclChecker(ExecutionContext())
+      SpringSecurityAclChecker(ExecutionContext())
     )
 
     val result = adapter.handle(registeredUserEvent())
@@ -118,7 +118,7 @@ class UserPersistenceAdapterArrowContractTest {
         findByUserId = { userId -> if (userId == entity.userId) entity else null },
         save = { it }
       ),
-      AclChecker(ExecutionContext())
+      SpringSecurityAclChecker(ExecutionContext())
     )
 
     val result = adapter.handle(enabledUserEvent())
@@ -144,7 +144,7 @@ class UserPersistenceAdapterArrowContractTest {
         findByUserId = { userId -> if (userId == entity.userId) entity else null },
         save = { throw DataAccessResourceFailureException("db down") }
       ),
-      AclChecker(ExecutionContext())
+      SpringSecurityAclChecker(ExecutionContext())
     )
 
     val result = adapter.handle(enabledUserEvent())

@@ -30,8 +30,8 @@ import io.liquidsoftware.common.ext.toWorkflowError
 import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.security.acl.Acl
-import io.liquidsoftware.common.security.acl.AclChecker
 import io.liquidsoftware.common.security.acl.AclRole
+import io.liquidsoftware.common.security.spring.SpringSecurityAclChecker
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -41,7 +41,7 @@ import java.time.LocalDate
 
 internal class BookingPersistenceAdapter(
   private val apptRepository: AppointmentRepository,
-  private val ac: AclChecker
+  private val ac: SpringSecurityAclChecker
 ) : FindAppointmentPort, AppointmentEventPort {
 
   override suspend fun findById(apptId: String): Either<WorkflowError, Appointment?> =
