@@ -5,6 +5,8 @@ logging:
     io.liquidsoftware: DEBUG
 
 spring:
+  reactor:
+    context-propagation: auto
   web:
     error:
       include-message: always
