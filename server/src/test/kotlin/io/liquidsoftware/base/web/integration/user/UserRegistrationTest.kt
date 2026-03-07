@@ -1,12 +1,16 @@
 package io.liquidsoftware.base.web.integration.user
 
+import arrow.core.getOrElse
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import io.liquidsoftware.base.test.BaseWebTest
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisteredUserDto
+import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
+import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
+import io.liquidsoftware.common.security.runAsSuperUserBlocking
 import io.liquidsoftware.common.validation.MsisdnParser
 import io.restassured.path.json.JsonPath
 import io.restassured.response.Response
@@ -24,7 +28,6 @@ class UserRegistrationTest : BaseWebTest() {
       msisdn = "5125550002",
       email = "foo@bar.com",
       password = "password",
-      role = RoleDto.ROLE_USER
     )
   }
 
@@ -59,6 +62,30 @@ class UserRegistrationTest : BaseWebTest() {
     val regReq = inputDto.copy(msisdn = "", email = "")
     val response: Response = post("/user/register", regReq)
     assertThat(response.statusCode()).isEqualTo(403)
+  }
+
+  @Test
+  fun `register ignores caller supplied admin role`() {
+    val email = "ignored-admin@liquidsoftware.io"
+    val response = post(
+      "/user/register",
+      mapOf(
+        "msisdn" to "5125550099",
+        "email" to email,
+        "password" to "password",
+        "role" to "ROLE_ADMIN"
+      )
+    )
+
+    assertThat(response.statusCode()).isEqualTo(200)
+
+    val actual = runAsSuperUserBlocking {
+      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(email))
+        .getOrElse { throw it }
+        .userDto
+    }
+
+    assertThat(actual.roles).isEqualTo(listOf(RoleDto.ROLE_USER))
   }
 
 }

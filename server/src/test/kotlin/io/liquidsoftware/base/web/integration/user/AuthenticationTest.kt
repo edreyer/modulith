@@ -5,7 +5,6 @@ import assertk.assertions.isNotEmpty
 import io.liquidsoftware.base.test.BaseWebTest
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.UserLoginInputDto
-import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
@@ -17,7 +16,6 @@ class AuthenticationTest : BaseWebTest() {
     msisdn = "5125550001",
     email = "bob@loblaw.com",
     password = "password",
-    role = RoleDto.ROLE_USER
   )
 
   @BeforeAll

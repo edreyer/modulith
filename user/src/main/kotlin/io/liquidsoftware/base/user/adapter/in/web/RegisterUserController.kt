@@ -23,7 +23,6 @@ data class RegisterUserInputDto(
   @NotEmpty @Msisdn val msisdn: String,
   @NotEmpty @Email val email: String,
   @NotEmpty val password: String,
-  val role: RoleDto
 )
 
 sealed class RegisterUserOutputDto
@@ -55,7 +54,7 @@ internal class RegisterUserController(val dispatcher: WorkflowDispatcher) {
       msisdn = this.msisdn,
       email = this.email,
       password = this.password,
-      role = this.role.name
+      role = RoleDto.ROLE_USER.name
     )
 
   fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
@@ -69,4 +68,3 @@ internal class RegisterUserController(val dispatcher: WorkflowDispatcher) {
 
   fun UserRegisteredEvent.toOutputDto(): RegisterUserOutputDto = RegisteredUserDto(this.userDto)
 }
-

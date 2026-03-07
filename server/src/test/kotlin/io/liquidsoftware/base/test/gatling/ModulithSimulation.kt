@@ -41,8 +41,7 @@ class ModulithSimulation: Simulation() {
       .body(StringBody("""{
           "msisdn" : "#{msisdn}",
           "email" : "#{email}",
-          "password" : "password",
-          "role" : "ROLE_USER"
+          "password" : "password"
         }""".trimIndent())).asJson()
       .check(
         status().`in`(200, 400),

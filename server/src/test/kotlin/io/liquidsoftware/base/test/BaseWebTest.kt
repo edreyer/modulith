@@ -9,7 +9,11 @@ import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisteredUserDto
 import io.liquidsoftware.base.user.adapter.`in`.web.SuccessfulLogin
 import io.liquidsoftware.base.user.adapter.`in`.web.UserLoginInputDto
+import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
+import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
+import io.liquidsoftware.common.security.runAsSuperUserBlocking
+import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.base.user.config.UserModuleConfig
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.restassured.RestAssured
@@ -47,6 +51,9 @@ class BaseWebTest {
   @Autowired
   lateinit var objectMapper: ObjectMapper
 
+  @Autowired
+  lateinit var dispatcher: WorkflowDispatcher
+
   @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
   @LocalServerPort
   lateinit var port: Integer
@@ -70,7 +77,6 @@ class BaseWebTest {
       email = email,
       msisdn = msisdn,
       password = "password",
-      role = RoleDto.ROLE_USER
     ))
   }
 
@@ -84,12 +90,16 @@ class BaseWebTest {
   protected fun authorizeAdminUser() : SuccessfulLogin {
     val email = "admin@liquidsoftware.io"
     val password = "password"
-    registerUser(RegisterUserInputDto(
-      email = email,
-      msisdn = "5125551234",
-      password = password,
-      role = RoleDto.ROLE_ADMIN
-    ))
+    runAsSuperUserBlocking {
+      dispatcher.dispatch<UserRegisteredEvent>(
+        RegisterUserCommand(
+          msisdn = "5125551234",
+          email = email,
+          password = password,
+          role = RoleDto.ROLE_ADMIN.name
+        )
+      )
+    }
     return loginUser(UserLoginInputDto(email, "password"))
   }
 
