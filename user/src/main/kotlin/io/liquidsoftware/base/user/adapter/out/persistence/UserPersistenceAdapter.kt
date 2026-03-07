@@ -22,7 +22,7 @@ import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.acl.Acl
-import io.liquidsoftware.common.security.spring.SpringSecurityAclChecker
+import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
