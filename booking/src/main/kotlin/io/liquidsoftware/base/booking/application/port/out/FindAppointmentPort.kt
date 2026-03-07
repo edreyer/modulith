@@ -15,5 +15,5 @@ internal interface FindAppointmentPort {
   suspend fun findStartedById(apptId: String): Either<WorkflowError, InProgressAppointment?>
   suspend fun findCompletedById(apptId: String): Either<WorkflowError, CompleteAppointment?>
   suspend fun findByUserId(userId: String, pageable: Pageable): Either<WorkflowError, List<Appointment>>
-  suspend fun findAll(date: LocalDate): Either<WorkflowError, List<Appointment>>
+  suspend fun findAllForAvailability(date: LocalDate): Either<WorkflowError, List<Appointment>>
 }

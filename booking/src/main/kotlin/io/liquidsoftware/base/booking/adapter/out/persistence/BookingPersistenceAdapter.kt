@@ -109,7 +109,7 @@ internal class BookingPersistenceAdapter(
       }
     }
 
-  override suspend fun findAll(date: LocalDate): Either<WorkflowError, List<Appointment>> =
+  override suspend fun findAllForAvailability(date: LocalDate): Either<WorkflowError, List<Appointment>> =
     withContextIO {
       either {
         workflowBoundary {
@@ -121,7 +121,6 @@ internal class BookingPersistenceAdapter(
                 { raise(WorkflowValidationError(it)) },
                 { it }
               )
-              .also { appointment -> ensureCanRead(appointment.acl()) }
           }
       }
     }

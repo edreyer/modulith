@@ -25,7 +25,7 @@ internal class GetAvailabilityWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
     ensure(request.date.isAfter(LocalDate.now())) { DateInPastError("${request.date} is in the past") }
-    return findApptsPort.findAll(request.date).bind()
+    return findApptsPort.findAllForAvailability(request.date).bind()
       .let { availabilityService.getAvailability(it) }
       .let { AvailabilityRetrievedEvent(it) }
   }

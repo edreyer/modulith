@@ -37,7 +37,7 @@ internal class ScheduleAppointmentWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent {
     // business invariant we must check
-    val scheduledAppts = findAppointmentPort.findAll(request.scheduledTime.toLocalDate()).bind()
+    val scheduledAppts = findAppointmentPort.findAllForAvailability(request.scheduledTime.toLocalDate()).bind()
     val scheduledTime = request.scheduledTime.toLocalTime()
 
     ensure(availabilityService.isTimeAvailable(scheduledAppts, scheduledTime)) {
