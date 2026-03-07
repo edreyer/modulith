@@ -15,6 +15,7 @@ import io.liquidsoftware.base.user.UserId
 import arrow.core.raise.context.bind
 import io.liquidsoftware.common.ext.bindValidation
 import arrow.core.raise.context.ensureNotNull
+import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Component
 
 @Component
 internal class MakePaymentWorkflow(
+  val ec: ExecutionContext,
   val findPaymentMethodPort: FindPaymentMethodPort,
   val paymentEventPort: PaymentEventPort,
   val stripeService: StripeService
@@ -33,7 +35,7 @@ internal class MakePaymentWorkflow(
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: MakePaymentCommand): PaymentMadeEvent {
     val pmId = either { PaymentMethodId.of(request.paymentMethodId) }.bindValidation()
-    val userId = either { UserId.of(request.userId) }.bindValidation()
+    val userId = either { UserId.of(ec.getCurrentUser().id) }.bindValidation()
     val pm = ensureNotNull(findPaymentMethodPort.findByPaymentMethodId(pmId, userId).bind()) {
       PaymentMethodNotFoundError(request.paymentMethodId)
     }
@@ -43,7 +45,7 @@ internal class MakePaymentWorkflow(
         either {
           Payment.of(
             paymentMethodId = it.paymentMethod.id.value,
-            userId = request.userId,
+            userId = userId.value,
             amount = it.amount
           )
         }.bindValidation()

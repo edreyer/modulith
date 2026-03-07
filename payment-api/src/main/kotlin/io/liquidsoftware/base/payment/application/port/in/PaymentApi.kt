@@ -13,7 +13,6 @@ data class AddPaymentMethodCommand(
 ) : Command
 
 data class MakePaymentCommand(
-  val userId: String,
   val paymentMethodId: String,
   val amount: Long
 ) : Command

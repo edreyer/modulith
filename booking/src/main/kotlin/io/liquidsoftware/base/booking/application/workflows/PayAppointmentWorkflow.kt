@@ -43,7 +43,6 @@ internal class PayAppointmentWorkflow(
 
     // 2) attempt a payment on the appt
     val paymentMade = dispatcher.dispatch<PaymentMadeEvent>(MakePaymentCommand(
-      userId = ec.getCurrentUser().id,
       paymentMethodId = request.paymentMethodId,
       amount = completeAppt.totalDue()
     ))
