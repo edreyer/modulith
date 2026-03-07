@@ -25,14 +25,14 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
         <arrow.version>2.2.2</arrow.version>
-        <jjwt.version>0.12.5</jjwt.version>
-        <assertk.version>0.28.0</assertk.version>
-        <kotest.version>5.8.0</kotest.version>
-        <coroutines.version>1.9.0</coroutines.version>
-        <testcontainers.version>1.21.4</testcontainers.version>
+        <jjwt.version>0.13.0</jjwt.version>
+        <assertk.version>0.28.1</assertk.version>
+        <kotest.version>6.1.4</kotest.version>
+        <coroutines.version>1.10.2</coroutines.version>
+        <testcontainers.version>2.0.3</testcontainers.version>
         <springdoc.version>3.0.2</springdoc.version>
 
-        <gatling.version>3.10.4</gatling.version>
+        <gatling.version>3.14.9</gatling.version>
         <gatling-maven-plugin.version>4.8.2</gatling-maven-plugin.version>
     </properties>
 
@@ -133,13 +133,13 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>mongodb</artifactId>
+            <artifactId>testcontainers-mongodb</artifactId>
             <version>${testcontainers.version}</version>
             <scope>test</scope>
         </dependency>
@@ -179,7 +179,7 @@
         <dependency>
             <groupId>com.tngtech.archunit</groupId>
             <artifactId>archunit</artifactId>
-            <version>1.2.1</version>
+            <version>1.4.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -229,7 +229,7 @@
             <dependency>
                 <groupId>com.googlecode.libphonenumber</groupId>
                 <artifactId>libphonenumber</artifactId>
-                <version>8.12.0</version>
+                <version>9.0.25</version>
             </dependency>
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>

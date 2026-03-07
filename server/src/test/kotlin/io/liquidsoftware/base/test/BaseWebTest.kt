@@ -25,7 +25,7 @@ import org.springframework.boot.test.web.server.LocalServerPort
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.context.junit.jupiter.SpringExtension
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.mongodb.MongoDBContainer
 import org.testcontainers.utility.DockerImageName
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -54,6 +54,7 @@ class BaseWebTest {
   companion object {
     @JvmStatic
     val mongoDBContainer = MongoDBContainer(DockerImageName.parse("mongo:latest"))
+      .withReplicaSet()
 
     @JvmStatic
     @DynamicPropertySource
