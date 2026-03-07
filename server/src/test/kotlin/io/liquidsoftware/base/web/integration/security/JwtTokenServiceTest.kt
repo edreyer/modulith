@@ -82,6 +82,15 @@ internal class JwtTokenServiceTest {
   }
 
   @Test
+  fun testWrongUsername() {
+    val authorities: Collection<GrantedAuthority> = AuthorityUtils.createAuthorityList(listOf(TEST_ROLE_NAME))
+    val token = jwtTokenService.generateToken(TEST_USERNAME, authorities)
+    val otherUserDetails = User("someone-else", "password", authorities)
+
+    assertThat(jwtTokenService.validateToken(token, otherUserDetails)).isFalse()
+  }
+
+  @Test
   fun testValidateTokenException() {
     val authorities: Collection<GrantedAuthority> = AuthorityUtils.createAuthorityList(listOf(TEST_ROLE_NAME))
     val token = jwtTokenService.generateToken(TEST_USERNAME, authorities)

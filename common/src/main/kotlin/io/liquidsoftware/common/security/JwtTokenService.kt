@@ -65,7 +65,10 @@ open class JwtTokenService(
   fun validateToken(token: String, userDetails: UserDetails): Boolean = Result.runCatching {
     val username = extractUsername(token)
     (username == userDetails.username && !isTokenExpired(token))
-  }.fold( { true }, {  false } )
+  }.fold(
+    onSuccess = { it },
+    onFailure = { false }
+  )
 
 
   private fun <T> extractClaim(token: String, claimsResolver: (Claims) -> T): T {

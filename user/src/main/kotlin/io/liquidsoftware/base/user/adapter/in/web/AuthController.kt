@@ -47,7 +47,7 @@ class AuthController(
             .body(tokenBody)
         }
     } else {
-      logger.debug("Failed to login with: {}", loginDto)
+      logger.debug("Failed to login for username: {}", loginDto.username)
       ResponseEntity.badRequest().body(
         LoginError("Unknown user: ${loginDto.username}")
       )
