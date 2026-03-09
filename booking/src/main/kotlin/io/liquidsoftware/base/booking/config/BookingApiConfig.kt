@@ -30,6 +30,16 @@ import org.springframework.context.annotation.Configuration
 class BookingApiConfig {
 
   @Bean
+  internal fun paymentApi(): PaymentApi =
+    object : PaymentApi {
+      override suspend fun addPaymentMethod(command: io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand) =
+        ModuleApiRegistry.require(PaymentApi::class).addPaymentMethod(command)
+
+      override suspend fun makePayment(command: io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand) =
+        ModuleApiRegistry.require(PaymentApi::class).makePayment(command)
+    }
+
+  @Bean
   internal fun appointmentApiRegistration(
     paymentApi: PaymentApi,
     appointmentStateService: AppointmentStateService,
