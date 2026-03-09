@@ -49,7 +49,7 @@ The strongest migration path is:
 - [x] Phase 2: add the OSS workflow dependency to `common` and introduce `common.usecase`
 - [x] Phase 3.1: migrate `SystemFindUserByEmail` to an OSS-backed `useCase {}` implementation
 - [x] Phase 3.2: add temporary legacy bridge shims in `common.usecase.legacy`
-- [ ] Phase 3.3: migrate the remaining user lookup flows
+- [x] Phase 3.3: migrate the remaining user lookup flows
 - [ ] Phase 3.4: migrate remaining user commands
 - [ ] Phase 3.5: migrate payment use cases
 - [ ] Phase 3.6: migrate booking use cases
@@ -62,6 +62,7 @@ Completed so far:
 - `common` now also exposes temporary legacy bridge helpers in `io.liquidsoftware.common.usecase.legacy`
 - the root Maven build explicitly targets JVM 21 for Kotlin compilation so the OSS library compiles cleanly in this repo
 - `SystemFindUserByEmail` is the first real migrated use case and is verified through `server` integration tests
+- `FindUserById`, `FindUserByEmail`, and `FindUserByMsisdn` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 
 What we learned from the first migrated use case:
 
@@ -71,6 +72,7 @@ What we learned from the first migrated use case:
   - a temporary legacy-to-OSS error bridge
   - sometimes a thin adapter workflow so parent/child Spring contexts keep working during the transition
 - that repeated glue is now centralized in a temporary `io.liquidsoftware.common.usecase.legacy` package and should be deleted near the end of Phase 4
+- once several workflows in the same bounded context share the same orchestration shape, it is worth extracting an internal OSS-backed base use case to keep the migrated code uniform instead of cloning one-off `useCase {}` chains
 
 ## Current Workflow Inventory
 
@@ -398,7 +400,7 @@ Current sub-status:
 
 - [x] 3.1 migrate `SystemFindUserByEmail`
 - [x] 3.2 introduce temporary legacy bridge shims in `common.usecase.legacy`
-- [ ] 3.3 migrate remaining user lookup flows
+- [x] 3.3 migrate remaining user lookup flows
 - [ ] 3.4 migrate remaining user commands
 - [ ] 3.5 migrate payment use cases
 - [ ] 3.6 migrate booking use cases
@@ -413,6 +415,14 @@ These exist only to reduce repeated glue during the migration. They should shrin
 - API modules stop exposing legacy `common.workflow` request/event/error types
 - dispatcher-backed adapter workflows are no longer needed
 - controllers, security, and application ports can deal directly with the OSS-library-facing contracts
+
+Current user lookup migration shape:
+
+- [`user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserLookupUseCases.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserLookupUseCases.kt) now centralizes the shared OSS-backed lookup chain for:
+  - `FindUserById`
+  - `FindUserByEmail`
+  - `FindUserByMsisdn`
+- the existing legacy workflows remain in place only as thin dispatcher adapters so parent/child Spring-context boundaries and public API contracts stay stable during the transition
 
 ### [ ] Phase 4: Remove the old framework
 

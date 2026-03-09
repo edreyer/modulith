@@ -1,13 +1,10 @@
 package io.liquidsoftware.base.user.application.workflows
 
 import arrow.core.raise.Raise
-import io.liquidsoftware.base.user.application.mapper.toUserDto
 import io.liquidsoftware.base.user.application.port.`in`.FindUserByIdQuery
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
-import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import arrow.core.raise.context.bind
-import arrow.core.raise.context.raise
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -15,14 +12,14 @@ import org.springframework.stereotype.Component
 
 @Component
 internal class FindUserByIdWorkflow(
-  private val findUserPort: FindUserPort
+  findUserPort: FindUserPort,
 ) : BaseSafeWorkflow<FindUserByIdQuery, UserFoundEvent>() {
+
+  private val useCase = FindUserByIdUseCase(findUserPort)
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: FindUserByIdQuery): UserFoundEvent =
-    findUserPort.findUserById(request.userId).bind()
-      ?.let { UserFoundEvent(it.toUserDto()) }
-      ?: raise(UserNotFoundError(request.userId))
+    useCase.execute(request).bind()
 }
