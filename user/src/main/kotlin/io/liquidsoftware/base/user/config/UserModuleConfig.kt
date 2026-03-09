@@ -15,7 +15,8 @@ import org.springframework.context.annotation.Import
 @ComponentScan(basePackages = ["io.liquidsoftware.base.user"])
 @ConfigurationPropertiesScan(basePackages = ["io.liquidsoftware.base.user"])
 @Import(
-  CommonConfig::class
+  CommonConfig::class,
+  UserApiConfig::class
 )
 class UserModuleConfig {
   val logger by LoggerDelegate()

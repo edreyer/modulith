@@ -1,12 +1,8 @@
 package io.liquidsoftware.base.web.integration.user
 
-import arrow.core.getOrElse
 import assertk.assertThat
 import assertk.assertions.isFalse
 import assertk.assertions.isTrue
-import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
-import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
-import io.liquidsoftware.common.security.runAsSuperUser
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
@@ -14,11 +10,7 @@ class UserEnabledTest : BaseUserWebTest() {
 
   @Test
   fun testUserEnableDisable() = runBlocking {
-    val user = runAsSuperUser {
-      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
-        .getOrElse { throw it }
-        .userDto
-    }
+    val user = findUserByEmail(testEmail)
     assertThat(user.active).isTrue()
 
     val admin = authorizeAdminUser()
@@ -27,22 +19,14 @@ class UserEnabledTest : BaseUserWebTest() {
       .then()
       .statusCode(200)
 
-    val disabledUser = runAsSuperUser {
-      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
-        .getOrElse { throw it }
-        .userDto
-    }
+    val disabledUser = findUserByEmail(testEmail)
     assertThat(disabledUser.active).isFalse()
 
     super.get("/api/v1/users/${user.id}/enable", admin.accessToken)
       .then()
       .statusCode(200)
 
-    val enabledUser = runAsSuperUser {
-      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
-        .getOrElse { throw it }
-        .userDto
-    }
+    val enabledUser = findUserByEmail(testEmail)
     assertThat(enabledUser.active).isTrue()
 
   }
@@ -50,11 +34,7 @@ class UserEnabledTest : BaseUserWebTest() {
   @Test
   fun nonAdminCannotDisableAnotherUser() {
     runBlocking {
-      val user = runAsSuperUser {
-        dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(testEmail))
-          .getOrElse { throw it }
-          .userDto
-      }
+      val user = findUserByEmail(testEmail)
 
       get("/api/v1/users/${user.id}/disable", accessToken)
         .then()

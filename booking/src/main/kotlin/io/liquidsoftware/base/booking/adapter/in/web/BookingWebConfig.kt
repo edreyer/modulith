@@ -16,39 +16,39 @@ import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentComman
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.UserAppointmentsFetchedEvent
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.context.ModuleApiRegistry
 import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ComponentScan(basePackages = ["io.liquidsoftware.base.booking.adapter.in.web"])
 class BookingWebConfig {
 
   @Bean
-  fun appointmentApi(dispatcher: WorkflowDispatcher): AppointmentApi = object : AppointmentApi {
+  fun appointmentApi(): AppointmentApi = object : AppointmentApi {
     override suspend fun scheduleAppointment(command: ScheduleAppointmentCommand) =
-      dispatcher.dispatch<AppointmentScheduledEvent>(command)
+      ModuleApiRegistry.require(AppointmentApi::class).scheduleAppointment(command)
 
     override suspend fun startAppointment(command: StartAppointmentCommand) =
-      dispatcher.dispatch<AppointmentStartedEvent>(command)
+      ModuleApiRegistry.require(AppointmentApi::class).startAppointment(command)
 
     override suspend fun completeAppointment(command: CompleteAppointmentCommand) =
-      dispatcher.dispatch<AppointmentCompletedEvent>(command)
+      ModuleApiRegistry.require(AppointmentApi::class).completeAppointment(command)
 
     override suspend fun cancelAppointment(command: CancelAppointmentCommand) =
-      dispatcher.dispatch<AppointmentCancelledEvent>(command)
+      ModuleApiRegistry.require(AppointmentApi::class).cancelAppointment(command)
 
     override suspend fun payAppointment(command: PayAppointmentCommand) =
-      dispatcher.dispatch<AppointmentPaidEvent>(command)
+      ModuleApiRegistry.require(AppointmentApi::class).payAppointment(command)
 
     override suspend fun fetchUserAppointments(query: FetchUserAppointmentsQuery) =
-      dispatcher.dispatch<UserAppointmentsFetchedEvent>(query)
+      ModuleApiRegistry.require(AppointmentApi::class).fetchUserAppointments(query)
   }
 
   @Bean
-  fun availabilityApi(dispatcher: WorkflowDispatcher): AvailabilityApi = object : AvailabilityApi {
+  fun availabilityApi(): AvailabilityApi = object : AvailabilityApi {
     override suspend fun getAvailability(query: GetAvailabilityQuery) =
-      dispatcher.dispatch<AvailabilityRetrievedEvent>(query)
+      ModuleApiRegistry.require(AvailabilityApi::class).getAvailability(query)
   }
 }

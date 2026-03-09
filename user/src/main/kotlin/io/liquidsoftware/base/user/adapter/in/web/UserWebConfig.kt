@@ -16,46 +16,46 @@ import io.liquidsoftware.base.user.application.port.`in`.UserDisabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserEnabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
+import io.liquidsoftware.common.context.ModuleApiRegistry
 import org.springframework.context.annotation.ComponentScan
-import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Configuration
 
 @Configuration
 @ComponentScan(basePackages = ["io.liquidsoftware.base.user.adapter.in.web"])
 class UserWebConfig {
 
   @Bean
-  fun registerUserApi(dispatcher: WorkflowDispatcher): RegisterUserApi = object : RegisterUserApi {
+  fun registerUserApi(): RegisterUserApi = object : RegisterUserApi {
     override suspend fun registerUser(command: RegisterUserCommand) =
-      dispatcher.dispatch<UserRegisteredEvent>(command)
+      ModuleApiRegistry.require(RegisterUserApi::class).registerUser(command)
   }
 
   @Bean
-  fun findUserApi(dispatcher: WorkflowDispatcher): FindUserApi = object : FindUserApi {
+  fun findUserApi(): FindUserApi = object : FindUserApi {
     override suspend fun findUserById(query: FindUserByIdQuery) =
-      dispatcher.dispatch<UserFoundEvent>(query)
+      ModuleApiRegistry.require(FindUserApi::class).findUserById(query)
 
     override suspend fun findUserByEmail(query: FindUserByEmailQuery) =
-      dispatcher.dispatch<UserFoundEvent>(query)
+      ModuleApiRegistry.require(FindUserApi::class).findUserByEmail(query)
 
     override suspend fun findUserByMsisdn(query: FindUserByMsisdnQuery) =
-      dispatcher.dispatch<UserFoundEvent>(query)
+      ModuleApiRegistry.require(FindUserApi::class).findUserByMsisdn(query)
   }
 
   @Bean
-  fun userAdminApi(dispatcher: WorkflowDispatcher): UserAdminApi = object : UserAdminApi {
+  fun userAdminApi(): UserAdminApi = object : UserAdminApi {
     override suspend fun enableUser(command: EnableUserCommand) =
-      dispatcher.dispatch<UserEnabledEvent>(command)
+      ModuleApiRegistry.require(UserAdminApi::class).enableUser(command)
 
     override suspend fun disableUser(command: DisableUserCommand) =
-      dispatcher.dispatch<UserDisabledEvent>(command)
+      ModuleApiRegistry.require(UserAdminApi::class).disableUser(command)
   }
 
   @Bean
-  fun systemFindUserByEmailApi(dispatcher: WorkflowDispatcher): SystemFindUserByEmailApi =
+  fun systemFindUserByEmailApi(): SystemFindUserByEmailApi =
     object : SystemFindUserByEmailApi {
       override suspend fun findSystemUserByEmail(query: SystemFindUserByEmailQuery) =
-        dispatcher.dispatch<SystemUserFoundEvent>(query)
+        ModuleApiRegistry.require(SystemFindUserByEmailApi::class).findSystemUserByEmail(query)
     }
 }

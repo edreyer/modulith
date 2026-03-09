@@ -19,9 +19,7 @@ import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.useCase
 import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
-import org.springframework.stereotype.Component
 
-@Component
 internal class SystemFindUserByEmailUseCase(
   private val findUserPort: FindUserPort,
 ) {

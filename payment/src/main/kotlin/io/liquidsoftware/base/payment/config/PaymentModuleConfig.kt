@@ -15,7 +15,8 @@ import org.springframework.context.annotation.Import
 @ComponentScan(basePackages = ["io.liquidsoftware.base.payment"])
 @ConfigurationPropertiesScan(basePackages = ["io.liquidsoftware.base.payment"])
 @Import(
-  CommonConfig::class
+  CommonConfig::class,
+  PaymentApiConfig::class
 )
 class PaymentModuleConfig {
   private final val logger by LoggerDelegate()

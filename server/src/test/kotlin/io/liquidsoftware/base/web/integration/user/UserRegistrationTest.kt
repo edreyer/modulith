@@ -1,16 +1,12 @@
 package io.liquidsoftware.base.web.integration.user
 
-import arrow.core.getOrElse
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import io.liquidsoftware.base.test.BaseWebTest
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisteredUserDto
-import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
-import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
-import io.liquidsoftware.common.security.runAsSuperUserBlocking
 import io.liquidsoftware.common.validation.MsisdnParser
 import io.restassured.path.json.JsonPath
 import io.restassured.response.Response
@@ -79,11 +75,7 @@ class UserRegistrationTest : BaseWebTest() {
 
     assertThat(response.statusCode()).isEqualTo(200)
 
-    val actual = runAsSuperUserBlocking {
-      dispatcher.dispatch<UserFoundEvent>(FindUserByEmailQuery(email))
-        .getOrElse { throw it }
-        .userDto
-    }
+    val actual = findUserByEmail(email)
 
     assertThat(actual.roles).isEqualTo(listOf(RoleDto.ROLE_USER))
   }

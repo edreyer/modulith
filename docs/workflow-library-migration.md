@@ -53,7 +53,7 @@ The strongest migration path is:
 - [x] Phase 3.4: migrate remaining user commands
 - [x] Phase 3.5: migrate payment use cases
 - [x] Phase 3.6: migrate booking use cases
-- [ ] Phase 4: remove the old workflow framework and Spring Integration workflow wiring
+- [x] Phase 4: remove the old workflow framework and Spring Integration workflow wiring
 
 Completed so far:
 
@@ -66,6 +66,9 @@ Completed so far:
 - `RegisterUser`, `EnableUser`, and `DisableUser` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 - `AddPaymentMethod` and `MakePayment` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 - `GetAvailability`, `ScheduleAppointment`, `StartAppointment`, `CompleteAppointment`, `CancelAppointment`, `FetchUserAppointments`, and `PayAppointment` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
+- Phase 4 is now complete: `WorkflowDispatcher`, `WorkflowRegistry`, Spring Integration workflow wiring, and the thin adapter workflow classes are removed
+- parent `server` web/security beans now use no-dependency API proxies, while child bounded-context modules register the real API implementations at startup through `io.liquidsoftware.common.context.ModuleApiRegistry`
+- `common.workflow` is now reduced to legacy request/error/event contract types that still back the `*-api` modules during the final cleanup stage
 
 What we learned from the first migrated use case:
 
@@ -79,10 +82,14 @@ What we learned from the first migrated use case:
 - access-sensitive behavior from the old workflows has to be preserved explicitly during migration; for example `RegisterUser` needed `runAsSuperUser` to wrap the whole migrated use case, not just the persistence step, because duplicate-user detection also depends on elevated access
 - security-sensitive ownership rules should stay inside the bounded context that owns them; for example `MakePayment` still derives the paying user from `ExecutionContext` inside `payment`, then carries that user id through the OSS-backed flow instead of trusting a cross-module caller to supply it
 - booking could be migrated as a full bounded-context slice once `payment` was already on `PaymentApi`; most workflows are simple linear state transitions, but `PayAppointment` still proved the main architectural point of the refactor by orchestrating through `payment-api` with no runtime dispatcher lookup hidden inside booking
+- removing the dispatcher did not remove the need for a parent-to-child module bridge; because `server` still boots a parent web context before child bounded-context contexts, the replacement bridge had to be API-shaped rather than workflow-shaped: parent API proxies plus child API registrations
+- the resulting `ModuleApiRegistry` is intentionally much narrower than the old workflow runtime; it carries published module APIs only, not generic request dispatch or workflow semantics
 
-## Current Workflow Inventory
+## Original Workflow Inventory
 
-### Custom framework surface
+This section captures the pre-migration shape of the repo. The custom workflow framework and the listed legacy workflow classes were removed in Phase 4.
+
+### Original custom framework surface
 
 The current custom framework lives primarily in:
 
@@ -93,7 +100,7 @@ The current custom framework lives primarily in:
 - [`common/src/main/kotlin/io/liquidsoftware/common/config/WorkflowConfig.kt`](../common/src/main/kotlin/io/liquidsoftware/common/config/WorkflowConfig.kt)
 - [`common/src/main/kotlin/io/liquidsoftware/common/workflow/WorkflowErrors.kt`](../common/src/main/kotlin/io/liquidsoftware/common/workflow/WorkflowErrors.kt)
 
-### Current application workflows
+### Original application workflows
 
 User module:
 
@@ -460,14 +467,21 @@ Current booking migration shape:
 - the existing legacy workflows remain in place only as thin dispatcher adapters so `booking-api` contracts and the module-context boundary stay stable during the transition
 - `PayAppointment` now expresses the full cross-bounded-context orchestration explicitly in the OSS workflow chain: load completed appointment, call `PaymentApi`, build paid aggregate, persist event
 
-### [ ] Phase 4: Remove the old framework
+### [x] Phase 4: Remove the old framework
 
-Delete or retire:
+Completed:
 
-- `common.workflow.*`
-- Spring Integration workflow gateway wiring
-- `spring-boot-starter-integration` if nothing else still needs it
-- dispatcher-based tests and utilities
+- removed `WorkflowDispatcher`, `WorkflowRegistry`, Spring Integration workflow gateway wiring, and `spring-boot-starter-integration`
+- deleted the thin adapter workflow classes after all migrated use cases were in place
+- rewired parent `server`-side API beans to proxy through `ModuleApiRegistry` instead of the dispatcher
+- added child-module API registration configs so `user`, `booking`, and `payment` each publish their real API implementations at startup without exposing internal ports across module boundaries
+- updated server integration tests to stop depending on the removed dispatcher utilities
+
+Result:
+
+- the custom workflow runtime is gone
+- the OSS `workflow` library now owns use-case orchestration
+- cross-context calls happen through explicit `*-api` contracts rather than generic workflow dispatch
 
 ## Shared Migration Rules for Every Use Case
 

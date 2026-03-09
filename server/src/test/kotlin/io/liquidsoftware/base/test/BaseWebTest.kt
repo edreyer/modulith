@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.test
 
+import arrow.core.getOrElse
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.liquidsoftware.base.booking.config.BookingModuleConfig
 import io.liquidsoftware.base.payment.config.PaymentModuleConfig
@@ -9,11 +10,13 @@ import io.liquidsoftware.base.user.adapter.`in`.web.RegisterUserInputDto
 import io.liquidsoftware.base.user.adapter.`in`.web.RegisteredUserDto
 import io.liquidsoftware.base.user.adapter.`in`.web.SuccessfulLogin
 import io.liquidsoftware.base.user.adapter.`in`.web.UserLoginInputDto
+import io.liquidsoftware.base.user.application.port.`in`.FindUserApi
+import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
-import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
+import io.liquidsoftware.base.user.application.port.`in`.RegisterUserApi
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
+import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.common.security.runAsSuperUserBlocking
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.base.user.config.UserModuleConfig
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.restassured.RestAssured
@@ -52,7 +55,10 @@ class BaseWebTest {
   lateinit var objectMapper: ObjectMapper
 
   @Autowired
-  lateinit var dispatcher: WorkflowDispatcher
+  lateinit var registerUserApi: RegisterUserApi
+
+  @Autowired
+  lateinit var findUserApi: FindUserApi
 
   @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
   @LocalServerPort
@@ -91,17 +97,24 @@ class BaseWebTest {
     val email = "admin@liquidsoftware.io"
     val password = "password"
     runAsSuperUserBlocking {
-      dispatcher.dispatch<UserRegisteredEvent>(
+      registerUserApi.registerUser(
         RegisterUserCommand(
           msisdn = "5125551234",
           email = email,
           password = password,
           role = RoleDto.ROLE_ADMIN.name
         )
-      )
+      ).getOrElse { throw it }
     }
     return loginUser(UserLoginInputDto(email, "password"))
   }
+
+  protected fun findUserByEmail(email: String): UserDto =
+    runAsSuperUserBlocking {
+      findUserApi.findUserByEmail(FindUserByEmailQuery(email))
+        .getOrElse { throw it }
+        .userDto
+    }
 
   protected fun registerUser(newUser: RegisterUserInputDto): RegisteredUserDto {
     log.info("Registering User with email: ${newUser.email}")
