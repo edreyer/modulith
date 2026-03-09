@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.booking.config
 
+import io.liquidsoftware.base.booking.adapter.out.module.LocalPaymentApi
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentApi
 import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityApi
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
@@ -29,15 +30,7 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class BookingApiConfig {
 
-  @Bean
-  internal fun paymentApi(): PaymentApi =
-    object : PaymentApi {
-      override suspend fun addPaymentMethod(command: io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand) =
-        ModuleApiRegistry.require(PaymentApi::class).addPaymentMethod(command)
-
-      override suspend fun makePayment(command: io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand) =
-        ModuleApiRegistry.require(PaymentApi::class).makePayment(command)
-    }
+  @Bean internal fun paymentApi(): PaymentApi = LocalPaymentApi()
 
   @Bean
   internal fun appointmentApiRegistration(
