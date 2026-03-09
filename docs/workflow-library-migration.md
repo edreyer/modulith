@@ -52,7 +52,7 @@ The strongest migration path is:
 - [x] Phase 3.3: migrate the remaining user lookup flows
 - [x] Phase 3.4: migrate remaining user commands
 - [x] Phase 3.5: migrate payment use cases
-- [ ] Phase 3.6: migrate booking use cases
+- [x] Phase 3.6: migrate booking use cases
 - [ ] Phase 4: remove the old workflow framework and Spring Integration workflow wiring
 
 Completed so far:
@@ -65,6 +65,7 @@ Completed so far:
 - `FindUserById`, `FindUserByEmail`, and `FindUserByMsisdn` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 - `RegisterUser`, `EnableUser`, and `DisableUser` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 - `AddPaymentMethod` and `MakePayment` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
+- `GetAvailability`, `ScheduleAppointment`, `StartAppointment`, `CompleteAppointment`, `CancelAppointment`, `FetchUserAppointments`, and `PayAppointment` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 
 What we learned from the first migrated use case:
 
@@ -77,6 +78,7 @@ What we learned from the first migrated use case:
 - once several workflows in the same bounded context share the same orchestration shape, it is worth extracting an internal OSS-backed base use case to keep the migrated code uniform instead of cloning one-off `useCase {}` chains
 - access-sensitive behavior from the old workflows has to be preserved explicitly during migration; for example `RegisterUser` needed `runAsSuperUser` to wrap the whole migrated use case, not just the persistence step, because duplicate-user detection also depends on elevated access
 - security-sensitive ownership rules should stay inside the bounded context that owns them; for example `MakePayment` still derives the paying user from `ExecutionContext` inside `payment`, then carries that user id through the OSS-backed flow instead of trusting a cross-module caller to supply it
+- booking could be migrated as a full bounded-context slice once `payment` was already on `PaymentApi`; most workflows are simple linear state transitions, but `PayAppointment` still proved the main architectural point of the refactor by orchestrating through `payment-api` with no runtime dispatcher lookup hidden inside booking
 
 ## Current Workflow Inventory
 
@@ -407,7 +409,7 @@ Current sub-status:
 - [x] 3.3 migrate remaining user lookup flows
 - [x] 3.4 migrate remaining user commands
 - [x] 3.5 migrate payment use cases
-- [ ] 3.6 migrate booking use cases
+- [x] 3.6 migrate booking use cases
 
 Current temporary bridge files:
 
@@ -444,6 +446,19 @@ Current payment migration shape:
   - `MakePayment`
 - the existing legacy workflows remain in place only as thin dispatcher adapters so `payment-api` contracts and module-context boundaries stay stable during the transition
 - `MakePayment` captures the authenticated user inside the payment bounded context before entering the OSS-backed workflow so payment-method ownership checks stay local to `payment`
+
+Current booking migration shape:
+
+- [`booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/BookingUseCases.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/BookingUseCases.kt) now centralizes the migrated OSS-backed booking flows for:
+  - `GetAvailability`
+  - `ScheduleAppointment`
+  - `StartAppointment`
+  - `CompleteAppointment`
+  - `CancelAppointment`
+  - `FetchUserAppointments`
+  - `PayAppointment`
+- the existing legacy workflows remain in place only as thin dispatcher adapters so `booking-api` contracts and the module-context boundary stay stable during the transition
+- `PayAppointment` now expresses the full cross-bounded-context orchestration explicitly in the OSS workflow chain: load completed appointment, call `PaymentApi`, build paid aggregate, persist event
 
 ### [ ] Phase 4: Remove the old framework
 

@@ -27,33 +27,16 @@ internal class PayAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<PayAppointmentCommand, AppointmentPaidEvent>() {
 
-  private val log by LoggerDelegate()
+  private val useCase = PayAppointmentUseCase(
+    paymentApi = paymentApi,
+    findAppointmentPort = findAppointmentPort,
+    appointmentEventPort = appointmentEventPort,
+  )
 
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(_: Raise<WorkflowError>)
-  override suspend fun execute(request: PayAppointmentCommand): AppointmentPaidEvent {
-    // 1) Ensure appt is in correct state
-    val completeAppt = ensureNotNull(findAppointmentPort.findCompletedById(request.appointmentId).bind()) {
-      AppointmentNotFoundError("Appointment(${request.appointmentId} must be Completed")
-    }
-
-    // 2) attempt a payment on the appt
-    val paymentMade = paymentApi.makePayment(MakePaymentCommand(
-      paymentMethodId = request.paymentMethodId,
-      amount = completeAppt.totalDue()
-    ))
-      .onLeft { ex ->
-        log.error("Failed to make payment on appt ${request.appointmentId}", ex)
-      }
-      .bind()
-
-    val paidAppointment = either {
-      PaidAppointment.of(completeAppt, paymentMade.paymentDto.paymentId)
-    }.bindValidation()
-
-    return appointmentEventPort.handle(AppointmentPaidEvent(paidAppointment.toDto())).bind()
-
-  }
+  override suspend fun execute(request: PayAppointmentCommand): AppointmentPaidEvent =
+    useCase.execute(request).bind()
 
 }

@@ -32,46 +32,15 @@ internal class ScheduleAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<ScheduleAppointmentCommand, AppointmentScheduledEvent>() {
 
+  private val useCase = ScheduleAppointmentUseCase(
+    availabilityService = availabilityService,
+    findAppointmentPort = findAppointmentPort,
+    appointmentEventPort = appointmentEventPort,
+  )
+
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(_: Raise<WorkflowError>)
-  override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent {
-    // business invariant we must check
-    val scheduledAppts = findAppointmentPort.findAllForAvailability(request.scheduledTime.toLocalDate()).bind()
-    val scheduledTime = request.scheduledTime.toLocalTime()
-
-    ensure(availabilityService.isTimeAvailable(scheduledAppts, scheduledTime)) {
-      DateTimeUnavailableError("'$scheduledTime' is no longer available.")
-    }
-
-    val appointment = either<ValidationErrors, Appointment> {
-      val wo = ReadyWorkOrder.of(
-        service = request.workOrder.service,
-        notes = request.workOrder.notes
-      )
-      val appt = ScheduledAppointment.of(
-        userId = request.userId,
-        scheduledTime = request.scheduledTime,
-        duration = request.duration,
-        workOrder = wo
-      )
-      appt
-    }
-
-    return appointmentEventPort.handle(
-      AppointmentScheduledEvent(
-        appointment.bindValidation { AppointmentValidationError(it.toErrString()) }.toDto()
-      )
-    ).bind()
-  }
-
-  suspend fun ScheduledAppointment.toDto(): AppointmentDtoOut =
-    AppointmentDtoOut(
-      id = this.id.value,
-      userId = this.userId.value,
-      duration = this.duration.toMinutes(),
-      scheduledTime = this.scheduledTime,
-      workOrderDto = this.workOrder.toDto(),
-      status = AppointmentStatus.SCHEDULED
-    )
+  override suspend fun execute(request: ScheduleAppointmentCommand): AppointmentScheduledEvent =
+    useCase.execute(request).bind()
 }

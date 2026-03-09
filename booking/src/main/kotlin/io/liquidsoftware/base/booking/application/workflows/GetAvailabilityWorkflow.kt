@@ -20,13 +20,14 @@ internal class GetAvailabilityWorkflow(
   private val availabilityService: AvailabilityService
 ) : BaseSafeWorkflow<GetAvailabilityQuery, AvailabilityRetrievedEvent>() {
 
+  private val useCase = GetAvailabilityUseCase(
+    findAppointmentPort = findApptsPort,
+    availabilityService = availabilityService,
+  )
+
   override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
   context(_: Raise<WorkflowError>)
-  override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent {
-    ensure(request.date.isAfter(LocalDate.now())) { DateInPastError("${request.date} is in the past") }
-    return findApptsPort.findAllForAvailability(request.date).bind()
-      .let { availabilityService.getAvailability(it) }
-      .let { AvailabilityRetrievedEvent(it) }
-  }
+  override suspend fun execute(request: GetAvailabilityQuery): AvailabilityRetrievedEvent =
+    useCase.execute(request).bind()
 }

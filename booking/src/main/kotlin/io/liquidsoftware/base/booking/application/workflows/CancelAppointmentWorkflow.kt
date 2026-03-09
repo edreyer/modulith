@@ -23,15 +23,16 @@ internal class CancelAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<CancelAppointmentCommand, AppointmentCancelledEvent>() {
 
+  private val useCase = CancelAppointmentUseCase(
+    appointmentStateService = apptStateService,
+    findAppointmentPort = findAppointmentPort,
+    appointmentEventPort = appointmentEventPort,
+  )
+
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(_: Raise<WorkflowError>)
-  override suspend fun execute(request: CancelAppointmentCommand): AppointmentCancelledEvent {
-    return ensureNotNull(findAppointmentPort.findById(request.appointmentId).bind()) {
-      AppointmentNotFoundError("Appointment(${request.appointmentId} not found")
-    }
-      .let { appointment -> either { apptStateService.cancel(appointment) }.bind() }
-      .let { appointmentEventPort.handle(AppointmentCancelledEvent(it.toDto())).bind() }
-  }
+  override suspend fun execute(request: CancelAppointmentCommand): AppointmentCancelledEvent =
+    useCase.execute(request).bind()
 
 }

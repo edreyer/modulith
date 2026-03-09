@@ -21,16 +21,15 @@ internal class StartAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<StartAppointmentCommand, AppointmentStartedEvent>() {
 
+  private val useCase = StartAppointmentUseCase(
+    findAppointmentPort = findAppointmentPort,
+    appointmentEventPort = appointmentEventPort,
+  )
+
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(_: Raise<WorkflowError>)
-  override suspend fun execute(request: StartAppointmentCommand): AppointmentStartedEvent {
-    // business invariant we must check
-    return ensureNotNull(findAppointmentPort.findScheduledById(request.appointmentId).bind()) {
-      AppointmentValidationError("Could not find ready Appointment to start")
-    }
-      .let { InProgressAppointment.of(it) }
-      .let { appointmentEventPort.handle(AppointmentStartedEvent(it.toDto())).bind() }
-  }
+  override suspend fun execute(request: StartAppointmentCommand): AppointmentStartedEvent =
+    useCase.execute(request).bind()
 
 }

@@ -18,13 +18,12 @@ internal class FetchUserAppointmentsWorkflow(
   private val findApptsPort: FindAppointmentPort,
 ) : BaseSafeWorkflow<FetchUserAppointmentsQuery, UserAppointmentsFetchedEvent>() {
 
+  private val useCase = FetchUserAppointmentsUseCase(findAppointmentPort = findApptsPort)
+
   override fun registerWithDispatcher() = WorkflowRegistry.registerQueryHandler(this)
 
   context(_: Raise<WorkflowError>)
   override suspend fun execute(request: FetchUserAppointmentsQuery): UserAppointmentsFetchedEvent =
-    findApptsPort.findByUserId(request.userId, PageRequest.of(request.page, request.size)).bind()
-      .filter { it !is CancelledAppointment }
-      .map { it.toDto() }
-      .let { UserAppointmentsFetchedEvent(it) }
+    useCase.execute(request).bind()
 
 }

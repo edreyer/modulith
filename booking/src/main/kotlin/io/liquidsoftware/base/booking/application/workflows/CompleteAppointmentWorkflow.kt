@@ -22,18 +22,15 @@ internal class CompleteAppointmentWorkflow(
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<CompleteAppointmentCommand, AppointmentCompletedEvent>() {
 
+  private val useCase = CompleteAppointmentUseCase(
+    findAppointmentPort = findAppointmentPort,
+    appointmentEventPort = appointmentEventPort,
+  )
+
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(_: Raise<WorkflowError>)
-  override suspend fun execute(request: CompleteAppointmentCommand): AppointmentCompletedEvent {
-    // business invariant we must check
-    return ensureNotNull(findAppointmentPort.findStartedById(request.appointmentId).bind()) {
-      AppointmentNotFoundError(
-        "Appointment Not Found. id=${request.appointmentId}, status=${AppointmentStatus.IN_PROGRESS}"
-      )
-    }
-      .let { CompleteAppointment.of(it, request.notes) }
-      .let { appointmentEventPort.handle(AppointmentCompletedEvent(it.toDto())).bind() }
-  }
+  override suspend fun execute(request: CompleteAppointmentCommand): AppointmentCompletedEvent =
+    useCase.execute(request).bind()
 
 }
