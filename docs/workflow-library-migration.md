@@ -50,7 +50,7 @@ The strongest migration path is:
 - [x] Phase 3.1: migrate `SystemFindUserByEmail` to an OSS-backed `useCase {}` implementation
 - [x] Phase 3.2: add temporary legacy bridge shims in `common.usecase.legacy`
 - [x] Phase 3.3: migrate the remaining user lookup flows
-- [ ] Phase 3.4: migrate remaining user commands
+- [x] Phase 3.4: migrate remaining user commands
 - [ ] Phase 3.5: migrate payment use cases
 - [ ] Phase 3.6: migrate booking use cases
 - [ ] Phase 4: remove the old workflow framework and Spring Integration workflow wiring
@@ -63,6 +63,7 @@ Completed so far:
 - the root Maven build explicitly targets JVM 21 for Kotlin compilation so the OSS library compiles cleanly in this repo
 - `SystemFindUserByEmail` is the first real migrated use case and is verified through `server` integration tests
 - `FindUserById`, `FindUserByEmail`, and `FindUserByMsisdn` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
+- `RegisterUser`, `EnableUser`, and `DisableUser` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 
 What we learned from the first migrated use case:
 
@@ -73,6 +74,7 @@ What we learned from the first migrated use case:
   - sometimes a thin adapter workflow so parent/child Spring contexts keep working during the transition
 - that repeated glue is now centralized in a temporary `io.liquidsoftware.common.usecase.legacy` package and should be deleted near the end of Phase 4
 - once several workflows in the same bounded context share the same orchestration shape, it is worth extracting an internal OSS-backed base use case to keep the migrated code uniform instead of cloning one-off `useCase {}` chains
+- access-sensitive behavior from the old workflows has to be preserved explicitly during migration; for example `RegisterUser` needed `runAsSuperUser` to wrap the whole migrated use case, not just the persistence step, because duplicate-user detection also depends on elevated access
 
 ## Current Workflow Inventory
 
@@ -401,7 +403,7 @@ Current sub-status:
 - [x] 3.1 migrate `SystemFindUserByEmail`
 - [x] 3.2 introduce temporary legacy bridge shims in `common.usecase.legacy`
 - [x] 3.3 migrate remaining user lookup flows
-- [ ] 3.4 migrate remaining user commands
+- [x] 3.4 migrate remaining user commands
 - [ ] 3.5 migrate payment use cases
 - [ ] 3.6 migrate booking use cases
 
@@ -423,6 +425,15 @@ Current user lookup migration shape:
   - `FindUserByEmail`
   - `FindUserByMsisdn`
 - the existing legacy workflows remain in place only as thin dispatcher adapters so parent/child Spring-context boundaries and public API contracts stay stable during the transition
+
+Current user command migration shape:
+
+- [`user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserCommandUseCases.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserCommandUseCases.kt) now centralizes the migrated OSS-backed command flows for:
+  - `RegisterUser`
+  - `EnableUser`
+  - `DisableUser`
+- `EnableUser` and `DisableUser` share a common internal OSS-backed base use case because they have the same load-and-persist orchestration shape
+- `RegisterUser` remains separate because it combines duplicate detection, password encoding, domain construction, validation mapping, and elevated execution via `runAsSuperUser`
 
 ### [ ] Phase 4: Remove the old framework
 
