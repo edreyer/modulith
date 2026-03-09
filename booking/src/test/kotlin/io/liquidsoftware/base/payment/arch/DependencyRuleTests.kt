@@ -3,6 +3,7 @@ package io.liquidsoftware.base.payment.arch
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import io.liquidsoftware.arch.HexagonalArchitecture
+import io.liquidsoftware.common.context.ModuleApiRegistry
 import org.junit.jupiter.api.Test
 
 class DependencyRuleTests {
@@ -67,6 +68,25 @@ class DependencyRuleTests {
       .should()
       .dependOnClassesThat()
       .resideInAnyPackage("io.liquidsoftware.base.$module.adapter..")
+      .check(
+        ClassFileImporter()
+          .importPackages("io.liquidsoftware.base.$module..")
+      )
+  }
+
+  @Test
+  fun confineModuleApiRegistryToBoundaryAdaptersAndConfig() {
+    noClasses()
+      .that()
+      .resideInAPackage("io.liquidsoftware.base.$module..")
+      .and()
+      .resideOutsideOfPackages(
+        "io.liquidsoftware.base.$module.adapter.out.module..",
+        "io.liquidsoftware.base.$module.config.."
+      )
+      .should()
+      .dependOnClassesThat()
+      .haveFullyQualifiedName(ModuleApiRegistry::class.java.name)
       .check(
         ClassFileImporter()
           .importPackages("io.liquidsoftware.base.$module..")
