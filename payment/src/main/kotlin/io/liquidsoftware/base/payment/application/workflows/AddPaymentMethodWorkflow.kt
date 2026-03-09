@@ -1,14 +1,10 @@
 package io.liquidsoftware.base.payment.application.workflows
 
 import arrow.core.raise.Raise
-import arrow.core.raise.either
 import arrow.core.raise.context.bind
-import io.liquidsoftware.base.payment.application.mapper.toDto
 import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
-import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
-import io.liquidsoftware.common.ext.bindValidation
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
@@ -19,18 +15,11 @@ internal class AddPaymentMethodWorkflow(
   val paymentEventPort: PaymentEventPort
 ) : BaseSafeWorkflow<AddPaymentMethodCommand, PaymentMethodAddedEvent>() {
 
+  private val useCase = AddPaymentMethodUseCase(paymentEventPort)
+
   override fun registerWithDispatcher() = WorkflowRegistry.registerCommandHandler(this)
 
   context(_: Raise<WorkflowError>)
-  override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent {
-    val paymentMethod = either {
-      ActivePaymentMethod.of(
-        userId = request.userId,
-        stripePaymentMethodId = request.stripePaymentMethodId,
-        lastFour = request.lastFour
-      )
-    }.bindValidation()
-
-    return paymentEventPort.handle(PaymentMethodAddedEvent(paymentMethod.toDto())).bind()
-  }
+  override suspend fun execute(request: AddPaymentMethodCommand): PaymentMethodAddedEvent =
+    useCase.execute(request).bind()
 }

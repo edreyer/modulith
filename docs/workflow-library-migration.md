@@ -51,7 +51,7 @@ The strongest migration path is:
 - [x] Phase 3.2: add temporary legacy bridge shims in `common.usecase.legacy`
 - [x] Phase 3.3: migrate the remaining user lookup flows
 - [x] Phase 3.4: migrate remaining user commands
-- [ ] Phase 3.5: migrate payment use cases
+- [x] Phase 3.5: migrate payment use cases
 - [ ] Phase 3.6: migrate booking use cases
 - [ ] Phase 4: remove the old workflow framework and Spring Integration workflow wiring
 
@@ -64,6 +64,7 @@ Completed so far:
 - `SystemFindUserByEmail` is the first real migrated use case and is verified through `server` integration tests
 - `FindUserById`, `FindUserByEmail`, and `FindUserByMsisdn` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 - `RegisterUser`, `EnableUser`, and `DisableUser` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
+- `AddPaymentMethod` and `MakePayment` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
 
 What we learned from the first migrated use case:
 
@@ -75,6 +76,7 @@ What we learned from the first migrated use case:
 - that repeated glue is now centralized in a temporary `io.liquidsoftware.common.usecase.legacy` package and should be deleted near the end of Phase 4
 - once several workflows in the same bounded context share the same orchestration shape, it is worth extracting an internal OSS-backed base use case to keep the migrated code uniform instead of cloning one-off `useCase {}` chains
 - access-sensitive behavior from the old workflows has to be preserved explicitly during migration; for example `RegisterUser` needed `runAsSuperUser` to wrap the whole migrated use case, not just the persistence step, because duplicate-user detection also depends on elevated access
+- security-sensitive ownership rules should stay inside the bounded context that owns them; for example `MakePayment` still derives the paying user from `ExecutionContext` inside `payment`, then carries that user id through the OSS-backed flow instead of trusting a cross-module caller to supply it
 
 ## Current Workflow Inventory
 
@@ -404,7 +406,7 @@ Current sub-status:
 - [x] 3.2 introduce temporary legacy bridge shims in `common.usecase.legacy`
 - [x] 3.3 migrate remaining user lookup flows
 - [x] 3.4 migrate remaining user commands
-- [ ] 3.5 migrate payment use cases
+- [x] 3.5 migrate payment use cases
 - [ ] 3.6 migrate booking use cases
 
 Current temporary bridge files:
@@ -434,6 +436,14 @@ Current user command migration shape:
   - `DisableUser`
 - `EnableUser` and `DisableUser` share a common internal OSS-backed base use case because they have the same load-and-persist orchestration shape
 - `RegisterUser` remains separate because it combines duplicate detection, password encoding, domain construction, validation mapping, and elevated execution via `runAsSuperUser`
+
+Current payment migration shape:
+
+- [`payment/src/main/kotlin/io/liquidsoftware/base/payment/application/workflows/PaymentUseCases.kt`](../payment/src/main/kotlin/io/liquidsoftware/base/payment/application/workflows/PaymentUseCases.kt) now centralizes the migrated OSS-backed payment flows for:
+  - `AddPaymentMethod`
+  - `MakePayment`
+- the existing legacy workflows remain in place only as thin dispatcher adapters so `payment-api` contracts and module-context boundaries stay stable during the transition
+- `MakePayment` captures the authenticated user inside the payment bounded context before entering the OSS-backed workflow so payment-method ownership checks stay local to `payment`
 
 ### [ ] Phase 4: Remove the old framework
 
