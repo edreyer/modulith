@@ -48,37 +48,42 @@ The strongest migration path is:
 - [x] Phase 1: extract explicit input-port boundaries from `WorkflowDispatcher` consumers
 - [x] Phase 2: add the OSS workflow dependency to `common` and introduce `common.usecase`
 - [x] Phase 3.1: migrate `SystemFindUserByEmail` to an OSS-backed `useCase {}` implementation
-- [x] Phase 3.2: add temporary legacy bridge shims in `common.usecase.legacy`
+- [x] Phase 3.2: add temporary migration bridges
 - [x] Phase 3.3: migrate the remaining user lookup flows
 - [x] Phase 3.4: migrate remaining user commands
 - [x] Phase 3.5: migrate payment use cases
 - [x] Phase 3.6: migrate booking use cases
 - [x] Phase 4: remove the old workflow framework and Spring Integration workflow wiring
+- [x] Phase 5: remove temporary migration shims and split bounded-context use cases into dedicated files
 
 Completed so far:
 
 - `*-api` seams now isolate controllers, security, and cross-module calls from the generic dispatcher
 - `common` now exposes the OSS-library compatibility layer in `io.liquidsoftware.common.usecase`
-- `common` now also exposes temporary legacy bridge helpers in `io.liquidsoftware.common.usecase.legacy`
+- the temporary `common.usecase.legacy` package has been removed; the remaining error bridge lives permanently in `io.liquidsoftware.common.usecase.WorkflowErrorBridge`
 - the root Maven build explicitly targets JVM 21 for Kotlin compilation so the OSS library compiles cleanly in this repo
 - `SystemFindUserByEmail` is the first real migrated use case and is verified through `server` integration tests
-- `FindUserById`, `FindUserByEmail`, and `FindUserByMsisdn` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
-- `RegisterUser`, `EnableUser`, and `DisableUser` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
-- `AddPaymentMethod` and `MakePayment` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
-- `GetAvailability`, `ScheduleAppointment`, `StartAppointment`, `CompleteAppointment`, `CancelAppointment`, `FetchUserAppointments`, and `PayAppointment` now also run on internal OSS-backed use cases while their legacy dispatcher workflows remain as thin adapters
+- `FindUserById`, `FindUserByEmail`, `FindUserByMsisdn`, `SystemFindUserByEmail`, `RegisterUser`, `EnableUser`, and `DisableUser` now live in dedicated OSS-backed use-case files in `user`
+- `AddPaymentMethod` and `MakePayment` now live in dedicated OSS-backed use-case files in `payment`
+- `GetAvailability`, `ScheduleAppointment`, `StartAppointment`, `CompleteAppointment`, `CancelAppointment`, `FetchUserAppointments`, and `PayAppointment` now live in dedicated OSS-backed use-case files in `booking`
 - Phase 4 is now complete: `WorkflowDispatcher`, `WorkflowRegistry`, Spring Integration workflow wiring, and the thin adapter workflow classes are removed
 - parent `server` web/security beans now use no-dependency API proxies, while child bounded-context modules register the real API implementations at startup through `io.liquidsoftware.common.context.ModuleApiRegistry`
-- `common.workflow` is now reduced to legacy request/error/event contract types that still back the `*-api` modules during the final cleanup stage
+- the `*-api` request and event contracts now depend on `common.usecase` markers instead of `common.workflow`
+- `common.workflow` is now reduced to the shared legacy error hierarchy that still backs the public API contracts
 
 What we learned from the first migrated use case:
 
 - the OSS library itself is not the hard part; the repetitive work is bridging between legacy `common.workflow` request/event/error types and the new `common.usecase` / OSS types
-- because the `*-api` modules still expose legacy `Command`, `Query`, `Event`, and `WorkflowError`, each migrated use case currently needs:
+- because the `*-api` modules originally exposed legacy `Command`, `Query`, `Event`, and `WorkflowError`, the migration first needed:
   - an internal OSS command/query type
   - a temporary legacy-to-OSS error bridge
-  - sometimes a thin adapter workflow so parent/child Spring contexts keep working during the transition
-- that repeated glue is now centralized in a temporary `io.liquidsoftware.common.usecase.legacy` package and should be deleted near the end of Phase 4
+  - sometimes a thin adapter workflow so parent/child Spring contexts kept working during the transition
+- those temporary bridges did their job, but the final cleanup simplified the result:
+  - request and event contracts now use `common.usecase` directly
+  - the temporary bridge package is deleted
+  - the remaining permanent bridge responsibility is only error conversion in `WorkflowErrorBridge`
 - once several workflows in the same bounded context share the same orchestration shape, it is worth extracting an internal OSS-backed base use case to keep the migrated code uniform instead of cloning one-off `useCase {}` chains
+- aggregate `*UseCases.kt` files were fine during the migration, but they made the supported use-case surface harder to scan; the final cleanup moved each use case into its own file and kept only narrow support files where shared orchestration genuinely reduced duplication
 - access-sensitive behavior from the old workflows has to be preserved explicitly during migration; for example `RegisterUser` needed `runAsSuperUser` to wrap the whole migrated use case, not just the persistence step, because duplicate-user detection also depends on elevated access
 - security-sensitive ownership rules should stay inside the bounded context that owns them; for example `MakePayment` still derives the paying user from `ExecutionContext` inside `payment`, then carries that user id through the OSS-backed flow instead of trusting a cross-module caller to supply it
 - booking could be migrated as a full bounded-context slice once `payment` was already on `PaymentApi`; most workflows are simple linear state transitions, but `PayAppointment` still proved the main architectural point of the refactor by orchestrating through `payment-api` with no runtime dispatcher lookup hidden inside booking
@@ -412,59 +417,54 @@ Why this order:
 Current sub-status:
 
 - [x] 3.1 migrate `SystemFindUserByEmail`
-- [x] 3.2 introduce temporary legacy bridge shims in `common.usecase.legacy`
+- [x] 3.2 introduce temporary migration bridges
 - [x] 3.3 migrate remaining user lookup flows
 - [x] 3.4 migrate remaining user commands
 - [x] 3.5 migrate payment use cases
 - [x] 3.6 migrate booking use cases
 
-Current temporary bridge files:
+Migration bridge outcome:
 
-- [`common/src/main/kotlin/io/liquidsoftware/common/usecase/legacy/LegacyWorkflowErrorBridge.kt`](../common/src/main/kotlin/io/liquidsoftware/common/usecase/legacy/LegacyWorkflowErrorBridge.kt)
-- [`common/src/main/kotlin/io/liquidsoftware/common/usecase/legacy/LegacyUseCaseAdapters.kt`](../common/src/main/kotlin/io/liquidsoftware/common/usecase/legacy/LegacyUseCaseAdapters.kt)
-
-These exist only to reduce repeated glue during the migration. They should shrink over time and disappear entirely once:
-
-- API modules stop exposing legacy `common.workflow` request/event/error types
-- dispatcher-backed adapter workflows are no longer needed
-- controllers, security, and application ports can deal directly with the OSS-library-facing contracts
+- the temporary bridge package introduced in 3.2 has now been deleted
+- the only permanent bridge that remains is [`common/src/main/kotlin/io/liquidsoftware/common/usecase/WorkflowErrorBridge.kt`](../common/src/main/kotlin/io/liquidsoftware/common/usecase/WorkflowErrorBridge.kt)
+- that permanent bridge is intentionally narrow: it converts between the app's existing `common.workflow.WorkflowError` hierarchy and the OSS library's `io.liquidsoftware.workflow.WorkflowError`
+- request and event contracts no longer need bridge adapters because the `*-api` modules now depend on `common.usecase` markers directly
 
 Current user lookup migration shape:
 
-- [`user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserLookupUseCases.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserLookupUseCases.kt) now centralizes the shared OSS-backed lookup chain for:
-  - `FindUserById`
-  - `FindUserByEmail`
-  - `FindUserByMsisdn`
-- the existing legacy workflows remain in place only as thin dispatcher adapters so parent/child Spring-context boundaries and public API contracts stay stable during the transition
+- dedicated OSS-backed use-case files now exist for:
+  - [`FindUserByIdUseCase.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/FindUserByIdUseCase.kt)
+  - [`FindUserByEmailUseCase.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/FindUserByEmailUseCase.kt)
+  - [`FindUserByMsisdnUseCase.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/FindUserByMsisdnUseCase.kt)
+- [`UserLookupUseCaseSupport.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserLookupUseCaseSupport.kt) remains only for the shared internal lookup orchestration
 
 Current user command migration shape:
 
-- [`user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserCommandUseCases.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/UserCommandUseCases.kt) now centralizes the migrated OSS-backed command flows for:
-  - `RegisterUser`
-  - `EnableUser`
-  - `DisableUser`
+- dedicated OSS-backed use-case files now exist for:
+  - [`RegisterUserUseCase.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/RegisterUserUseCase.kt)
+  - [`EnableUserUseCase.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/EnableUserUseCase.kt)
+  - [`DisableUserUseCase.kt`](../user/src/main/kotlin/io/liquidsoftware/base/user/application/workflows/DisableUserUseCase.kt)
 - `EnableUser` and `DisableUser` share a common internal OSS-backed base use case because they have the same load-and-persist orchestration shape
 - `RegisterUser` remains separate because it combines duplicate detection, password encoding, domain construction, validation mapping, and elevated execution via `runAsSuperUser`
 
 Current payment migration shape:
 
-- [`payment/src/main/kotlin/io/liquidsoftware/base/payment/application/workflows/PaymentUseCases.kt`](../payment/src/main/kotlin/io/liquidsoftware/base/payment/application/workflows/PaymentUseCases.kt) now centralizes the migrated OSS-backed payment flows for:
-  - `AddPaymentMethod`
-  - `MakePayment`
-- the existing legacy workflows remain in place only as thin dispatcher adapters so `payment-api` contracts and module-context boundaries stay stable during the transition
+- dedicated OSS-backed use-case files now exist for:
+  - [`AddPaymentMethodUseCase.kt`](../payment/src/main/kotlin/io/liquidsoftware/base/payment/application/workflows/AddPaymentMethodUseCase.kt)
+  - [`MakePaymentUseCase.kt`](../payment/src/main/kotlin/io/liquidsoftware/base/payment/application/workflows/MakePaymentUseCase.kt)
 - `MakePayment` captures the authenticated user inside the payment bounded context before entering the OSS-backed workflow so payment-method ownership checks stay local to `payment`
 
 Current booking migration shape:
 
-- [`booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/BookingUseCases.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/BookingUseCases.kt) now centralizes the migrated OSS-backed booking flows for:
-  - `GetAvailability`
-  - `ScheduleAppointment`
-  - `StartAppointment`
-  - `CompleteAppointment`
-  - `CancelAppointment`
-  - `FetchUserAppointments`
-  - `PayAppointment`
-- the existing legacy workflows remain in place only as thin dispatcher adapters so `booking-api` contracts and the module-context boundary stay stable during the transition
+- dedicated OSS-backed use-case files now exist for:
+  - [`GetAvailabilityUseCase.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/GetAvailabilityUseCase.kt)
+  - [`ScheduleAppointmentUseCase.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/ScheduleAppointmentUseCase.kt)
+  - [`StartAppointmentUseCase.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/StartAppointmentUseCase.kt)
+  - [`CompleteAppointmentUseCase.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/CompleteAppointmentUseCase.kt)
+  - [`CancelAppointmentUseCase.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/CancelAppointmentUseCase.kt)
+  - [`FetchUserAppointmentsUseCase.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/FetchUserAppointmentsUseCase.kt)
+  - [`PayAppointmentUseCase.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/PayAppointmentUseCase.kt)
+- [`BookingUseCaseErrorMappings.kt`](../booking/src/main/kotlin/io/liquidsoftware/base/booking/application/workflows/BookingUseCaseErrorMappings.kt) remains as the shared error-mapping helper for the booking slice
 - `PayAppointment` now expresses the full cross-bounded-context orchestration explicitly in the OSS workflow chain: load completed appointment, call `PaymentApi`, build paid aggregate, persist event
 
 ### [x] Phase 4: Remove the old framework
@@ -482,6 +482,21 @@ Result:
 - the custom workflow runtime is gone
 - the OSS `workflow` library now owns use-case orchestration
 - cross-context calls happen through explicit `*-api` contracts rather than generic workflow dispatch
+
+### [x] Phase 5: Final cleanup
+
+Completed:
+
+- removed the temporary `common.usecase.legacy` shim package introduced during the migration
+- promoted the remaining error-conversion logic into permanent shared support in [`common/src/main/kotlin/io/liquidsoftware/common/usecase/WorkflowErrorBridge.kt`](../common/src/main/kotlin/io/liquidsoftware/common/usecase/WorkflowErrorBridge.kt)
+- moved the `*-api` request and event contracts from `common.workflow` markers to `common.usecase` markers
+- split the aggregated `UserLookupUseCases.kt`, `UserCommandUseCases.kt`, `PaymentUseCases.kt`, and `BookingUseCases.kt` files into one OSS-backed file per use case
+
+Result:
+
+- the remaining migration scaffolding is minimal and explicit
+- the bounded-context workflow surface is easy to scan directly from the filesystem
+- shared support files now exist only where they reduce real duplication instead of hiding the available use cases
 
 ## Shared Migration Rules for Every Use Case
 

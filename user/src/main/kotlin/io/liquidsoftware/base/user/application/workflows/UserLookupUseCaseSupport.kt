@@ -3,9 +3,6 @@ package io.liquidsoftware.base.user.application.workflows
 import arrow.core.Either
 import arrow.core.flatMap
 import io.liquidsoftware.base.user.application.mapper.toUserDto
-import io.liquidsoftware.base.user.application.port.`in`.FindUserByEmailQuery
-import io.liquidsoftware.base.user.application.port.`in`.FindUserByIdQuery
-import io.liquidsoftware.base.user.application.port.`in`.FindUserByMsisdnQuery
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
@@ -15,8 +12,8 @@ import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
-import io.liquidsoftware.common.usecase.legacy.executeLegacyProjected
-import io.liquidsoftware.common.usecase.legacy.toUseCaseEither
+import io.liquidsoftware.common.usecase.toUseCaseEither
+import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
 import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
@@ -35,9 +32,8 @@ internal abstract class UserLookupUseCase(
   protected abstract suspend fun loadUser(findUserPort: FindUserPort, lookupValue: String): Either<LegacyWorkflowError, User?>
 
   protected suspend fun executeLookup(lookupValue: String): Either<LegacyWorkflowError, UserFoundEvent> =
-    useCase.executeLegacyProjected(
-      request = LookupQuery(lookupValue),
-      requestMapper = { it },
+    useCase.executeProjected(
+      LookupQuery(lookupValue),
       projector = { result ->
         result
           .requireState<FoundUserDtoState>(workflowId)
@@ -46,13 +42,12 @@ internal abstract class UserLookupUseCase(
             { state -> Either.Right(UserFoundEvent(state.userDto)) },
           )
       },
-      domainErrorMapper = { domainError ->
-        when (domainError.code) {
-          USER_NOT_FOUND_CODE -> UserNotFoundError(domainError.message)
-          else -> null
-        }
-      },
-    )
+    ).toWorkflowEither { domainError ->
+      when (domainError.code) {
+        USER_NOT_FOUND_CODE -> UserNotFoundError(domainError.message)
+        else -> null
+      }
+    }
 
   private class LoadUserStep(
     override val id: String,
@@ -88,58 +83,22 @@ internal abstract class UserLookupUseCase(
         )
       )
   }
-
-  private data class LookupQuery(
-    val lookupValue: String,
-  ) : UseCaseQuery
-
-  private data class LookupState(
-    val lookupValue: String,
-  ) : WorkflowState
-
-  private data class FoundUserState(
-    val user: User,
-  ) : WorkflowState
-
-  private data class FoundUserDtoState(
-    val userDto: io.liquidsoftware.base.user.application.port.`in`.UserDto,
-  ) : WorkflowState
 }
 
-internal class FindUserByIdUseCase(
-  findUserPort: FindUserPort,
-) : UserLookupUseCase(findUserPort, "find-user-by-id") {
-  suspend fun execute(query: FindUserByIdQuery): Either<LegacyWorkflowError, UserFoundEvent> =
-    executeLookup(query.userId)
+private data class LookupQuery(
+  val lookupValue: String,
+) : UseCaseQuery
 
-  override suspend fun loadUser(
-    findUserPort: FindUserPort,
-    lookupValue: String,
-  ): Either<LegacyWorkflowError, User?> = findUserPort.findUserById(lookupValue)
-}
+private data class LookupState(
+  val lookupValue: String,
+) : WorkflowState
 
-internal class FindUserByEmailUseCase(
-  findUserPort: FindUserPort,
-) : UserLookupUseCase(findUserPort, "find-user-by-email") {
-  suspend fun execute(query: FindUserByEmailQuery): Either<LegacyWorkflowError, UserFoundEvent> =
-    executeLookup(query.email)
+private data class FoundUserState(
+  val user: User,
+) : WorkflowState
 
-  override suspend fun loadUser(
-    findUserPort: FindUserPort,
-    lookupValue: String,
-  ): Either<LegacyWorkflowError, User?> = findUserPort.findUserByEmail(lookupValue)
-}
-
-internal class FindUserByMsisdnUseCase(
-  findUserPort: FindUserPort,
-) : UserLookupUseCase(findUserPort, "find-user-by-msisdn") {
-  suspend fun execute(query: FindUserByMsisdnQuery): Either<LegacyWorkflowError, UserFoundEvent> =
-    executeLookup(query.msisdn)
-
-  override suspend fun loadUser(
-    findUserPort: FindUserPort,
-    lookupValue: String,
-  ): Either<LegacyWorkflowError, User?> = findUserPort.findUserByMsisdn(lookupValue)
-}
+private data class FoundUserDtoState(
+  val userDto: io.liquidsoftware.base.user.application.port.`in`.UserDto,
+) : WorkflowState
 
 private const val USER_NOT_FOUND_CODE = "USER_NOT_FOUND"

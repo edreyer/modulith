@@ -1,8 +1,8 @@
 package io.liquidsoftware.base.payment.application.port.`in`
 
 import arrow.core.Either
-import io.liquidsoftware.common.workflow.Command
-import io.liquidsoftware.common.workflow.Event
+import io.liquidsoftware.common.usecase.AppEvent
+import io.liquidsoftware.common.usecase.Command
 import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -22,13 +22,13 @@ sealed interface PaymentMethodEvent
 
 data class PaymentMethodAddedEvent(
   val paymentMethodDto: PaymentMethodDtoOut
-) : PaymentMethodEvent, Event()
+) : PaymentMethodEvent, AppEvent()
 
 sealed interface PaymentEvent
 
 data class PaymentMadeEvent(
   val paymentDto: PaymentDtoOut
-) : PaymentEvent, Event()
+) : PaymentEvent, AppEvent()
 
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
 data class PaymentMethodNotFoundError(override val message: String) : WorkflowError(message)

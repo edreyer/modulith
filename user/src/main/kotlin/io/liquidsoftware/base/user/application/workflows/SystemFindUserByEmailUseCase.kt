@@ -9,13 +9,13 @@ import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.domain.User
 import io.liquidsoftware.common.security.UserDetailsWithId
-import io.liquidsoftware.common.usecase.legacy.executeLegacyProjected
-import io.liquidsoftware.common.usecase.legacy.toUseCaseEither
 import io.liquidsoftware.common.usecase.Query as UseCaseQuery
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
+import io.liquidsoftware.common.usecase.toUseCaseEither
+import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
 import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
@@ -32,9 +32,8 @@ internal class SystemFindUserByEmailUseCase(
 
   suspend fun execute(query: SystemFindUserByEmailQuery): Either<LegacyWorkflowError, SystemUserFoundEvent> =
     useCase
-      .executeLegacyProjected(
-        request = query,
-        requestMapper = { SystemFindUserLookupQuery(it.email) },
+      .executeProjected(
+        SystemFindUserLookupQuery(query.email),
         projector = { result ->
         result
           .requireState<SystemUserDetailsState>(USE_CASE_NAME)
@@ -43,13 +42,12 @@ internal class SystemFindUserByEmailUseCase(
             { state -> Either.Right(SystemUserFoundEvent(state.userDetails)) },
           )
         },
-        domainErrorMapper = { domainError ->
+      ).toWorkflowEither { domainError ->
           when (domainError.code) {
             USER_NOT_FOUND_CODE -> UserNotFoundError(domainError.message)
             else -> null
           }
-        },
-      )
+        }
 
   private class LoadUserByEmailStep(
     override val id: String,

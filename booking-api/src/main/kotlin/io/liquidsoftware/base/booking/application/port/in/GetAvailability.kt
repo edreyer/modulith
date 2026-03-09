@@ -1,7 +1,7 @@
 package io.liquidsoftware.base.booking.application.port.`in`
 
-import io.liquidsoftware.common.workflow.Event
-import io.liquidsoftware.common.workflow.Query
+import io.liquidsoftware.common.usecase.AppEvent
+import io.liquidsoftware.common.usecase.Query
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -9,6 +9,6 @@ import java.time.LocalTime
 data class GetAvailabilityQuery(val date: LocalDate) : Query
 
 // Outputs
-data class AvailabilityRetrievedEvent(val times: List<LocalTime>) : Event()
+data class AvailabilityRetrievedEvent(val times: List<LocalTime>) : AppEvent()
 
 // Errors

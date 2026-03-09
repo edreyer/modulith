@@ -1,8 +1,8 @@
 package io.liquidsoftware.base.booking.application.port.`in`
 
-import io.liquidsoftware.common.workflow.Command
-import io.liquidsoftware.common.workflow.Event
-import io.liquidsoftware.common.workflow.Query
+import io.liquidsoftware.common.usecase.AppEvent
+import io.liquidsoftware.common.usecase.Command
+import io.liquidsoftware.common.usecase.Query
 import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -42,22 +42,22 @@ data class FetchUserAppointmentsQuery(val userId: String, val page: Int, val siz
 sealed interface AppointmentEvent {
   val appointmentDto: AppointmentDtoOut
 }
-data class AppointmentScheduledEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
+data class AppointmentScheduledEvent(override val appointmentDto: AppointmentDtoOut) : AppEvent(),
   AppointmentEvent
 
-data class AppointmentStartedEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
+data class AppointmentStartedEvent(override val appointmentDto: AppointmentDtoOut) : AppEvent(),
   AppointmentEvent
 
-data class AppointmentCompletedEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
+data class AppointmentCompletedEvent(override val appointmentDto: AppointmentDtoOut) : AppEvent(),
   AppointmentEvent
 
-data class AppointmentCancelledEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
+data class AppointmentCancelledEvent(override val appointmentDto: AppointmentDtoOut) : AppEvent(),
   AppointmentEvent
 
-data class AppointmentPaidEvent(override val appointmentDto: AppointmentDtoOut) : Event(),
+data class AppointmentPaidEvent(override val appointmentDto: AppointmentDtoOut) : AppEvent(),
   AppointmentEvent
 
-data class UserAppointmentsFetchedEvent(val appointments: List<AppointmentDtoOut>) : Event()
+data class UserAppointmentsFetchedEvent(val appointments: List<AppointmentDtoOut>) : AppEvent()
 
 // Errors
 sealed class AppointmentError(override val message: String) : WorkflowError(message)

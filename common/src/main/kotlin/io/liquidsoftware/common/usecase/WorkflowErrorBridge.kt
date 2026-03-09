@@ -1,4 +1,4 @@
-package io.liquidsoftware.common.usecase.legacy
+package io.liquidsoftware.common.usecase
 
 import arrow.core.Either
 import arrow.core.nonEmptyListOf
@@ -6,8 +6,8 @@ import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.workflow.MissingHandler
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
+import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 
 const val UNAUTHORIZED_DOMAIN_CODE = "UNAUTHORIZED"
@@ -23,7 +23,7 @@ fun LegacyWorkflowError.toUseCaseError(
     else -> UseCaseError.ExecutionError(message)
   }
 
-fun UseCaseError.toLegacyWorkflowError(
+fun UseCaseError.toWorkflowError(
   domainMapper: (UseCaseError.DomainError) -> LegacyWorkflowError? = { null },
 ): LegacyWorkflowError = when (this) {
   is UseCaseError.DomainError -> domainMapper(this) ?: when (code) {
@@ -34,22 +34,19 @@ fun UseCaseError.toLegacyWorkflowError(
   is UseCaseError.ExecutionError -> ServerError(message)
   is UseCaseError.ExceptionError -> ServerError("$message: ${ex.message ?: ex::class.simpleName}")
   is UseCaseError.CompositionError -> ServerError(message)
-  is UseCaseError.ExecutionContextError -> error.toLegacyWorkflowError(domainMapper)
-  is UseCaseError.ChainError -> error.toLegacyWorkflowError(domainMapper)
+  is UseCaseError.ExecutionContextError -> error.toWorkflowError(domainMapper)
+  is UseCaseError.ChainError -> error.toWorkflowError(domainMapper)
 }
 
 fun <T> Either<LegacyWorkflowError, T>.toUseCaseEither(
-  domainMapper: (LegacyWorkflowError) -> UseCaseError.DomainError? = { null },
-): Either<UseCaseError, T> =
-  fold(
-    { Either.Left(it.toUseCaseError(domainMapper)) },
-    { Either.Right(it) },
-  )
+  errorMapper: (LegacyWorkflowError) -> UseCaseError.DomainError? = { null },
+): Either<UseCaseError, T> = mapLeft { legacyError ->
+  legacyError.toUseCaseError(errorMapper)
+}
 
-fun <T> Either<UseCaseError, T>.toLegacyEither(
+fun <T> Either<UseCaseError, T>.toWorkflowEither(
   domainMapper: (UseCaseError.DomainError) -> LegacyWorkflowError? = { null },
-): Either<LegacyWorkflowError, T> =
-  fold(
-    { Either.Left(it.toLegacyWorkflowError(domainMapper)) },
-    { Either.Right(it) },
-  )
+): Either<LegacyWorkflowError, T> = fold(
+  { Either.Left(it.toWorkflowError(domainMapper)) },
+  { Either.Right(it) },
+)

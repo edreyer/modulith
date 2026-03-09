@@ -2,8 +2,8 @@ package io.liquidsoftware.base.user.application.port.`in`
 
 import arrow.core.Either
 import io.liquidsoftware.common.security.UserDetailsWithId
-import io.liquidsoftware.common.workflow.Event
-import io.liquidsoftware.common.workflow.Query
+import io.liquidsoftware.common.usecase.AppEvent
+import io.liquidsoftware.common.usecase.Query
 import io.liquidsoftware.common.workflow.WorkflowError
 
 // Inputs
@@ -13,8 +13,8 @@ data class FindUserByMsisdnQuery(val msisdn: String) : Query
 data class SystemFindUserByEmailQuery(val email: String) : Query
 
 // Events
-data class UserFoundEvent(val userDto: UserDto) : Event()
-data class SystemUserFoundEvent(val userDetailsDto: UserDetailsWithId) : Event()
+data class UserFoundEvent(val userDto: UserDto) : AppEvent()
+data class SystemUserFoundEvent(val userDetailsDto: UserDetailsWithId) : AppEvent()
 
 // Error
 data class UserNotFoundError(override val message: String) : WorkflowError(message)
