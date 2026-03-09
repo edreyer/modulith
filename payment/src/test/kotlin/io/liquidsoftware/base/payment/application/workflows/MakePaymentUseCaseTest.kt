@@ -1,37 +1,30 @@
 package io.liquidsoftware.base.payment.application.workflows
 
 import arrow.core.Either
-import arrow.core.raise.either
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import io.liquidsoftware.base.payment.PaymentMethodId
-import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodCommand
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDeclinedError
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
-import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodNotFoundError
 import io.liquidsoftware.base.payment.application.port.out.FindPaymentMethodPort
 import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.application.service.StripeService
-import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
 import io.liquidsoftware.base.payment.domain.PaymentMethod
 import io.liquidsoftware.base.user.UserId
 import io.liquidsoftware.common.security.ExecutionContext
-import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.User
 
-class PaymentUseCasesTest {
+class MakePaymentUseCaseTest {
 
   @AfterEach
   fun clearSecurityContext() {
@@ -39,80 +32,8 @@ class PaymentUseCasesTest {
   }
 
   @Test
-  fun `add payment method persists valid payment method event`() = runBlocking {
-    var persistedEvent: PaymentMethodAddedEvent? = null
-    val useCase = AddPaymentMethodUseCase(
-      paymentEventPort = object : PaymentEventPort {
-        override suspend fun <T : PaymentMethodEvent> handle(event: T): Either<WorkflowError, T> {
-          persistedEvent = event as PaymentMethodAddedEvent
-          @Suppress("UNCHECKED_CAST")
-          return Either.Right(event as T)
-        }
-
-        override suspend fun <T : io.liquidsoftware.base.payment.application.port.`in`.PaymentEvent> handle(event: T): Either<WorkflowError, T> =
-          error("unexpected payment event")
-      },
-    )
-
-    val result = useCase.execute(
-      AddPaymentMethodCommand(
-        userId = "u_payment-user",
-        stripePaymentMethodId = "stripe-pm",
-        lastFour = "1234",
-      )
-    )
-    val event = result.fold({ error("unexpected error: $it") }, { it })
-
-    assertThat(event.paymentMethodDto.userId).isEqualTo("u_payment-user")
-    assertThat(event.paymentMethodDto.lastFour).isEqualTo("1234")
-    assertThat(persistedEvent?.paymentMethodDto?.userId).isEqualTo("u_payment-user")
-  }
-
-  @Test
-  fun `add payment method maps invalid input to workflow validation error`() = runBlocking {
-    val useCase = AddPaymentMethodUseCase(paymentEventPort = failingPaymentEventPort())
-
-    val result = useCase.execute(
-      AddPaymentMethodCommand(
-        userId = "u_payment-user",
-        stripePaymentMethodId = "",
-        lastFour = "1234",
-      )
-    )
-
-    val error = result.fold({ it }, { error("expected validation error") })
-    assertThat(error).isInstanceOf(WorkflowValidationError::class)
-    Unit
-  }
-
-  @Test
-  fun `add payment method maps persistence failures to legacy server errors`() = runBlocking {
-    val useCase = AddPaymentMethodUseCase(
-      paymentEventPort = object : PaymentEventPort {
-        override suspend fun <T : PaymentMethodEvent> handle(event: T): Either<WorkflowError, T> =
-          Either.Left(ServerError("db down"))
-
-        override suspend fun <T : io.liquidsoftware.base.payment.application.port.`in`.PaymentEvent> handle(event: T): Either<WorkflowError, T> =
-          Either.Left(ServerError("db down"))
-      },
-    )
-
-    val result = useCase.execute(
-      AddPaymentMethodCommand(
-        userId = "u_payment-user",
-        stripePaymentMethodId = "stripe-pm",
-        lastFour = "1234",
-      )
-    )
-
-    val error = result.fold({ it }, { error("expected server error") })
-    assertThat(error).isInstanceOf(ServerError::class)
-    assertThat(error.message).isEqualTo("Server Error: db down")
-  }
-
-  @Test
-  fun `make payment uses authenticated user when loading payment method and creating payment`() = runBlocking {
-    authenticate("u_authenticated-user")
+  fun `uses authenticated user when loading payment method and creating payment`() = runBlocking {
+    authenticatePaymentUser("u_authenticated-user")
     val expectedPaymentMethodId = "pm_test-method"
     val recordedUserIds = mutableListOf<String>()
     var recordedPaymentEvent: PaymentMadeEvent? = null
@@ -156,8 +77,8 @@ class PaymentUseCasesTest {
   }
 
   @Test
-  fun `make payment returns payment method not found when method is missing`() = runBlocking {
-    authenticate("u_authenticated-user")
+  fun `returns payment method not found when method is missing`() = runBlocking {
+    authenticatePaymentUser("u_authenticated-user")
     val useCase = MakePaymentUseCase(
       executionContext = ExecutionContext(),
       findPaymentMethodPort = object : FindPaymentMethodPort {
@@ -178,8 +99,8 @@ class PaymentUseCasesTest {
   }
 
   @Test
-  fun `make payment returns payment declined when stripe rejects charge`() = runBlocking {
-    authenticate("u_authenticated-user")
+  fun `returns payment declined when stripe rejects charge`() = runBlocking {
+    authenticatePaymentUser("u_authenticated-user")
     val useCase = MakePaymentUseCase(
       executionContext = ExecutionContext(),
       findPaymentMethodPort = object : FindPaymentMethodPort {
@@ -200,8 +121,8 @@ class PaymentUseCasesTest {
   }
 
   @Test
-  fun `make payment maps invalid request to workflow validation error`() = runBlocking {
-    authenticate("u_authenticated-user")
+  fun `maps invalid request to workflow validation error`() = runBlocking {
+    authenticatePaymentUser("u_authenticated-user")
     val useCase = MakePaymentUseCase(
       executionContext = ExecutionContext(),
       findPaymentMethodPort = object : FindPaymentMethodPort {
@@ -222,8 +143,8 @@ class PaymentUseCasesTest {
   }
 
   @Test
-  fun `make payment maps persistence failures to legacy server errors`() = runBlocking {
-    authenticate("u_authenticated-user")
+  fun `maps persistence failures to legacy server errors`() = runBlocking {
+    authenticatePaymentUser("u_authenticated-user")
     val useCase = MakePaymentUseCase(
       executionContext = ExecutionContext(),
       findPaymentMethodPort = object : FindPaymentMethodPort {
@@ -247,32 +168,5 @@ class PaymentUseCasesTest {
     val error = result.fold({ it }, { error("expected server error") })
     assertThat(error).isInstanceOf(ServerError::class)
     assertThat(error.message).isEqualTo("Server Error: db down")
-  }
-
-  private fun authenticate(userId: String) {
-    val principal = UserDetailsWithId(
-      userId,
-      User(userId, "password", emptyList())
-    )
-    SecurityContextHolder.getContext().authentication =
-      UsernamePasswordAuthenticationToken(principal, null, principal.authorities)
-  }
-
-  private fun activePaymentMethod(paymentMethodId: String, userId: String): ActivePaymentMethod =
-    either {
-      ActivePaymentMethod.of(
-        paymentMethodId = paymentMethodId,
-        userId = userId,
-        stripePaymentMethodId = "stripe-pm",
-        lastFour = "1234",
-      )
-    }.fold({ error("invalid test payment method") }, { it })
-
-  private fun failingPaymentEventPort(): PaymentEventPort = object : PaymentEventPort {
-    override suspend fun <T : PaymentMethodEvent> handle(event: T): Either<WorkflowError, T> =
-      error("unexpected payment method event")
-
-    override suspend fun <T : io.liquidsoftware.base.payment.application.port.`in`.PaymentEvent> handle(event: T): Either<WorkflowError, T> =
-      error("unexpected payment event")
   }
 }
