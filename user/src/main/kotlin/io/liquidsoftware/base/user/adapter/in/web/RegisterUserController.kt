@@ -1,12 +1,12 @@
 package io.liquidsoftware.base.user.adapter.`in`.web
 
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
+import io.liquidsoftware.base.user.application.port.`in`.RegisterUserApi
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.common.validation.Msisdn
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
 import jakarta.validation.Valid
@@ -30,13 +30,15 @@ data class RegisteredUserDto(val user: UserDto) : RegisterUserOutputDto()
 data class RegisterUserErrorsDto(val errors: String) : RegisterUserOutputDto()
 
 @RestController
-internal class RegisterUserController(val dispatcher: WorkflowDispatcher) {
+internal class RegisterUserController(
+  private val registerUserApi: RegisterUserApi,
+) {
 
   @PostMapping("/user/register")
   suspend fun register(@Valid @RequestBody registerUser: RegisterUserInputDto)
     : ResponseEntity<RegisterUserOutputDto> {
 
-    return dispatcher.dispatch<UserRegisteredEvent>(registerUser.toCommand())
+    return registerUserApi.registerUser(registerUser.toCommand())
       .fold(
         {
           when (it) {

@@ -1,13 +1,12 @@
 package io.liquidsoftware.base.server.config
 
+import io.liquidsoftware.base.user.application.port.`in`.SystemFindUserByEmailApi
 import io.liquidsoftware.base.user.application.port.`in`.SystemFindUserByEmailQuery
-import io.liquidsoftware.base.user.application.port.`in`.SystemUserFoundEvent
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.JwtProperties
 import io.liquidsoftware.common.security.JwtTokenAuthenticationFilter
 import io.liquidsoftware.common.security.JwtTokenService
 import io.liquidsoftware.common.security.runAsSuperUserBlocking
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import jakarta.servlet.DispatcherType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -31,9 +30,9 @@ class SecurityConfig {
   val log by LoggerDelegate()
 
   @Bean
-  fun userDetailsService(dispatcher: WorkflowDispatcher): UserDetailsService = UserDetailsService { username ->
+  fun userDetailsService(systemFindUserByEmailApi: SystemFindUserByEmailApi): UserDetailsService = UserDetailsService { username ->
     runAsSuperUserBlocking {
-      val user = dispatcher.dispatch<SystemUserFoundEvent>(SystemFindUserByEmailQuery(username))
+      val user = systemFindUserByEmailApi.findSystemUserByEmail(SystemFindUserByEmailQuery(username))
         .fold(
           { ex ->
             log.debug("Failed to find user with username: $username", ex)

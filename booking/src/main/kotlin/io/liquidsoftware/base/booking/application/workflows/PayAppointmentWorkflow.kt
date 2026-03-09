@@ -11,21 +11,18 @@ import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentComman
 import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.PaidAppointment
+import io.liquidsoftware.base.payment.application.port.`in`.PaymentApi
 import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
-import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
 import io.liquidsoftware.common.ext.bindValidation
 import io.liquidsoftware.common.logging.LoggerDelegate
-import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.BaseSafeWorkflow
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowRegistry
 import org.springframework.stereotype.Component
 
 @Component
 internal class PayAppointmentWorkflow(
-  private val ec: ExecutionContext,
-  private val dispatcher: WorkflowDispatcher,
+  private val paymentApi: PaymentApi,
   private val findAppointmentPort: FindAppointmentPort,
   private val appointmentEventPort: AppointmentEventPort,
 ) : BaseSafeWorkflow<PayAppointmentCommand, AppointmentPaidEvent>() {
@@ -42,7 +39,7 @@ internal class PayAppointmentWorkflow(
     }
 
     // 2) attempt a payment on the appt
-    val paymentMade = dispatcher.dispatch<PaymentMadeEvent>(MakePaymentCommand(
+    val paymentMade = paymentApi.makePayment(MakePaymentCommand(
       paymentMethodId = request.paymentMethodId,
       amount = completeAppt.totalDue()
     ))

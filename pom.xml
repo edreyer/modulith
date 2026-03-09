@@ -24,6 +24,7 @@
         <kotlin.version>2.3.10</kotlin.version>
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
 
+        <workflow.version>0.5.0-SNAPSHOT</workflow.version>
         <arrow.version>2.2.2</arrow.version>
         <jjwt.version>0.13.0</jjwt.version>
         <assertk.version>0.28.1</assertk.version>
@@ -186,6 +187,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>io.liquidsoftware</groupId>
+                <artifactId>workflow</artifactId>
+                <version>0.5.0-SNAPSHOT</version>
+            </dependency>
             <dependency>
                 <groupId>io.liquidsoftware</groupId>
                 <artifactId>acl-core</artifactId>

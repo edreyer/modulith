@@ -1,10 +1,9 @@
 package io.liquidsoftware.base.booking.adapter.`in`.web.api.v1
 
 import io.liquidsoftware.base.booking.adapter.`in`.web.V1BookingPaths
-import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityRetrievedEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityApi
 import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
 import io.liquidsoftware.common.logging.LoggerDelegate
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,7 +17,7 @@ data class AvailabilityErrors(val errors: String) : AvailabilityDto()
 
 @RestController
 class AvailabilityController(
-  private val dispatcher: WorkflowDispatcher
+  private val availabilityApi: AvailabilityApi,
 ) {
 
   val log by LoggerDelegate()
@@ -26,7 +25,7 @@ class AvailabilityController(
   @GetMapping(value = [V1BookingPaths.AVAILABILITY])
   suspend fun availability(@PathVariable date: LocalDate)
   : ResponseEntity<AvailabilityDto> {
-    return dispatcher.dispatch<AvailabilityRetrievedEvent>(GetAvailabilityQuery(date))
+    return availabilityApi.getAvailability(GetAvailabilityQuery(date))
       .fold(
         { ResponseEntity.badRequest().body(AvailabilityErrors("Availability error: ${it.message}")) },
         { ResponseEntity.ok(AvailabileTimesDto(it.times)) }

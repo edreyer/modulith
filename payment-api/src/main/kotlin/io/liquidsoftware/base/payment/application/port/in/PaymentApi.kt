@@ -1,5 +1,6 @@
 package io.liquidsoftware.base.payment.application.port.`in`
 
+import arrow.core.Either
 import io.liquidsoftware.common.workflow.Command
 import io.liquidsoftware.common.workflow.Event
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -19,21 +20,26 @@ data class MakePaymentCommand(
 
 sealed interface PaymentMethodEvent
 
-data class PaymentMethodAddedEvent (
+data class PaymentMethodAddedEvent(
   val paymentMethodDto: PaymentMethodDtoOut
 ) : PaymentMethodEvent, Event()
 
 sealed interface PaymentEvent
 
-data class PaymentMadeEvent (
+data class PaymentMadeEvent(
   val paymentDto: PaymentDtoOut
 ) : PaymentEvent, Event()
 
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
-data class PaymentMethodNotFoundError(override val message: String): WorkflowError(message)
+data class PaymentMethodNotFoundError(override val message: String) : WorkflowError(message)
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class PaymentDeclinedError(override val message: String): WorkflowError(message)
+data class PaymentDeclinedError(override val message: String) : WorkflowError(message)
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class PaymentValidationError(override val message: String) : WorkflowError(message)
+
+interface PaymentApi {
+  suspend fun addPaymentMethod(command: AddPaymentMethodCommand): Either<WorkflowError, PaymentMethodAddedEvent>
+  suspend fun makePayment(command: MakePaymentCommand): Either<WorkflowError, PaymentMadeEvent>
+}

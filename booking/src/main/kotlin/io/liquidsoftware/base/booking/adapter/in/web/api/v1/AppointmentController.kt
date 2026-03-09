@@ -2,17 +2,13 @@ package io.liquidsoftware.base.booking.adapter.`in`.web.api.v1
 
 import arrow.core.getOrElse
 import io.liquidsoftware.base.booking.adapter.`in`.web.V1BookingPaths
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCancelledEvent
+import io.liquidsoftware.base.booking.application.port.`in`.AppointmentApi
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedDtoIn
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoIn
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentIdDtoIn
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaidEvent
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaymentDto
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentScheduledEvent
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentStartedEvent
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentCommand
@@ -20,12 +16,10 @@ import io.liquidsoftware.base.booking.application.port.`in`.FetchUserAppointment
 import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentCommand
-import io.liquidsoftware.base.booking.application.port.`in`.UserAppointmentsFetchedEvent
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.web.ControllerSupport
 import io.liquidsoftware.common.workflow.ServerError
-import io.liquidsoftware.common.workflow.WorkflowDispatcher
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -56,7 +50,7 @@ data class CancelApptErrorDto(val error: String) : CancelAppointmentOutputDto()
 @RestController
 class AppointmentController(
   private val ec: ExecutionContext,
-  private val dispatcher: WorkflowDispatcher
+  private val appointmentApi: AppointmentApi,
 ) : ControllerSupport {
 
   private val log by LoggerDelegate()
@@ -65,7 +59,7 @@ class AppointmentController(
   suspend fun schedule(@RequestBody appt: AppointmentDtoIn)
     : ResponseEntity<ScheduledAppointmentOutputDto> {
     log.debug("AppointmentController.schedule()")
-    return dispatcher.dispatch<AppointmentScheduledEvent>(
+    return appointmentApi.scheduleAppointment(
       ScheduleAppointmentCommand(ec.getCurrentUser().id, appt.scheduledTime, appt.duration, appt.workOrder)
     )
       .throwIfSpringError()
@@ -85,7 +79,7 @@ class AppointmentController(
   @PostMapping(value = [V1BookingPaths.IN_PROGRESS_APPT])
   suspend fun inProgress(@RequestBody appt: AppointmentIdDtoIn)
     : ResponseEntity<StartedAppointmentOutputDto> =
-    dispatcher.dispatch<AppointmentStartedEvent>(
+    appointmentApi.startAppointment(
       StartAppointmentCommand(appt.id)
     )
       .throwIfSpringError()
@@ -104,7 +98,7 @@ class AppointmentController(
   @PostMapping(value = [V1BookingPaths.COMPLETE_APPT])
   suspend fun complete(@RequestBody appt: AppointmentCompletedDtoIn)
     : ResponseEntity<CompletedAppointmentOutputDto> =
-    dispatcher.dispatch<AppointmentCompletedEvent>(
+    appointmentApi.completeAppointment(
       CompleteAppointmentCommand(appt.id, appt.notes)
     )
       .throwIfSpringError()
@@ -123,7 +117,7 @@ class AppointmentController(
   @PostMapping(value = [V1BookingPaths.PAY_APPT])
   suspend fun pay(@RequestBody request: AppointmentPaymentDto)
     : ResponseEntity<PaidAppointmentOutputDto> =
-    dispatcher.dispatch<AppointmentPaidEvent>(
+    appointmentApi.payAppointment(
       PayAppointmentCommand(request.id, request.paymentMethodId)
     )
       .throwIfSpringError()
@@ -139,11 +133,10 @@ class AppointmentController(
         { ResponseEntity.ok(PaymentSuccessDto(it.appointmentDto)) }
       )
 
-
   @PostMapping(value = [V1BookingPaths.CANCEL_APPT])
   suspend fun cancel(@RequestBody appt: AppointmentDtoIn)
     : ResponseEntity<CancelAppointmentOutputDto> =
-    dispatcher.dispatch<AppointmentCancelledEvent>(
+    appointmentApi.cancelAppointment(
       CancelAppointmentCommand(appt.id!!, appt.workOrder.notes)
     )
       .throwIfSpringError()
@@ -163,7 +156,7 @@ class AppointmentController(
   suspend fun getUserAppointments(
     @RequestParam("page", required = false, defaultValue = "0") page: Int,
     @RequestParam("size", required = false, defaultValue = "20") size: Int): List<AppointmentDtoOut> {
-    return dispatcher.dispatch<UserAppointmentsFetchedEvent>(
+    return appointmentApi.fetchUserAppointments(
       FetchUserAppointmentsQuery(ec.getCurrentUser().id, page, size)
     )
       .throwIfSpringError()
