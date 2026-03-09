@@ -303,6 +303,7 @@
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>${kotlin.version}</version>
                 <configuration>
+                    <jvmTarget>${maven.compiler.release}</jvmTarget>
                     <args>
                         <arg>-Xjsr305=strict</arg>
                         <arg>-Xcontext-parameters</arg>
