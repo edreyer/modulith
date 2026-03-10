@@ -7,15 +7,15 @@ import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodComm
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
 import io.liquidsoftware.common.usecase.toUseCaseError
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 
@@ -37,7 +37,7 @@ internal class AddPaymentMethodUseCase(
     then(PersistPaymentMethodStep("persist-payment-method-added", paymentEventPort))
   }
 
-  suspend fun execute(command: AddPaymentMethodCommand): Either<LegacyWorkflowError, PaymentMethodAddedEvent> =
+  suspend fun execute(command: AddPaymentMethodCommand): Either<ApplicationError, PaymentMethodAddedEvent> =
     useCase.executeProjected(
       command,
       projector = { result ->
@@ -46,7 +46,7 @@ internal class AddPaymentMethodUseCase(
           { state -> Either.Right(state.event) },
         )
       },
-    ).toWorkflowEither()
+    ).toApplicationUseCaseEither()
 
   private class BuildPaymentMethodStep(
     override val id: String,

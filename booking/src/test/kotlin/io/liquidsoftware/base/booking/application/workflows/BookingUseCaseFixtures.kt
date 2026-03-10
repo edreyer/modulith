@@ -15,6 +15,7 @@ import io.liquidsoftware.base.payment.application.port.`in`.MakePaymentCommand
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentApi
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
@@ -78,14 +79,16 @@ internal class RecordingAppointmentEventPort(
 }
 
 internal class TestPaymentApi(
-  private val makePaymentBlock: suspend (MakePaymentCommand) -> Either<WorkflowError, PaymentMadeEvent> = {
+  private val makePaymentBlock: suspend (MakePaymentCommand) -> Either<ApplicationError, PaymentMadeEvent> = {
     error("unexpected makePayment")
   },
 ) : PaymentApi {
-  override suspend fun addPaymentMethod(command: AddPaymentMethodCommand): Either<WorkflowError, PaymentMethodAddedEvent> =
+  override suspend fun addPaymentMethod(
+    command: AddPaymentMethodCommand,
+  ): Either<ApplicationError, PaymentMethodAddedEvent> =
     error("unexpected addPaymentMethod")
 
-  override suspend fun makePayment(command: MakePaymentCommand): Either<WorkflowError, PaymentMadeEvent> =
+  override suspend fun makePayment(command: MakePaymentCommand): Either<ApplicationError, PaymentMadeEvent> =
     makePaymentBlock(command)
 }
 

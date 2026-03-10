@@ -6,15 +6,15 @@ import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.application.service.AvailabilityService
 import io.liquidsoftware.base.booking.domain.Appointment
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.usecase.Command as UseCaseCommand
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 import java.time.LocalDate
 
@@ -30,7 +30,7 @@ internal class GetAvailabilityUseCase(
     then(BuildAvailabilityStep("build-availability", availabilityService))
   }
 
-  suspend fun execute(query: GetAvailabilityQuery): Either<LegacyWorkflowError, AvailabilityRetrievedEvent> =
+  suspend fun execute(query: GetAvailabilityQuery): Either<ApplicationError, AvailabilityRetrievedEvent> =
     useCase.executeProjected(
       GetAvailabilityRequest(query.date),
       projector = { result ->
@@ -39,7 +39,7 @@ internal class GetAvailabilityUseCase(
           { state -> Either.Right(state.event) },
         )
       },
-    ).toWorkflowEither(::mapBookingDomainError)
+    ).toApplicationUseCaseEither(::mapBookingDomainError)
 
   private class ValidateAvailabilityDateStep(
     override val id: String,

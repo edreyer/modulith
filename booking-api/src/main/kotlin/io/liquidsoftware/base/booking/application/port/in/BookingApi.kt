@@ -1,9 +1,11 @@
 package io.liquidsoftware.base.booking.application.port.`in`
 
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.NotFoundApplicationError
+import io.liquidsoftware.common.application.error.ValidationApplicationError
 import io.liquidsoftware.common.usecase.AppEvent
 import io.liquidsoftware.common.usecase.Command
 import io.liquidsoftware.common.usecase.Query
-import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 import java.time.LocalDateTime
@@ -60,16 +62,42 @@ data class AppointmentPaidEvent(override val appointmentDto: AppointmentDtoOut) 
 data class UserAppointmentsFetchedEvent(val appointments: List<AppointmentDtoOut>) : AppEvent()
 
 // Errors
-sealed class AppointmentError(override val message: String) : WorkflowError(message)
+sealed interface AppointmentError : ApplicationError
 
-data class DateTimeUnavailableError(override val message: String): AppointmentError(message)
-data class DateInPastError(override val message: String): AppointmentError(message)
+data class DateTimeUnavailableError(
+  override val message: String,
+) : AppointmentError, ValidationApplicationError {
+  override val code: String = "DATE_TIME_UNAVAILABLE"
+  override val metadata: Map<String, String> = emptyMap()
+}
+
+data class DateInPastError(
+  override val message: String,
+) : AppointmentError, ValidationApplicationError {
+  override val code: String = "DATE_IN_PAST"
+  override val metadata: Map<String, String> = emptyMap()
+}
 
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
-data class AppointmentNotFoundError(override val message: String) : AppointmentError(message)
+data class AppointmentNotFoundError(
+  override val message: String,
+) : AppointmentError, NotFoundApplicationError {
+  override val code: String = "APPOINTMENT_NOT_FOUND"
+  override val metadata: Map<String, String> = emptyMap()
+}
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class AppointmentValidationError(override val message: String) : AppointmentError(message)
+data class AppointmentValidationError(
+  override val message: String,
+) : AppointmentError, ValidationApplicationError {
+  override val code: String = "APPOINTMENT_VALIDATION_ERROR"
+  override val metadata: Map<String, String> = emptyMap()
+}
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class CancelAppointmentError(override val message: String) : AppointmentError(message)
+data class CancelAppointmentError(
+  override val message: String,
+) : AppointmentError, ValidationApplicationError {
+  override val code: String = "CANCEL_APPOINTMENT_ERROR"
+  override val metadata: Map<String, String> = emptyMap()
+}

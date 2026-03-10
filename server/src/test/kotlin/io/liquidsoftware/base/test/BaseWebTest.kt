@@ -16,6 +16,7 @@ import io.liquidsoftware.base.user.application.port.`in`.RegisterUserCommand
 import io.liquidsoftware.base.user.application.port.`in`.RegisterUserApi
 import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.security.runAsSuperUserBlocking
 import io.liquidsoftware.base.user.config.UserModuleConfig
 import io.liquidsoftware.common.logging.LoggerDelegate
@@ -104,7 +105,7 @@ class BaseWebTest {
           password = password,
           role = RoleDto.ROLE_ADMIN.name
         )
-      ).getOrElse { throw it }
+      ).getOrElse { failWithApplicationError("register admin user", it) }
     }
     return loginUser(UserLoginInputDto(email, "password"))
   }
@@ -112,7 +113,7 @@ class BaseWebTest {
   protected fun findUserByEmail(email: String): UserDto =
     runAsSuperUserBlocking {
       findUserApi.findUserByEmail(FindUserByEmailQuery(email))
-        .getOrElse { throw it }
+        .getOrElse { failWithApplicationError("find user by email", it) }
         .userDto
     }
 
@@ -151,5 +152,8 @@ class BaseWebTest {
 
 
   protected fun asJson(payload: Any) : String = objectMapper.writeValueAsString(payload)
+
+  private fun failWithApplicationError(action: String, error: ApplicationError): Nothing =
+    error("Failed to $action: [${error.code}] ${error.message}")
 
 }

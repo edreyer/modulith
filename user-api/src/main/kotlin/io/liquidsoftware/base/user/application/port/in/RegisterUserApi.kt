@@ -1,9 +1,10 @@
 package io.liquidsoftware.base.user.application.port.`in`
 
 import arrow.core.Either
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.ConflictApplicationError
 import io.liquidsoftware.common.usecase.AppEvent
 import io.liquidsoftware.common.usecase.Command
-import io.liquidsoftware.common.workflow.WorkflowError
 
 // Input
 data class RegisterUserCommand(
@@ -20,8 +21,13 @@ data class UserRegisteredEvent(
 ) : AppEvent(), UserEvent
 
 // Errors
-data class UserExistsError(override val message: String) : WorkflowError(message)
+data class UserExistsError(
+  override val message: String,
+) : ConflictApplicationError {
+  override val code: String = "USER_EXISTS"
+  override val metadata: Map<String, String> = emptyMap()
+}
 
 interface RegisterUserApi {
-  suspend fun registerUser(command: RegisterUserCommand): Either<WorkflowError, UserRegisteredEvent>
+  suspend fun registerUser(command: RegisterUserCommand): Either<ApplicationError, UserRegisteredEvent>
 }

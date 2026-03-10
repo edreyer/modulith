@@ -10,6 +10,7 @@ import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.domain.User
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowError
 import kotlinx.coroutines.runBlocking
@@ -43,7 +44,7 @@ class FindUserByEmailUseCaseTest {
   }
 
   @Test
-  fun `maps port failures to legacy server errors`() = runBlocking {
+  fun `maps port failures to application unexpected errors`() = runBlocking {
     val useCase = FindUserByEmailUseCase(
       findUserPort = object : FindUserPort {
         override suspend fun findUserById(userId: String): Either<WorkflowError, User?> =
@@ -60,7 +61,7 @@ class FindUserByEmailUseCaseTest {
     val result = useCase.execute(FindUserByEmailQuery("user@liquidsoftware.io"))
 
     val error = result.fold({ it }, { error("expected server error") })
-    assertThat(error).isInstanceOf(ServerError::class)
-    assertThat(error.message).isEqualTo("Server Error: db down")
+    assertThat(error).isInstanceOf(ApplicationError.Unexpected::class)
+    assertThat(error.message).isEqualTo("db down")
   }
 }

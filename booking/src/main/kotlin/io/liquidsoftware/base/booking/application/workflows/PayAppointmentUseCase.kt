@@ -15,6 +15,9 @@ import io.liquidsoftware.base.payment.application.port.`in`.PaymentApi
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDeclinedError
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMadeEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodNotFoundError
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
+import io.liquidsoftware.common.application.error.toUseCaseApplicationEither
 import io.liquidsoftware.common.usecase.Command as UseCaseCommand
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
@@ -22,9 +25,7 @@ import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
 import io.liquidsoftware.common.usecase.toUseCaseError
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 
@@ -42,7 +43,7 @@ internal class PayAppointmentUseCase(
     then(PersistAppointmentPaidStep("persist-appointment-paid", appointmentEventPort))
   }
 
-  suspend fun execute(command: PayAppointmentCommand): Either<LegacyWorkflowError, AppointmentPaidEvent> =
+  suspend fun execute(command: PayAppointmentCommand): Either<ApplicationError, AppointmentPaidEvent> =
     useCase.executeProjected(
       PayAppointmentRequest(command.appointmentId, command.paymentMethodId),
       projector = { result ->
@@ -51,7 +52,7 @@ internal class PayAppointmentUseCase(
           { state -> Either.Right(state.event) },
         )
       },
-    ).toWorkflowEither(::mapBookingOrPaymentDomainError)
+    ).toApplicationUseCaseEither(::mapBookingOrPaymentDomainError)
 
   private class LoadCompletedAppointmentStep(
     override val id: String,
@@ -101,10 +102,12 @@ internal class PayAppointmentUseCase(
           amount = input.appointment.totalDue(),
         )
       )
-        .toUseCaseEither { legacyError ->
-          when (legacyError) {
-            is PaymentMethodNotFoundError -> UseCaseError.DomainError(PAYMENT_METHOD_NOT_FOUND_CODE, legacyError.message)
-            is PaymentDeclinedError -> UseCaseError.DomainError(PAYMENT_DECLINED_CODE, legacyError.message)
+        .toUseCaseApplicationEither { applicationError ->
+          when (applicationError) {
+            is PaymentMethodNotFoundError ->
+              UseCaseError.DomainError(PAYMENT_METHOD_NOT_FOUND_CODE, applicationError.message)
+            is PaymentDeclinedError ->
+              UseCaseError.DomainError(PAYMENT_DECLINED_CODE, applicationError.message)
             else -> null
           }
         }

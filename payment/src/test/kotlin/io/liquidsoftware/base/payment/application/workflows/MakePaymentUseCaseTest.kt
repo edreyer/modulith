@@ -15,10 +15,10 @@ import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.application.service.StripeService
 import io.liquidsoftware.base.payment.domain.PaymentMethod
 import io.liquidsoftware.base.user.UserId
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowError
-import io.liquidsoftware.common.workflow.WorkflowValidationError
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -121,7 +121,7 @@ class MakePaymentUseCaseTest {
   }
 
   @Test
-  fun `maps invalid request to workflow validation error`() = runBlocking {
+  fun `maps invalid request to application validation error`() = runBlocking {
     authenticatePaymentUser("u_authenticated-user")
     val useCase = MakePaymentUseCase(
       executionContext = ExecutionContext(),
@@ -138,12 +138,12 @@ class MakePaymentUseCaseTest {
     val result = useCase.execute(MakePaymentCommand(paymentMethodId = "bad", amount = -1))
 
     val error = result.fold({ it }, { error("expected validation error") })
-    assertThat(error).isInstanceOf(WorkflowValidationError::class)
+    assertThat(error).isInstanceOf(ApplicationError.Validation::class)
     Unit
   }
 
   @Test
-  fun `maps persistence failures to legacy server errors`() = runBlocking {
+  fun `maps persistence failures to application unexpected errors`() = runBlocking {
     authenticatePaymentUser("u_authenticated-user")
     val useCase = MakePaymentUseCase(
       executionContext = ExecutionContext(),
@@ -166,7 +166,7 @@ class MakePaymentUseCaseTest {
     val result = useCase.execute(MakePaymentCommand(paymentMethodId = "pm_test-method", amount = 9000))
 
     val error = result.fold({ it }, { error("expected server error") })
-    assertThat(error).isInstanceOf(ServerError::class)
-    assertThat(error.message).isEqualTo("Server Error: db down")
+    assertThat(error).isInstanceOf(ApplicationError.Unexpected::class)
+    assertThat(error.message).isEqualTo("db down")
   }
 }

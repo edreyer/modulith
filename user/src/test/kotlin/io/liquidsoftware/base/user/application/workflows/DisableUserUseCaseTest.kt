@@ -9,6 +9,7 @@ import io.liquidsoftware.base.user.application.port.`in`.UserDisabledEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowError
 import kotlinx.coroutines.runBlocking
@@ -41,7 +42,7 @@ class DisableUserUseCaseTest {
   }
 
   @Test
-  fun `maps persistence failures to legacy server errors`() = runBlocking {
+  fun `maps persistence failures to application unexpected errors`() = runBlocking {
     val user = activeUser()
     val useCase = DisableUserUseCase(
       findUserPort = findUserPort(findById = { user }),
@@ -57,7 +58,7 @@ class DisableUserUseCaseTest {
     val result = useCase.execute(DisableUserCommand(user.id.value))
 
     val error = result.fold({ it }, { error("expected server error") })
-    assertThat(error).isInstanceOf(ServerError::class)
-    assertThat(error.message).isEqualTo("Server Error: db down")
+    assertThat(error).isInstanceOf(ApplicationError.Unexpected::class)
+    assertThat(error.message).isEqualTo("db down")
   }
 }

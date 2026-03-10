@@ -3,6 +3,7 @@ package io.liquidsoftware.base.booking.adapter.`in`.web.api.v1
 import io.liquidsoftware.base.booking.adapter.`in`.web.V1BookingPaths
 import io.liquidsoftware.base.booking.application.port.`in`.AvailabilityApi
 import io.liquidsoftware.base.booking.application.port.`in`.GetAvailabilityQuery
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.logging.LoggerDelegate
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,7 +28,14 @@ class AvailabilityController(
   : ResponseEntity<AvailabilityDto> {
     return availabilityApi.getAvailability(GetAvailabilityQuery(date))
       .fold(
-        { ResponseEntity.badRequest().body(AvailabilityErrors("Availability error: ${it.message}")) },
+        { error ->
+          when (error) {
+            is ApplicationError.Validation ->
+              ResponseEntity.badRequest().body(AvailabilityErrors("Availability error: ${error.message}"))
+            else ->
+              ResponseEntity.internalServerError().body(AvailabilityErrors("Availability error: ${error.message}"))
+          }
+        },
         { ResponseEntity.ok(AvailabileTimesDto(it.times)) }
       )
 

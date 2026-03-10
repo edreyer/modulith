@@ -6,9 +6,8 @@ import io.liquidsoftware.base.user.application.port.`in`.RoleDto
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.validation.Msisdn
-import io.liquidsoftware.common.workflow.WorkflowError
-import io.liquidsoftware.common.workflow.WorkflowValidationError
 import jakarta.validation.Valid
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotEmpty
@@ -43,7 +42,7 @@ internal class RegisterUserController(
         {
           when (it) {
             is UserExistsError -> ResponseEntity.badRequest().body(it.toOutputDto())
-            is WorkflowValidationError -> ResponseEntity.badRequest().body(it.toOutputDto())
+            is ApplicationError.Validation -> ResponseEntity.badRequest().body(it.toOutputDto())
             else -> ResponseEntity.status(500).body(it.toOutputDto())
           }
         },
@@ -62,11 +61,11 @@ internal class RegisterUserController(
   fun UserExistsError.toOutputDto(): RegisterUserOutputDto =
     RegisterUserErrorsDto(this.message)
 
-  fun WorkflowValidationError.toOutputDto(): RegisterUserOutputDto =
+  fun ApplicationError.Validation.toOutputDto(): RegisterUserOutputDto =
     RegisterUserErrorsDto(this.message)
 
-  fun WorkflowError.toOutputDto(): RegisterUserOutputDto =
-    RegisterUserErrorsDto("Server Error: $this")
+  fun ApplicationError.toOutputDto(): RegisterUserOutputDto =
+    RegisterUserErrorsDto("Server Error: ${this.message}")
 
   fun UserRegisteredEvent.toOutputDto(): RegisterUserOutputDto = RegisteredUserDto(this.userDto)
 }

@@ -16,17 +16,17 @@ import io.liquidsoftware.base.payment.application.service.StripeService.Successf
 import io.liquidsoftware.base.payment.domain.Payment
 import io.liquidsoftware.base.payment.domain.PaymentMethod
 import io.liquidsoftware.base.user.UserId
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.security.ExecutionContext
-import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
 import io.liquidsoftware.common.usecase.toUseCaseError
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
+import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 
 internal class MakePaymentUseCase(
@@ -53,7 +53,7 @@ internal class MakePaymentUseCase(
     then(PersistPaymentStep("persist-payment-made", paymentEventPort))
   }
 
-  suspend fun execute(command: MakePaymentCommand): Either<LegacyWorkflowError, PaymentMadeEvent> =
+  suspend fun execute(command: MakePaymentCommand): Either<ApplicationError, PaymentMadeEvent> =
     useCase.executeProjected(
       command,
       projector = { result ->
@@ -62,7 +62,7 @@ internal class MakePaymentUseCase(
           { state -> Either.Right(state.event) },
         )
       },
-    ).toWorkflowEither { domainError ->
+    ).toApplicationUseCaseEither { domainError ->
       when (domainError.code) {
         PAYMENT_METHOD_NOT_FOUND_CODE -> PaymentMethodNotFoundError(domainError.message)
         PAYMENT_DECLINED_CODE -> PaymentDeclinedError(domainError.message)
@@ -128,24 +128,24 @@ internal class MakePaymentUseCase(
       input: LoadedPaymentMethodState,
       context: WorkflowContext,
     ): Either<UseCaseError, WorkflowResult<SuccessfulPaymentState>> =
-      either<LegacyWorkflowError, SuccessfulPayment> {
+      either {
         stripeService.makePayment(input.paymentMethod, input.amount)
-      }
-        .toUseCaseEither { legacyError ->
-          when (legacyError) {
-            is PaymentDeclinedError -> UseCaseError.DomainError(PAYMENT_DECLINED_CODE, legacyError.message)
-            else -> null
-          }
-        }
-        .map { successfulPayment ->
-          WorkflowResult(
-            SuccessfulPaymentState(
-              successfulPayment = successfulPayment,
-              userId = input.userId,
-            ),
-            context = context,
+      }.fold(
+        { declinedError ->
+          Either.Left(UseCaseError.DomainError(PAYMENT_DECLINED_CODE, declinedError.message))
+        },
+        { successfulPayment ->
+          Either.Right(
+            WorkflowResult(
+              SuccessfulPaymentState(
+                successfulPayment = successfulPayment,
+                userId = input.userId,
+              ),
+              context = context,
+            )
           )
-        }
+        },
+      )
   }
 
   private class BuildPaymentStep(

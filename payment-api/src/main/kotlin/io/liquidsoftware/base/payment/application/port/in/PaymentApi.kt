@@ -1,9 +1,11 @@
 package io.liquidsoftware.base.payment.application.port.`in`
 
 import arrow.core.Either
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.NotFoundApplicationError
+import io.liquidsoftware.common.application.error.ValidationApplicationError
 import io.liquidsoftware.common.usecase.AppEvent
 import io.liquidsoftware.common.usecase.Command
-import io.liquidsoftware.common.workflow.WorkflowError
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ResponseStatus
 
@@ -31,15 +33,30 @@ data class PaymentMadeEvent(
 ) : PaymentEvent, AppEvent()
 
 @ResponseStatus(code = HttpStatus.NOT_FOUND)
-data class PaymentMethodNotFoundError(override val message: String) : WorkflowError(message)
+data class PaymentMethodNotFoundError(
+  override val message: String,
+) : NotFoundApplicationError {
+  override val code: String = "PAYMENT_METHOD_NOT_FOUND"
+  override val metadata: Map<String, String> = emptyMap()
+}
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class PaymentDeclinedError(override val message: String) : WorkflowError(message)
+data class PaymentDeclinedError(
+  override val message: String,
+) : ValidationApplicationError {
+  override val code: String = "PAYMENT_DECLINED"
+  override val metadata: Map<String, String> = emptyMap()
+}
 
 @ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
-data class PaymentValidationError(override val message: String) : WorkflowError(message)
+data class PaymentValidationError(
+  override val message: String,
+) : ValidationApplicationError {
+  override val code: String = "PAYMENT_VALIDATION_ERROR"
+  override val metadata: Map<String, String> = emptyMap()
+}
 
 interface PaymentApi {
-  suspend fun addPaymentMethod(command: AddPaymentMethodCommand): Either<WorkflowError, PaymentMethodAddedEvent>
-  suspend fun makePayment(command: MakePaymentCommand): Either<WorkflowError, PaymentMadeEvent>
+  suspend fun addPaymentMethod(command: AddPaymentMethodCommand): Either<ApplicationError, PaymentMethodAddedEvent>
+  suspend fun makePayment(command: MakePaymentCommand): Either<ApplicationError, PaymentMadeEvent>
 }

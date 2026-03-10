@@ -9,15 +9,15 @@ import io.liquidsoftware.base.booking.application.port.out.AppointmentEventPort
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.CompleteAppointment
 import io.liquidsoftware.base.booking.domain.InProgressAppointment
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.usecase.Command as UseCaseCommand
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 
 internal class CompleteAppointmentUseCase(
@@ -34,7 +34,7 @@ internal class CompleteAppointmentUseCase(
     then(PersistAppointmentCompletedStep("persist-appointment-completed", appointmentEventPort))
   }
 
-  suspend fun execute(command: CompleteAppointmentCommand): Either<LegacyWorkflowError, AppointmentCompletedEvent> =
+  suspend fun execute(command: CompleteAppointmentCommand): Either<ApplicationError, AppointmentCompletedEvent> =
     useCase.executeProjected(
       CompleteAppointmentRequest(command.appointmentId, command.notes),
       projector = { result ->
@@ -43,7 +43,7 @@ internal class CompleteAppointmentUseCase(
           { state -> Either.Right(state.event) },
         )
       },
-    ).toWorkflowEither(::mapBookingDomainError)
+    ).toApplicationUseCaseEither(::mapBookingDomainError)
 
   private class LoadInProgressAppointmentStep(
     override val id: String,

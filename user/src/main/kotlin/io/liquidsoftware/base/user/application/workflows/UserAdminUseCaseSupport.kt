@@ -9,15 +9,15 @@ import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
 import io.liquidsoftware.base.user.domain.User
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.usecase.Command as UseCaseCommand
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 
 internal abstract class UserAdminUseCase<T : UserEvent>(
@@ -34,7 +34,7 @@ internal abstract class UserAdminUseCase<T : UserEvent>(
 
   protected abstract fun toEvent(userDto: UserDto): T
 
-  protected suspend fun executeUserAdmin(userId: String): Either<LegacyWorkflowError, T> =
+  protected suspend fun executeUserAdmin(userId: String): Either<ApplicationError, T> =
     useCase.executeProjected(
       UserIdRequest(userId),
       projector = { result ->
@@ -43,7 +43,7 @@ internal abstract class UserAdminUseCase<T : UserEvent>(
           { state -> Either.Right(toEvent(state.userDto)) },
         )
       },
-    ).toWorkflowEither { domainError ->
+    ).toApplicationUseCaseEither { domainError ->
       when (domainError.code) {
         USER_NOT_FOUND_CODE -> UserNotFoundError(domainError.message)
         else -> null

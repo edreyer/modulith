@@ -6,20 +6,21 @@ import io.liquidsoftware.base.booking.application.port.`in`.AppointmentApi
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentCompletedDtoIn
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoIn
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentDtoOut
-import io.liquidsoftware.base.booking.application.port.`in`.AppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentIdDtoIn
 import io.liquidsoftware.base.booking.application.port.`in`.AppointmentPaymentDto
 import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentCommand
-import io.liquidsoftware.base.booking.application.port.`in`.CancelAppointmentError
 import io.liquidsoftware.base.booking.application.port.`in`.CompleteAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.FetchUserAppointmentsQuery
 import io.liquidsoftware.base.booking.application.port.`in`.PayAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.ScheduleAppointmentCommand
 import io.liquidsoftware.base.booking.application.port.`in`.StartAppointmentCommand
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.NotFoundApplicationError
+import io.liquidsoftware.common.application.error.ValidationApplicationError
 import io.liquidsoftware.common.logging.LoggerDelegate
 import io.liquidsoftware.common.security.ExecutionContext
-import io.liquidsoftware.common.web.ControllerSupport
 import io.liquidsoftware.common.workflow.ServerError
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
@@ -51,7 +52,7 @@ data class CancelApptErrorDto(val error: String) : CancelAppointmentOutputDto()
 class AppointmentController(
   private val ec: ExecutionContext,
   private val appointmentApi: AppointmentApi,
-) : ControllerSupport {
+) {
 
   private val log by LoggerDelegate()
 
@@ -62,16 +63,8 @@ class AppointmentController(
     return appointmentApi.scheduleAppointment(
       ScheduleAppointmentCommand(ec.getCurrentUser().id, appt.scheduledTime, appt.duration, appt.workOrder)
     )
-      .throwIfSpringError()
       .fold(
-        {
-          when (it) {
-            is AppointmentError -> ResponseEntity.badRequest()
-              .body(ScheduleErrorDto("Unexpected Error: ${it.message}"))
-            else -> ResponseEntity.internalServerError()
-              .body(ScheduleErrorDto("Unknown Error: ${it.message}"))
-          }
-        },
+        { it.toErrorResponse(::ScheduleErrorDto) },
         { ResponseEntity.ok(ScheduleSuccessDto(it.appointmentDto)) }
       )
   }
@@ -82,16 +75,8 @@ class AppointmentController(
     appointmentApi.startAppointment(
       StartAppointmentCommand(appt.id)
     )
-      .throwIfSpringError()
       .fold(
-        {
-          when (it) {
-            is AppointmentError -> ResponseEntity.badRequest()
-              .body(StartedErrorDto("Unexpected Error: ${it.message}"))
-            else -> ResponseEntity.internalServerError()
-              .body(StartedErrorDto("Unknown Error: ${it.message}"))
-          }
-        },
+        { it.toErrorResponse(::StartedErrorDto) },
         { ResponseEntity.ok(StartedSuccessDto(it.appointmentDto)) }
       )
 
@@ -101,16 +86,8 @@ class AppointmentController(
     appointmentApi.completeAppointment(
       CompleteAppointmentCommand(appt.id, appt.notes)
     )
-      .throwIfSpringError()
       .fold(
-        {
-          when (it) {
-            is AppointmentError -> ResponseEntity.badRequest()
-              .body(CompletedErrorDto("Unexpected Error: ${it.message}"))
-            else -> ResponseEntity.internalServerError()
-              .body(CompletedErrorDto("Unknown Error: ${it.message}"))
-          }
-        },
+        { it.toErrorResponse(::CompletedErrorDto) },
         { ResponseEntity.ok(CompletedSuccessDto(it.appointmentDto)) }
       )
 
@@ -120,16 +97,8 @@ class AppointmentController(
     appointmentApi.payAppointment(
       PayAppointmentCommand(request.id, request.paymentMethodId)
     )
-      .throwIfSpringError()
       .fold(
-        {
-          when (it) {
-            is AppointmentError -> ResponseEntity.badRequest()
-              .body(PaymentErrorDto("Unexpected Error: ${it.message}"))
-            else -> ResponseEntity.internalServerError()
-              .body(PaymentErrorDto("Unknown Error: ${it.message}"))
-          }
-        },
+        { it.toErrorResponse(::PaymentErrorDto) },
         { ResponseEntity.ok(PaymentSuccessDto(it.appointmentDto)) }
       )
 
@@ -139,16 +108,8 @@ class AppointmentController(
     appointmentApi.cancelAppointment(
       CancelAppointmentCommand(appt.id!!, appt.workOrder.notes)
     )
-      .throwIfSpringError()
       .fold(
-        {
-          when (it) {
-            is CancelAppointmentError -> ResponseEntity.badRequest()
-              .body(CancelApptErrorDto("Unexpected Error: ${it.message}"))
-            else -> ResponseEntity.internalServerError()
-              .body(CancelApptErrorDto("Unknown Error: ${it.message}"))
-          }
-        },
+        { it.toErrorResponse(::CancelApptErrorDto) },
         { ResponseEntity.ok(CancelApptSuccessDto(it.appointmentDto)) }
       )
 
@@ -159,9 +120,19 @@ class AppointmentController(
     return appointmentApi.fetchUserAppointments(
       FetchUserAppointmentsQuery(ec.getCurrentUser().id, page, size)
     )
-      .throwIfSpringError()
       .map { it.appointments }
       .getOrElse { throw ServerError("Error fetching user appointments: ${it.message}") }
   }
 
+}
+
+private fun <T : Any> ApplicationError.toErrorResponse(errorBody: (String) -> T): ResponseEntity<T> {
+  val status = when (this) {
+    is NotFoundApplicationError -> HttpStatus.NOT_FOUND
+    is ApplicationError.Unauthorized -> HttpStatus.UNAUTHORIZED
+    is ApplicationError.Forbidden -> HttpStatus.FORBIDDEN
+    is ValidationApplicationError -> HttpStatus.BAD_REQUEST
+    else -> HttpStatus.INTERNAL_SERVER_ERROR
+  }
+  return ResponseEntity.status(status).body(errorBody(message))
 }

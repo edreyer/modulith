@@ -8,9 +8,9 @@ import io.liquidsoftware.base.payment.application.port.`in`.AddPaymentMethodComm
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodAddedEvent
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodEvent
 import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowError
-import io.liquidsoftware.common.workflow.WorkflowValidationError
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 
@@ -47,7 +47,7 @@ class AddPaymentMethodUseCaseTest {
   }
 
   @Test
-  fun `maps invalid input to workflow validation error`() = runBlocking {
+  fun `maps invalid input to application validation error`() = runBlocking {
     val useCase = AddPaymentMethodUseCase(paymentEventPort = failingPaymentEventPort())
 
     val result = useCase.execute(
@@ -59,12 +59,12 @@ class AddPaymentMethodUseCaseTest {
     )
 
     val error = result.fold({ it }, { error("expected validation error") })
-    assertThat(error).isInstanceOf(WorkflowValidationError::class)
+    assertThat(error).isInstanceOf(ApplicationError.Validation::class)
     Unit
   }
 
   @Test
-  fun `maps persistence failures to legacy server errors`() = runBlocking {
+  fun `maps persistence failures to application unexpected errors`() = runBlocking {
     val useCase = AddPaymentMethodUseCase(
       paymentEventPort = object : PaymentEventPort {
         override suspend fun <T : PaymentMethodEvent> handle(event: T): Either<WorkflowError, T> =
@@ -84,7 +84,7 @@ class AddPaymentMethodUseCaseTest {
     )
 
     val error = result.fold({ it }, { error("expected server error") })
-    assertThat(error).isInstanceOf(ServerError::class)
-    assertThat(error.message).isEqualTo("Server Error: db down")
+    assertThat(error).isInstanceOf(ApplicationError.Unexpected::class)
+    assertThat(error.message).isEqualTo("db down")
   }
 }

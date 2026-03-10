@@ -11,9 +11,7 @@ import io.liquidsoftware.base.user.application.port.`in`.UserAdminApi
 import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.base.user.application.port.`in`.UserFoundEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserNotFoundError
-import io.liquidsoftware.common.web.ControllerSupport
-import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
-import io.liquidsoftware.common.workflow.WorkflowError
+import io.liquidsoftware.common.application.error.ApplicationError
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity
@@ -30,10 +28,10 @@ data class RegisterUserErrorsDto(val errors: List<String>) : FindUserOutputDto()
 internal class UserV1Controller(
   private val findUserApi: FindUserApi,
   private val userAdminApi: UserAdminApi,
-) : ControllerSupport {
+) {
 
   private suspend fun dispatchUserLookup(
-    lookup: suspend () -> Either<WorkflowError, UserFoundEvent>,
+    lookup: suspend () -> Either<ApplicationError, UserFoundEvent>,
     msgOnError: String,
   ) : ResponseEntity<FindUserOutputDto> {
     return lookup()
@@ -41,7 +39,7 @@ internal class UserV1Controller(
         {
           when (it) {
             is UserNotFoundError,
-            is UnauthorizedWorkflowError -> ResponseEntity.badRequest().body(RegisterUserErrorsDto(listOf(msgOnError)))
+            is ApplicationError.Unauthorized -> ResponseEntity.badRequest().body(RegisterUserErrorsDto(listOf(msgOnError)))
             else -> ResponseEntity.internalServerError().body(RegisterUserErrorsDto(listOf("User lookup failed")))
           }
         },

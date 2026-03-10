@@ -7,15 +7,15 @@ import io.liquidsoftware.base.booking.application.port.`in`.UserAppointmentsFetc
 import io.liquidsoftware.base.booking.application.port.out.FindAppointmentPort
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.CancelledAppointment
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.usecase.Command as UseCaseCommand
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
 import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 import org.springframework.data.domain.PageRequest
 
@@ -29,7 +29,7 @@ internal class FetchUserAppointmentsUseCase(
     then(BuildFetchedAppointmentsStep("emit-user-appointments-fetched"))
   }
 
-  suspend fun execute(query: FetchUserAppointmentsQuery): Either<LegacyWorkflowError, UserAppointmentsFetchedEvent> =
+  suspend fun execute(query: FetchUserAppointmentsQuery): Either<ApplicationError, UserAppointmentsFetchedEvent> =
     useCase.executeProjected(
       FetchUserAppointmentsRequest(query.userId, query.page, query.size),
       projector = { result ->
@@ -38,7 +38,7 @@ internal class FetchUserAppointmentsUseCase(
           { state -> Either.Right(state.event) },
         )
       },
-    ).toWorkflowEither()
+    ).toApplicationUseCaseEither()
 
   private class LoadUserAppointmentsStep(
     override val id: String,

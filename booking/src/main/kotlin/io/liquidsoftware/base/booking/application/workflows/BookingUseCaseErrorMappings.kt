@@ -7,10 +7,10 @@ import io.liquidsoftware.base.booking.application.port.`in`.DateInPastError
 import io.liquidsoftware.base.booking.application.port.`in`.DateTimeUnavailableError
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentDeclinedError
 import io.liquidsoftware.base.payment.application.port.`in`.PaymentMethodNotFoundError
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 
-internal fun mapBookingDomainError(domainError: UseCaseError.DomainError): LegacyWorkflowError? =
+internal fun mapBookingDomainError(domainError: UseCaseError.DomainError): ApplicationError? =
   when (domainError.code) {
     DATE_IN_PAST_CODE -> DateInPastError(domainError.message)
     DATE_TIME_UNAVAILABLE_CODE -> DateTimeUnavailableError(domainError.message)
@@ -20,7 +20,7 @@ internal fun mapBookingDomainError(domainError: UseCaseError.DomainError): Legac
     else -> null
   }
 
-internal fun mapBookingOrPaymentDomainError(domainError: UseCaseError.DomainError): LegacyWorkflowError? =
+internal fun mapBookingOrPaymentDomainError(domainError: UseCaseError.DomainError): ApplicationError? =
   mapBookingDomainError(domainError) ?: when (domainError.code) {
     PAYMENT_METHOD_NOT_FOUND_CODE -> PaymentMethodNotFoundError(domainError.message)
     PAYMENT_DECLINED_CODE -> PaymentDeclinedError(domainError.message)

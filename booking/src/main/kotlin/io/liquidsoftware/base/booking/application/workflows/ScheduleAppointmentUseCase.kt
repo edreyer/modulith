@@ -12,6 +12,8 @@ import io.liquidsoftware.base.booking.application.service.AvailabilityService
 import io.liquidsoftware.base.booking.domain.Appointment
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.types.toErrString
 import io.liquidsoftware.common.usecase.Command as UseCaseCommand
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
@@ -19,9 +21,7 @@ import io.liquidsoftware.common.usecase.WorkflowContext
 import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 import java.time.LocalDateTime
 
@@ -48,7 +48,7 @@ internal class ScheduleAppointmentUseCase(
     then(PersistAppointmentScheduledStep("persist-appointment-scheduled", appointmentEventPort))
   }
 
-  suspend fun execute(command: ScheduleAppointmentCommand): Either<LegacyWorkflowError, AppointmentScheduledEvent> =
+  suspend fun execute(command: ScheduleAppointmentCommand): Either<ApplicationError, AppointmentScheduledEvent> =
     useCase.executeProjected(
       ScheduleAppointmentRequest(
         userId = command.userId,
@@ -62,7 +62,7 @@ internal class ScheduleAppointmentUseCase(
           { state -> Either.Right(state.event) },
         )
       },
-    ).toWorkflowEither(::mapBookingDomainError)
+    ).toApplicationUseCaseEither(::mapBookingDomainError)
 
   private class LoadAppointmentsForScheduleStep(
     override val id: String,

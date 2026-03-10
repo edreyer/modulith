@@ -11,10 +11,10 @@ import io.liquidsoftware.base.user.application.port.`in`.UserEvent
 import io.liquidsoftware.base.user.application.port.`in`.UserExistsError
 import io.liquidsoftware.base.user.application.port.`in`.UserRegisteredEvent
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
+import io.liquidsoftware.common.application.error.ApplicationError
 import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.WorkflowError
-import io.liquidsoftware.common.workflow.WorkflowValidationError
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -90,7 +90,7 @@ class RegisterUserUseCaseTest {
   }
 
   @Test
-  fun `maps invalid input to workflow validation error`() = runBlocking {
+  fun `maps invalid input to application validation error`() = runBlocking {
     val useCase = RegisterUserUseCase(
       passwordEncoder = passwordEncoder { "encoded-password" },
       findUserPort = findUserPort(),
@@ -107,12 +107,12 @@ class RegisterUserUseCaseTest {
     )
 
     val error = result.fold({ it }, { error("expected validation error") })
-    assertThat(error).isInstanceOf(WorkflowValidationError::class)
+    assertThat(error).isInstanceOf(ApplicationError.Validation::class)
     assertThat(error.message).contains("not-a-phone-number")
   }
 
   @Test
-  fun `maps persistence failures to legacy server errors`() = runBlocking {
+  fun `maps persistence failures to application unexpected errors`() = runBlocking {
     val useCase = RegisterUserUseCase(
       passwordEncoder = passwordEncoder { "encoded-password" },
       findUserPort = findUserPort(),
@@ -135,7 +135,7 @@ class RegisterUserUseCaseTest {
     )
 
     val error = result.fold({ it }, { error("expected server error") })
-    assertThat(error).isInstanceOf(ServerError::class)
-    assertThat(error.message).isEqualTo("Server Error: db down")
+    assertThat(error).isInstanceOf(ApplicationError.Unexpected::class)
+    assertThat(error.message).isEqualTo("db down")
   }
 }

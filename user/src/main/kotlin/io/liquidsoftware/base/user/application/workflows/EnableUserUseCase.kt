@@ -6,7 +6,7 @@ import io.liquidsoftware.base.user.application.port.`in`.UserDto
 import io.liquidsoftware.base.user.application.port.`in`.UserEnabledEvent
 import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
+import io.liquidsoftware.common.application.error.ApplicationError
 
 internal class EnableUserUseCase(
   findUserPort: FindUserPort,
@@ -16,7 +16,7 @@ internal class EnableUserUseCase(
   userEventPort = userEventPort,
   workflowId = "persist-user-enabled",
 ) {
-  suspend fun execute(command: EnableUserCommand): Either<LegacyWorkflowError, UserEnabledEvent> =
+  suspend fun execute(command: EnableUserCommand): Either<ApplicationError, UserEnabledEvent> =
     executeUserAdmin(command.userId)
 
   override fun toEvent(userDto: UserDto): UserEnabledEvent = UserEnabledEvent(userDto)

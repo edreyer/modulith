@@ -3,6 +3,7 @@ package io.liquidsoftware.common.usecase
 import arrow.core.Either
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
 import org.junit.jupiter.api.Test
 import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
@@ -10,30 +11,26 @@ import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 class WorkflowErrorBridgeTest {
 
   @Test
-  fun `workflow error round trips through use case mapping`() {
+  fun `workflow error maps to use case execution error by default`() {
     val workflowError = object : LegacyWorkflowError("boom") {}
 
     val mapped = Either.Left(workflowError)
       .toUseCaseEither()
       .fold({ it }, { error("expected error") })
 
-    val roundTrip = mapped.toWorkflowError()
-
-    assertThat(roundTrip.message).isEqualTo("Server Error: boom")
+    assertThat(mapped).isInstanceOf(UseCaseError.ExecutionError::class.java)
+    assertThat((mapped as UseCaseError.ExecutionError).message).isEqualTo("boom")
   }
 
   @Test
-  fun `domain mapper is used for round trip`() {
-    val useCaseError = UseCaseError.DomainError("USER_NOT_FOUND", "missing")
+  fun `domain mapper is used when mapping workflow error to use case error`() {
+    val workflowError = object : LegacyWorkflowError("missing") {}
 
-    val roundTrip = useCaseError.toWorkflowError { domainError ->
-      when (domainError.code) {
-        "USER_NOT_FOUND" -> object : LegacyWorkflowError("mapped:${domainError.message}") {}
-        "UNUSED" -> object : LegacyWorkflowError("unused") {}
-        else -> null
-      }
+    val mapped = workflowError.toUseCaseError { domainError ->
+      UseCaseError.DomainError("USER_NOT_FOUND", "mapped:${domainError.message}")
     }
 
-    assertThat(roundTrip.message).isEqualTo("mapped:missing")
+    assertThat(mapped).isInstanceOf(UseCaseError.DomainError::class.java)
+    assertThat((mapped as UseCaseError.DomainError).message).isEqualTo("mapped:missing")
   }
 }

@@ -12,6 +12,8 @@ import io.liquidsoftware.base.user.application.port.out.FindUserPort
 import io.liquidsoftware.base.user.application.port.out.UserEventPort
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.UnregisteredUser
+import io.liquidsoftware.common.application.error.ApplicationError
+import io.liquidsoftware.common.application.error.toApplicationUseCaseEither
 import io.liquidsoftware.common.security.runAsSuperUser
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.usecase.Workflow as UseCaseWorkflow
@@ -20,9 +22,7 @@ import io.liquidsoftware.common.usecase.WorkflowResult
 import io.liquidsoftware.common.usecase.WorkflowState
 import io.liquidsoftware.common.usecase.toUseCaseEither
 import io.liquidsoftware.common.usecase.toUseCaseError
-import io.liquidsoftware.common.usecase.toWorkflowEither
 import io.liquidsoftware.common.usecase.useCase
-import io.liquidsoftware.common.workflow.WorkflowError as LegacyWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
 import io.liquidsoftware.workflow.WorkflowError as UseCaseError
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -49,7 +49,7 @@ internal class RegisterUserUseCase(
     then(PersistRegisteredUserStep("persist-registered-user", userEventPort))
   }
 
-  suspend fun execute(command: RegisterUserCommand): Either<LegacyWorkflowError, UserRegisteredEvent> =
+  suspend fun execute(command: RegisterUserCommand): Either<ApplicationError, UserRegisteredEvent> =
     runAsSuperUser {
       useCase.executeProjected(
         command,
@@ -59,7 +59,7 @@ internal class RegisterUserUseCase(
             { state -> Either.Right(state.event) },
           )
         },
-      ).toWorkflowEither { domainError ->
+      ).toApplicationUseCaseEither { domainError ->
         when (domainError.code) {
           USER_EXISTS_CODE -> UserExistsError(domainError.message)
           else -> null
