@@ -11,7 +11,7 @@ class DependencyRuleTests {
   val module = "payment"
 
   @Test
-  fun validateBookingContextArchitecture() {
+  fun validatePaymentContextArchitecture() {
     HexagonalArchitecture.boundedContext("io.liquidsoftware.base.$module")
 
       .withDomainLayer("domain")

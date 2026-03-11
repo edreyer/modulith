@@ -1,4 +1,4 @@
-package io.liquidsoftware.base.payment.arch
+package io.liquidsoftware.base.booking.arch
 
 import com.tngtech.archunit.core.importer.ClassFileImporter
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
@@ -79,6 +79,8 @@ class DependencyRuleTests {
     noClasses()
       .that()
       .resideInAPackage("io.liquidsoftware.base.$module..")
+      .and()
+      .resideOutsideOfPackage("io.liquidsoftware.base.$module.arch..")
       .and()
       .resideOutsideOfPackages(
         "io.liquidsoftware.base.$module.adapter.out.module..",
