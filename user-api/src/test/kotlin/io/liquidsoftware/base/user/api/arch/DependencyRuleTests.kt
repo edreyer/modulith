@@ -19,4 +19,18 @@ class DependencyRuleTests {
           .importPackages("io.liquidsoftware.base.user..")
       )
   }
+
+  @Test
+  fun userApiMustNotDependOnSpring() {
+    noClasses()
+      .that()
+      .resideInAPackage("io.liquidsoftware.base.user..")
+      .should()
+      .dependOnClassesThat()
+      .resideInAnyPackage("org.springframework..")
+      .check(
+        ClassFileImporter()
+          .importPackages("io.liquidsoftware.base.user..")
+      )
+  }
 }

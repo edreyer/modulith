@@ -19,4 +19,18 @@ class DependencyRuleTests {
           .importPackages("io.liquidsoftware.base.booking..")
       )
   }
+
+  @Test
+  fun bookingApiMustNotDependOnSpring() {
+    noClasses()
+      .that()
+      .resideInAPackage("io.liquidsoftware.base.booking..")
+      .should()
+      .dependOnClassesThat()
+      .resideInAnyPackage("org.springframework..")
+      .check(
+        ClassFileImporter()
+          .importPackages("io.liquidsoftware.base.booking..")
+      )
+  }
 }

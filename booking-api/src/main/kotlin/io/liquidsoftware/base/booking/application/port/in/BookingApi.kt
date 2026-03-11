@@ -6,8 +6,6 @@ import io.liquidsoftware.common.application.error.ValidationApplicationError
 import io.liquidsoftware.common.usecase.AppEvent
 import io.liquidsoftware.common.usecase.Command
 import io.liquidsoftware.common.usecase.Query
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
 import java.time.LocalDateTime
 
 // Input
@@ -78,7 +76,6 @@ data class DateInPastError(
   override val metadata: Map<String, String> = emptyMap()
 }
 
-@ResponseStatus(code = HttpStatus.NOT_FOUND)
 data class AppointmentNotFoundError(
   override val message: String,
 ) : AppointmentError, NotFoundApplicationError {
@@ -86,7 +83,6 @@ data class AppointmentNotFoundError(
   override val metadata: Map<String, String> = emptyMap()
 }
 
-@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class AppointmentValidationError(
   override val message: String,
 ) : AppointmentError, ValidationApplicationError {
@@ -94,7 +90,6 @@ data class AppointmentValidationError(
   override val metadata: Map<String, String> = emptyMap()
 }
 
-@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class CancelAppointmentError(
   override val message: String,
 ) : AppointmentError, ValidationApplicationError {

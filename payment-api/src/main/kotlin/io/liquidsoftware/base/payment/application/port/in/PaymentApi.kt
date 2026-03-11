@@ -6,8 +6,6 @@ import io.liquidsoftware.common.application.error.NotFoundApplicationError
 import io.liquidsoftware.common.application.error.ValidationApplicationError
 import io.liquidsoftware.common.usecase.AppEvent
 import io.liquidsoftware.common.usecase.Command
-import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.ResponseStatus
 
 data class AddPaymentMethodCommand(
   val userId: String,
@@ -32,7 +30,6 @@ data class PaymentMadeEvent(
   val paymentDto: PaymentDtoOut
 ) : PaymentEvent, AppEvent()
 
-@ResponseStatus(code = HttpStatus.NOT_FOUND)
 data class PaymentMethodNotFoundError(
   override val message: String,
 ) : NotFoundApplicationError {
@@ -40,7 +37,6 @@ data class PaymentMethodNotFoundError(
   override val metadata: Map<String, String> = emptyMap()
 }
 
-@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class PaymentDeclinedError(
   override val message: String,
 ) : ValidationApplicationError {
@@ -48,7 +44,6 @@ data class PaymentDeclinedError(
   override val metadata: Map<String, String> = emptyMap()
 }
 
-@ResponseStatus(code = HttpStatus.PRECONDITION_FAILED)
 data class PaymentValidationError(
   override val message: String,
 ) : ValidationApplicationError {

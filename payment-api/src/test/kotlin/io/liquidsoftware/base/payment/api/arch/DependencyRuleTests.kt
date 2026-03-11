@@ -19,4 +19,18 @@ class DependencyRuleTests {
           .importPackages("io.liquidsoftware.base.payment..")
       )
   }
+
+  @Test
+  fun paymentApiMustNotDependOnSpring() {
+    noClasses()
+      .that()
+      .resideInAPackage("io.liquidsoftware.base.payment..")
+      .should()
+      .dependOnClassesThat()
+      .resideInAnyPackage("org.springframework..")
+      .check(
+        ClassFileImporter()
+          .importPackages("io.liquidsoftware.base.payment..")
+      )
+  }
 }
