@@ -509,6 +509,7 @@ security logic.
 At a high level:
 
 * `acl-core` models resources, subjects, roles, and permission evaluation
+* `acl-core` now also exposes an authorizer-first API via `Authorizer<S, R>`
 * `acl-arrow` adds `Raise`-based helpers for functional workflows
 * `acl-spring-security` resolves the current Spring Security subject
 * `acl-spring-security-arrow` bridges Spring Security and Arrow for ergonomic workflow/persistence checks
@@ -538,22 +539,41 @@ either<AuthorizationError, Unit> {
 }
 ```
 
+### Authorizer example
+
+```kotlin
+val appointmentAccess = authorizer<AccessSubject, Appointment> {
+  canManage { subject, appointment ->
+    subject.userId == appointment.userId.value || "ROLE_ADMIN" in subject.roles
+  }
+
+  canWrite { subject, appointment ->
+    canManage(subject, appointment)
+  }
+
+  canRead { subject, appointment ->
+    canWrite(subject, appointment)
+  }
+}
+```
+
 ### Spring Security example
 
 ```kotlin
 @Component
 class AppointmentPersistenceAdapter(
-  private val ac: SpringSecurityAclChecker,
+  private val accessSubjects: SpringSecurityAccessSubjectProvider,
 ) {
-  context(_: Raise<AuthorizationError>)
-  suspend fun checkReadAccess(acl: Acl) {
-    ac.ensureCanRead(acl)
+  context(_: Raise<WorkflowError>)
+  suspend fun checkReadAccess(appointment: Appointment) {
+    accessSubjects.ensureCurrentUserCanRead(appointment)
   }
 }
 ```
 
-The main benefit is consistency: authorization stays value-based in the core, integrates cleanly with Arrow-based
-use cases, and still feels natural in Spring Security-backed adapters.
+In this project we now use the authorizer-first API as a resource-shaped wrapper around `SecuredResource.acl()`
+for domain and persistence objects, while keeping explicit `Acl` checks for the few event DTO and special-case
+call sites where that lower-level form is still the clearest fit.
 ## CQRS
 ### Commands, Queries, Events
 

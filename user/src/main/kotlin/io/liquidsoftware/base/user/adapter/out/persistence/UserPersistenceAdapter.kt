@@ -2,8 +2,6 @@ package io.liquidsoftware.base.user.adapter.out.persistence
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.raise.Raise
-import arrow.core.raise.context.raise
 import arrow.core.raise.either
 import arrow.core.right
 import arrow.core.toNonEmptyListOrNull
@@ -17,12 +15,13 @@ import io.liquidsoftware.base.user.domain.AdminUser
 import io.liquidsoftware.base.user.domain.DisabledUser
 import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.base.user.domain.User
-import io.liquidsoftware.common.ext.toWorkflowError
 import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.logging.LoggerDelegate
-import io.liquidsoftware.common.security.acl.Acl
-import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
+import io.liquidsoftware.common.security.ensureCurrentUserCanManage
+import io.liquidsoftware.common.security.ensureCurrentUserCanRead
+import io.liquidsoftware.common.security.ensureCurrentUserCanWrite
+import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -30,7 +29,7 @@ import io.liquidsoftware.common.workflow.WorkflowValidationError
 
 internal class UserPersistenceAdapter(
   private val userRepository: UserRepository,
-  private val ac: SpringSecurityAclChecker
+  private val accessSubjects: SpringSecurityAccessSubjectProvider
 ) : FindUserPort, UserEventPort {
 
   private val logger by LoggerDelegate()
@@ -50,7 +49,7 @@ internal class UserPersistenceAdapter(
         { raise(WorkflowValidationError(it)) },
         { it }
       )
-      ensureCanManage(domainUser.acl())
+      accessSubjects.ensureCurrentUserCanManage(domainUser)
       workflowBoundary {
         userRepository.save(user)
       }
@@ -76,7 +75,7 @@ internal class UserPersistenceAdapter(
         userRepository.findByUserId(event.userDto.id)
       }
         ?.let {
-          ensureCanWrite(it.acl())
+          accessSubjects.ensureCurrentUserCanWrite(it)
           it.handle(event)
         }
         ?.let {
@@ -96,40 +95,10 @@ internal class UserPersistenceAdapter(
           { raise(WorkflowValidationError(it)) },
           { it }
         )
-        ensureCanRead(user.acl())
+        accessSubjects.ensureCurrentUserCanRead(user)
         user
       }
     }
-
-  context(_: Raise<WorkflowError>)
-  private suspend fun ensureCanRead(acl: Acl) {
-    either {
-      ac.ensureCanRead(acl)
-    }.fold(
-      { raise(it.toWorkflowError()) },
-      {}
-    )
-  }
-
-  context(_: Raise<WorkflowError>)
-  private suspend fun ensureCanWrite(acl: Acl) {
-    either {
-      ac.ensureCanWrite(acl)
-    }.fold(
-      { raise(it.toWorkflowError()) },
-      {}
-    )
-  }
-
-  context(_: Raise<WorkflowError>)
-  private suspend fun ensureCanManage(acl: Acl) {
-    either {
-      ac.ensureCanManage(acl)
-    }.fold(
-      { raise(it.toWorkflowError()) },
-      {}
-    )
-  }
 
   private fun UserEntity.toUser(): Either<ValidationErrors, User> {
     val entity = this

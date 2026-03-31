@@ -15,7 +15,6 @@ import io.liquidsoftware.base.user.UserId
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
-import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import kotlinx.coroutines.runBlocking
@@ -30,10 +29,8 @@ import java.lang.reflect.Proxy
 
 class PaymentPersistenceAdapterArrowContractTest {
 
-  private fun aclChecker() =
-    SpringSecurityAclChecker(
-      SpringSecurityAccessSubjectProvider { ExecutionContext().getAccessSubject() },
-    )
+  private fun accessSubjects() =
+    SpringSecurityAccessSubjectProvider { ExecutionContext().getAccessSubject() }
 
   @AfterEach
   fun clearSecurityContext() {
@@ -56,7 +53,7 @@ class PaymentPersistenceAdapterArrowContractTest {
         }
       ),
       paymentRepository(),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findByPaymentMethodId(paymentMethodId, userId)
@@ -71,7 +68,7 @@ class PaymentPersistenceAdapterArrowContractTest {
     val adapter = PaymentPersistenceAdapter(
       paymentMethodRepository(findByPaymentMethodIdAndUserId = { _, _ -> null }),
       paymentRepository(),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findByPaymentMethodId(paymentMethodId, userId)
@@ -88,7 +85,7 @@ class PaymentPersistenceAdapterArrowContractTest {
         findByPaymentMethodIdAndUserId = { _, _ -> throw DataAccessResourceFailureException("db down") }
       ),
       paymentRepository(),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findByPaymentMethodId(paymentMethodId, userId)
@@ -107,7 +104,7 @@ class PaymentPersistenceAdapterArrowContractTest {
         save = { throw DataAccessResourceFailureException("db down") }
       ),
       paymentRepository(),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.handle(paymentMethodAddedEvent())
@@ -125,7 +122,7 @@ class PaymentPersistenceAdapterArrowContractTest {
       paymentRepository(
         save = { throw DataAccessResourceFailureException("db down") }
       ),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.handle(paymentMadeEvent())
@@ -151,7 +148,7 @@ class PaymentPersistenceAdapterArrowContractTest {
         }
       ),
       paymentRepository(),
-      aclChecker()
+      accessSubjects()
     )
 
     authenticate("u_other-user")
@@ -169,7 +166,7 @@ class PaymentPersistenceAdapterArrowContractTest {
     val adapter = PaymentPersistenceAdapter(
       paymentMethodRepository(findByPaymentMethodIdAndUserId = { _, _ -> null }),
       paymentRepository(),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.handle(paymentMethodAddedEvent(userId = "u_owner"))
@@ -185,7 +182,7 @@ class PaymentPersistenceAdapterArrowContractTest {
     val adapter = PaymentPersistenceAdapter(
       paymentMethodRepository(findByPaymentMethodIdAndUserId = { _, _ -> null }),
       paymentRepository(),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.handle(paymentMadeEvent(userId = "u_owner"))

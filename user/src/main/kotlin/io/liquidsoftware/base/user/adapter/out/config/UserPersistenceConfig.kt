@@ -2,7 +2,7 @@ package io.liquidsoftware.base.user.adapter.out.config
 
 import io.liquidsoftware.base.user.adapter.out.persistence.UserPersistenceAdapter
 import io.liquidsoftware.base.user.adapter.out.persistence.UserRepository
-import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
+import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
@@ -15,7 +15,7 @@ internal class UserPersistenceConfig {
   @Bean
   fun userPersistenceAdapter(
     userRepository: UserRepository,
-    ac: SpringSecurityAclChecker
-  ): UserPersistenceAdapter = UserPersistenceAdapter(userRepository, ac)
+    accessSubjects: SpringSecurityAccessSubjectProvider
+  ): UserPersistenceAdapter = UserPersistenceAdapter(userRepository, accessSubjects)
 
 }

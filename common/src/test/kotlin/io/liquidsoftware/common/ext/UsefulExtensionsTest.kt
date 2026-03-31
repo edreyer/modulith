@@ -3,8 +3,9 @@ package io.liquidsoftware.common.ext
 import arrow.core.Either
 import arrow.core.raise.either
 import com.mongodb.MongoException
+import io.liquidsoftware.common.security.acl.AccessDenied
+import io.liquidsoftware.common.security.acl.DenialContext
 import io.liquidsoftware.common.security.acl.Permission
-import io.liquidsoftware.common.security.acl.PermissionDenied
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -20,10 +21,12 @@ class UsefulExtensionsTest {
 
   @Test
   fun `permission denied maps to UnauthorizedWorkflowError`() {
-    val error = PermissionDenied(
-      resourceId = "appointment-1",
+    val error = AccessDenied(
       permission = Permission.WRITE,
-      subjectId = "user-1",
+      context = DenialContext.Acl(
+        resourceId = "appointment-1",
+        subjectId = "user-1",
+      ),
     ).toWorkflowError()
 
     assertInstanceOf(UnauthorizedWorkflowError::class.java, error)
@@ -31,6 +34,17 @@ class UsefulExtensionsTest {
       "No access to: appointment-1 Permission: WRITE Subject: user-1",
       error.message
     )
+  }
+
+  @Test
+  fun `access denied without acl context maps to generic UnauthorizedWorkflowError`() {
+    val error = AccessDenied(
+      permission = Permission.READ,
+      context = DenialContext.Unknown,
+    ).toWorkflowError()
+
+    assertInstanceOf(UnauthorizedWorkflowError::class.java, error)
+    assertEquals("No access. Permission: READ", error.message)
   }
 
   @Test

@@ -2,7 +2,7 @@ package io.liquidsoftware.base.booking.adapter.out.config
 
 import io.liquidsoftware.base.booking.adapter.out.persistence.AppointmentRepository
 import io.liquidsoftware.base.booking.adapter.out.persistence.BookingPersistenceAdapter
-import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
+import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories
@@ -14,9 +14,9 @@ internal class BookingPersistenceConfig {
   @Bean
    fun appointmentPersistenceAdapter(
     appointmentRepository: AppointmentRepository,
-    ac: SpringSecurityAclChecker
+    accessSubjects: SpringSecurityAccessSubjectProvider
   ): BookingPersistenceAdapter = BookingPersistenceAdapter(
     appointmentRepository,
-    ac)
+    accessSubjects)
 
 }

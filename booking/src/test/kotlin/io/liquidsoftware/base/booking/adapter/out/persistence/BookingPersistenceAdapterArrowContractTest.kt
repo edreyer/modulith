@@ -13,7 +13,6 @@ import io.liquidsoftware.base.booking.application.port.`in`.WorkOrderStatus
 import io.liquidsoftware.common.security.ExecutionContext
 import io.liquidsoftware.common.security.UserDetailsWithId
 import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
-import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import kotlinx.coroutines.runBlocking
@@ -29,10 +28,8 @@ import java.time.LocalDateTime
 
 class BookingPersistenceAdapterArrowContractTest {
 
-  private fun aclChecker() =
-    SpringSecurityAclChecker(
-      SpringSecurityAccessSubjectProvider { ExecutionContext().getAccessSubject() },
-    )
+  private fun accessSubjects() =
+    SpringSecurityAccessSubjectProvider { ExecutionContext().getAccessSubject() }
 
   @AfterEach
   fun clearSecurityContext() {
@@ -57,7 +54,7 @@ class BookingPersistenceAdapterArrowContractTest {
     )
     val adapter = BookingPersistenceAdapter(
       appointmentRepository(findByUserId = { _, _ -> listOf(entity) }),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findByUserId(userId, Pageable.unpaged())
@@ -71,7 +68,7 @@ class BookingPersistenceAdapterArrowContractTest {
     authenticate("u_other-user")
     val adapter = BookingPersistenceAdapter(
       appointmentRepository(findByAppointmentId = { apptId -> if (apptId == entity.appointmentId) entity else null }),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findById(entity.appointmentId)
@@ -100,7 +97,7 @@ class BookingPersistenceAdapterArrowContractTest {
     authenticate("u_other-user")
     val adapter = BookingPersistenceAdapter(
       appointmentRepository(findByUserId = { _, _ -> listOf(entity) }),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findByUserId("u_other-user", Pageable.unpaged())
@@ -115,7 +112,7 @@ class BookingPersistenceAdapterArrowContractTest {
   fun `findById returns left when repository fails`() = runBlocking {
     val adapter = BookingPersistenceAdapter(
       appointmentRepository(findByAppointmentId = { throw DataAccessResourceFailureException("db down") }),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findById("a_test-appointment")
@@ -130,7 +127,7 @@ class BookingPersistenceAdapterArrowContractTest {
     authenticate("u_test-user")
     val adapter = BookingPersistenceAdapter(
       appointmentRepository(findByUserId = { _, _ -> throw DataAccessResourceFailureException("db down") }),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.findByUserId("u_test-user", Pageable.unpaged())
@@ -146,7 +143,7 @@ class BookingPersistenceAdapterArrowContractTest {
     authenticate("u_other-user")
     val adapter = BookingPersistenceAdapter(
       appointmentRepository(findByAppointmentId = { apptId -> if (apptId == entity.appointmentId) entity else null }),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.handle(startedEvent(entity))
@@ -166,7 +163,7 @@ class BookingPersistenceAdapterArrowContractTest {
         findByAppointmentId = { apptId -> if (apptId == entity.appointmentId) entity else null },
         save = { throw DataAccessResourceFailureException("db down") }
       ),
-      aclChecker()
+      accessSubjects()
     )
 
     val result = adapter.handle(startedEvent(entity))

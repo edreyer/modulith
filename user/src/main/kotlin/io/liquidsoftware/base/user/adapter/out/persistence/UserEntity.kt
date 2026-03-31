@@ -8,6 +8,7 @@ import io.liquidsoftware.base.user.domain.Role
 import io.liquidsoftware.common.persistence.BaseMongoEntity
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
+import io.liquidsoftware.common.security.acl.SecuredResource
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 
@@ -29,9 +30,9 @@ internal class UserEntity(
 
   var active: Boolean = true
 
-) : BaseMongoEntity(userId, UserNamespace.NAMESPACE) {
+) : BaseMongoEntity(userId, UserNamespace.NAMESPACE), SecuredResource {
 
-  fun acl() = Acl.of(userId, userId, AclRole.MANAGER)
+  override fun acl() = Acl.of(userId, userId, AclRole.MANAGER)
 
   fun handle(event: UserEvent): UserEntity {
     return when(event) {

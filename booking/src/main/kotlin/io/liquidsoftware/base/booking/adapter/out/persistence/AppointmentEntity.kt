@@ -12,6 +12,7 @@ import io.liquidsoftware.common.persistence.BaseMongoEntity
 import io.liquidsoftware.common.persistence.NamespaceIdGenerator
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
+import io.liquidsoftware.common.security.acl.SecuredResource
 import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
@@ -37,9 +38,9 @@ internal class AppointmentEntity(
 
   var paymentId: String? = null
 
-) : BaseMongoEntity(appointmentId, BookingNamespaces.APPOINTMENT_NS) {
+) : BaseMongoEntity(appointmentId, BookingNamespaces.APPOINTMENT_NS), SecuredResource {
 
-  fun acl() = Acl.of(appointmentId, userId, AclRole.MANAGER)
+  override fun acl() = Acl.of(appointmentId, userId, AclRole.MANAGER)
 
   fun handle(event: AppointmentEvent): AppointmentEntity {
     return when(event) {

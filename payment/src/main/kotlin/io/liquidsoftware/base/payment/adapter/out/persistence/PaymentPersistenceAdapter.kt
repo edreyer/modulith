@@ -15,12 +15,13 @@ import io.liquidsoftware.base.payment.application.port.out.PaymentEventPort
 import io.liquidsoftware.base.payment.domain.ActivePaymentMethod
 import io.liquidsoftware.base.payment.domain.PaymentMethod
 import io.liquidsoftware.base.user.UserId
-import io.liquidsoftware.common.ext.toWorkflowError
 import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
-import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
+import io.liquidsoftware.common.security.ensureCurrentUserCanManage
+import io.liquidsoftware.common.security.ensureCurrentUserCanRead
+import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
 import io.liquidsoftware.common.workflow.WorkflowValidationError
@@ -28,7 +29,7 @@ import io.liquidsoftware.common.workflow.WorkflowValidationError
 internal class PaymentPersistenceAdapter(
   private val paymentMethodRepository: PaymentMethodRepository,
   private val paymentRepository: PaymentRepository,
-  private val ac: SpringSecurityAclChecker
+  private val accessSubjects: SpringSecurityAccessSubjectProvider
 ) : FindPaymentMethodPort, PaymentEventPort {
 
   override suspend fun findByPaymentMethodId(
@@ -44,7 +45,7 @@ internal class PaymentPersistenceAdapter(
           ?.fold(
             { raise(WorkflowValidationError(it)) },
             {
-              ensureCanRead(it.acl())
+              accessSubjects.ensureCurrentUserCanRead(it)
               it
             }
           )
@@ -55,7 +56,7 @@ internal class PaymentPersistenceAdapter(
     either {
       when (event) {
         is PaymentMethodAddedEvent -> {
-          ensureCanManage(event.paymentMethodDto.acl())
+          accessSubjects.ensureCurrentUserCanManage(event.paymentMethodDto.acl())
           workflowBoundary {
             paymentMethodRepository.save(event.paymentMethodDto.toEntity())
           }
@@ -69,7 +70,7 @@ internal class PaymentPersistenceAdapter(
     either {
       when (event) {
         is PaymentMadeEvent -> {
-          ensureCanManage(event.paymentDto.acl())
+          accessSubjects.ensureCurrentUserCanManage(event.paymentDto.acl())
           workflowBoundary {
             paymentRepository.save(event.paymentDto.toEntity())
           }
@@ -107,26 +108,6 @@ internal class PaymentPersistenceAdapter(
         pmEntity.lastFour
       )
     }
-  }
-
-  context(_: arrow.core.raise.Raise<WorkflowError>)
-  private suspend fun ensureCanRead(acl: Acl) {
-    either {
-      ac.ensureCanRead(acl)
-    }.fold(
-      { raise(it.toWorkflowError()) },
-      {}
-    )
-  }
-
-  context(_: arrow.core.raise.Raise<WorkflowError>)
-  private suspend fun ensureCanManage(acl: Acl) {
-    either {
-      ac.ensureCanManage(acl)
-    }.fold(
-      { raise(it.toWorkflowError()) },
-      {}
-    )
   }
 
 }

@@ -3,8 +3,9 @@ package io.liquidsoftware.common.ext
 import arrow.core.raise.Raise
 import arrow.core.raise.context.raise
 import com.mongodb.MongoException
+import io.liquidsoftware.common.security.acl.AccessDenied
 import io.liquidsoftware.common.security.acl.AuthorizationError
-import io.liquidsoftware.common.security.acl.PermissionDenied
+import io.liquidsoftware.common.security.acl.DenialContext
 import io.liquidsoftware.common.workflow.ServerError
 import io.liquidsoftware.common.workflow.UnauthorizedWorkflowError
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -23,8 +24,13 @@ fun Throwable.toWorkflowError(): WorkflowError = when (this) {
 }
 
 fun AuthorizationError.toWorkflowError(): WorkflowError = when (this) {
-  is PermissionDenied -> UnauthorizedWorkflowError(
-    "No access to: $resourceId Permission: $permission Subject: $subjectId"
+  is AccessDenied -> UnauthorizedWorkflowError(
+    when (val denialContext = context) {
+      is DenialContext.Acl ->
+        "No access to: ${denialContext.resourceId} Permission: $permission Subject: ${denialContext.subjectId}"
+      DenialContext.Unknown ->
+        "No access. Permission: $permission"
+    }
   )
 }
 

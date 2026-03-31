@@ -2,7 +2,6 @@ package io.liquidsoftware.base.booking.adapter.out.persistence
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.raise.Raise
 import arrow.core.raise.context.raise
 import arrow.core.raise.either
 import arrow.core.right
@@ -26,12 +25,13 @@ import io.liquidsoftware.base.booking.domain.PaidWorkOrder
 import io.liquidsoftware.base.booking.domain.ReadyWorkOrder
 import io.liquidsoftware.base.booking.domain.ScheduledAppointment
 import io.liquidsoftware.base.booking.domain.WorkOrder
-import io.liquidsoftware.common.ext.toWorkflowError
 import io.liquidsoftware.common.ext.withContextIO
 import io.liquidsoftware.common.ext.workflowBoundary
 import io.liquidsoftware.common.security.acl.Acl
 import io.liquidsoftware.common.security.acl.AclRole
-import io.liquidsoftware.common.security.spring.arrow.SpringSecurityAclChecker
+import io.liquidsoftware.common.security.ensureCurrentUserCanRead
+import io.liquidsoftware.common.security.ensureCurrentUserCanWrite
+import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
 import io.liquidsoftware.common.types.ValidationError
 import io.liquidsoftware.common.types.ValidationErrors
 import io.liquidsoftware.common.workflow.WorkflowError
@@ -41,7 +41,7 @@ import java.time.LocalDate
 
 internal class BookingPersistenceAdapter(
   private val apptRepository: AppointmentRepository,
-  private val ac: SpringSecurityAclChecker
+  private val accessSubjects: SpringSecurityAccessSubjectProvider
 ) : FindAppointmentPort, AppointmentEventPort {
 
   override suspend fun findById(apptId: String): Either<WorkflowError, Appointment?> =
@@ -54,7 +54,7 @@ internal class BookingPersistenceAdapter(
           { raise(WorkflowValidationError(it)) },
           { it }
         )
-        ensureCanRead(appointment.acl())
+        accessSubjects.ensureCurrentUserCanRead(appointment)
         appointment
       }
     }
@@ -105,7 +105,11 @@ internal class BookingPersistenceAdapter(
                 { it }
               )
           }
-          .onEach { appointment -> ensureCanRead(appointment.acl()) }
+          .also { appointments ->
+            for (appointment in appointments) {
+              accessSubjects.ensureCurrentUserCanRead(appointment)
+            }
+          }
       }
     }
 
@@ -136,7 +140,7 @@ internal class BookingPersistenceAdapter(
             apptRepository.findByAppointmentId(event.appointmentDto.id)
           }
             ?.let {
-              ensureCanWrite(it.acl())
+              accessSubjects.ensureCurrentUserCanWrite(it)
               it.handle(event)
             }
             ?.let {
@@ -150,7 +154,7 @@ internal class BookingPersistenceAdapter(
             apptRepository.findByAppointmentId(event.appointmentDto.id)
           }
             ?.let {
-              ensureCanWrite(Acl.of(it.appointmentId, it.userId, AclRole.WRITER))
+              accessSubjects.ensureCurrentUserCanWrite(Acl.of(it.appointmentId, it.userId, AclRole.WRITER))
               it.handle(event)
             }
             ?.let {
@@ -160,26 +164,6 @@ internal class BookingPersistenceAdapter(
         }
       }
     }
-  }
-
-  context(_: Raise<WorkflowError>)
-  private suspend fun ensureCanRead(acl: Acl) {
-    either {
-      ac.ensureCanRead(acl)
-    }.fold(
-      { raise(it.toWorkflowError()) },
-      {}
-    )
-  }
-
-  context(_: Raise<WorkflowError>)
-  private suspend fun ensureCanWrite(acl: Acl) {
-    either {
-      ac.ensureCanWrite(acl)
-    }.fold(
-      { raise(it.toWorkflowError()) },
-      {}
-    )
   }
 
   private fun AppointmentEntity.toAppointment(): Either<ValidationErrors, Appointment> {

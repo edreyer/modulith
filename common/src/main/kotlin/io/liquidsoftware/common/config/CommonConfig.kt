@@ -1,5 +1,8 @@
 package io.liquidsoftware.common.config
 
+import io.liquidsoftware.common.security.spring.AuthenticationAccessSubjectResolver
+import io.liquidsoftware.common.security.spring.SpringSecurityAccessSubjectProvider
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
@@ -18,5 +21,12 @@ class CommonConfig {
   @Bean
   fun passwordEncoder(): PasswordEncoder =
     PasswordEncoderFactories.createDelegatingPasswordEncoder()
+
+  @Bean
+  @ConditionalOnMissingBean(SpringSecurityAccessSubjectProvider::class)
+  fun springSecurityAccessSubjectProvider(
+    resolver: AuthenticationAccessSubjectResolver,
+  ): SpringSecurityAccessSubjectProvider =
+    SpringSecurityAccessSubjectProvider(resolver)
 
 }
